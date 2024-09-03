@@ -20,8 +20,7 @@ declare(strict_types=1);
 
 namespace ILIAS\Test\Scoring\Manual;
 
-use ilCtrlException;
-use ILIAS\Test\Logging\TestScoringInteraction;
+use ILIAS\Test\Presentation\TabsManager;
 use ILIAS\Test\Logging\TestScoringInteractionTypes;
 use ILIAS\Test\Logging\AdditionalInformationGenerator;
 
@@ -125,7 +124,7 @@ class TestScoringByParticipantGUI extends \ilTestServiceGUI
             $this->ctrl->redirectByClass("ilobjtestgui", "infoScreen");
         }
 
-        $this->tabs->activateTab(\ilTestTabsManager::TAB_ID_MANUAL_SCORING);
+        $this->tabs->activateTab(TabsManager::TAB_ID_MANUAL_SCORING);
         $this->buildSubTabs($this->getActiveSubTabId());
 
         $command = $this->ctrl->getCmd($this->getDefaultCommand());
@@ -345,9 +344,6 @@ class TestScoringByParticipantGUI extends \ilTestServiceGUI
         return true;
     }
 
-    /**
-     * @throws ilCtrlException
-     */
     private function saveNextManScoringParticipantScreen(): void
     {
         $table = $this->buildManScoringParticipantsTable(true);
@@ -372,9 +368,6 @@ class TestScoringByParticipantGUI extends \ilTestServiceGUI
         }
     }
 
-    /**
-     * @throws ilCtrlException
-     */
     private function saveReturnManScoringParticipantScreen(): void
     {
         if ($this->saveManScoringParticipantScreen(false)) {
