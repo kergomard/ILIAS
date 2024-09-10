@@ -484,8 +484,7 @@ class TabsManager
         }
 
         if ($this->checkScoreParticipantsTabAccess()) {
-            $scoring = \ilObjTestFolder::_getManualScoring();
-            if (count($scoring)) {
+            if ($this->test_object->getGlobalSettings()->isManualScoringEnabled()) {
                 // scoring tab
                 $this->tabs->addTarget(
                     self::TAB_ID_MANUAL_SCORING,
