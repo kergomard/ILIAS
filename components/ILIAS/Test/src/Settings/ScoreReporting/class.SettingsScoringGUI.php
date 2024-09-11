@@ -24,6 +24,7 @@ use ILIAS\Test\Settings\TestSettingsGUI;
 use ILIAS\Test\Scoring\Settings\Settings as SettingsScoring;
 use ILIAS\Test\Logging\TestLogger;
 use ILIAS\Test\Logging\TestAdministrationInteractionTypes;
+use ILIAS\Test\Presentation\TabsManager;
 
 use ILIAS\UI\Factory as UIFactory;
 use ILIAS\UI\Renderer as UIRenderer;
@@ -95,7 +96,7 @@ class SettingsScoringGUI extends TestSettingsGUI
             $this->ctrl->redirect($this->test_gui, 'infoScreen');
         }
 
-        $this->tabs->activateSubTab(\ilTestTabsManager::SETTINGS_SUBTAB_ID_SCORING);
+        $this->tabs->activateSubTab(TabsManager::SETTINGS_SUBTAB_ID_SCORING);
 
         $nextClass = $this->ctrl->getNextClass();
         switch ($nextClass) {
