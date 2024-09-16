@@ -18,7 +18,7 @@
 
 declare(strict_types=1);
 
-use ILIAS\Test\Questions\QuestionsTableQuery;
+use ILIAS\Test\Questions\Presentation\QuestionsTableQuery;
 
 use ILIAS\DI\Container;
 
