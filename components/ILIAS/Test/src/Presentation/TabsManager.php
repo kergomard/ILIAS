@@ -25,7 +25,6 @@ use ILIAS\Test\Settings\ScoreReporting\SettingsScoringGUI;
 use ILIAS\Test\Scoring\Manual\TestScoringByQuestionGUI;
 use ILIAS\Test\Scoring\Marks\MarkSchemaGUI;
 use ILIAS\Test\Presentation\TestScreenGUI;
-
 use ILIAS\HTTP\Wrapper\RequestWrapper;
 use ILIAS\Refinery\Factory as Refinery;
 
@@ -505,17 +504,6 @@ class TabsManager
                     ''
                 );
             }
-        }
-
-        // NEW CORRECTIONS TAB
-        $setting = new \ilSetting('assessment');
-        $scoring_adjust_active = (bool) $setting->get('assessment_adjustments_enabled', '0');
-        if ($this->isWriteAccessGranted() && $scoring_adjust_active) {
-            $this->tabs->addTab(
-                self::TAB_ID_CORRECTION,
-                $this->lng->txt(self::TAB_ID_CORRECTION),
-                $this->ctrl->getLinkTargetByClass([\ilObjTestGUI::class, \ilTestCorrectionsGUI::class])
-            );
         }
 
         if ($this->checkStatisticsTabAccess()) {
