@@ -52,7 +52,7 @@ use ILIAS\HTTP\Services as HTTPServices;
  * @ilCtrl_Calls   ilObjQuestionPoolGUI: assOrderingQuestionGUI, assImagemapQuestionGUI
  * @ilCtrl_Calls   ilObjQuestionPoolGUI: assNumericGUI, assTextSubsetGUI, assSingleChoiceGUI, ilPropertyFormGUI
  * @ilCtrl_Calls   ilObjQuestionPoolGUI: assTextQuestionGUI, ilObjectMetaDataGUI, ilPermissionGUI, ilObjectCopyGUI
- * @ilCtrl_Calls   ilObjQuestionPoolGUI: ilQuestionPoolExportGUI, ilInfoScreenGUI, ilTaxonomySettingsGUI, ilCommonActionDispatcherGUI
+ * @ilCtrl_Calls   ilObjQuestionPoolGUI: ilExportGUI, ilInfoScreenGUI, ilTaxonomySettingsGUI, ilCommonActionDispatcherGUI
  * @ilCtrl_Calls   ilObjQuestionPoolGUI: ilAssQuestionHintsGUI, ilAssQuestionFeedbackEditingGUI, ilLocalUnitConfigurationGUI
  * @ilCtrl_Calls   ilObjQuestionPoolGUI: ilObjQuestionPoolSettingsGeneralGUI, assFormulaQuestionGUI
  * @ilCtrl_Calls   ilObjQuestionPoolGUI: ilAssQuestionPreviewGUI
@@ -135,8 +135,8 @@ class ilObjQuestionPoolGUI extends ilObjectGUI implements ilCtrlBaseClassInterfa
         $query_params_namespace = ['qpool', 'table'];
         list($url_builder, $action_parameter_token, $row_id_token) = $url_builder->acquireParameters(
             $query_params_namespace,
-            "action", //this is the actions's parameter name
-            "qids"   //this is the parameter name to be used for row-ids
+            'action', //this is the actions's parameter name
+            'qids'   //this is the parameter name to be used for row-ids
         );
         $this->url_builder = $url_builder;
         $this->action_parameter_token = $action_parameter_token;
@@ -348,10 +348,9 @@ class ilObjQuestionPoolGUI extends ilObjectGUI implements ilCtrlBaseClassInterfa
                 $this->ctrl->forwardCommand($cp);
                 break;
 
-            case 'ilquestionpoolexportgui':
-                $exp_gui = new ilQuestionPoolExportGUI($this);
+            case 'ilexportgui':
+                $exp_gui = new ilExportGUI($this);
                 $exp_gui->addFormat('xml', $this->lng->txt('qpl_export_xml'));
-                $exp_gui->addFormat('xlsx', $this->lng->txt('qpl_export_excel'), $this, 'createExportExcel');
                 $ret = $this->ctrl->forwardCommand($exp_gui);
                 break;
 
@@ -1543,7 +1542,7 @@ class ilObjQuestionPoolGUI extends ilObjectGUI implements ilCtrlBaseClassInterfa
             case '':
             case 'ilpermissiongui':
             case 'ilobjectmetadatagui':
-            case 'ilquestionpoolexportgui':
+            case 'ilexportgui':
             case 'ilquestionpoolskilladministrationgui':
                 break;
 
@@ -1558,7 +1557,6 @@ class ilObjQuestionPoolGUI extends ilObjectGUI implements ilCtrlBaseClassInterfa
 
             default:
                 return;
-                break;
         }
         // questions
         $force_active = false;
@@ -1695,9 +1693,9 @@ class ilObjQuestionPoolGUI extends ilObjectGUI implements ilCtrlBaseClassInterfa
         if ($currentUserHasWriteAccess) {
             $this->tabs_gui->addTarget(
                 'export',
-                $this->ctrl->getLinkTargetByClass('ilquestionpoolexportgui', ''),
+                $this->ctrl->getLinkTargetByClass('ilexportgui', ''),
                 '',
-                'ilquestionpoolexportgui'
+                'ilexportgui'
             );
         }
 
