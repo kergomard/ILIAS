@@ -4718,7 +4718,6 @@ class ilObjTest extends ilObject
 
     public function getTestParticipantsForManualScoring($filter = null): array
     {
-        $scoring = ilObjTestFolder::_getManualScoring();
         if (!$this->getGlobalSettings()->isManualScoringEnabled()) {
             return [];
         }
