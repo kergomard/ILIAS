@@ -21,7 +21,6 @@ declare(strict_types=1);
 use ILIAS\Test\Logging\TestAdministrationInteractionTypes;
 use ILIAS\Test\Logging\AdditionalInformationGenerator;
 use ILIAS\Test\Presentation\TabsManager;
-
 use ILIAS\Filesystem\Stream\Streams;
 
 /**
@@ -449,19 +448,6 @@ class ilTestEvaluationGUI extends ilTestServiceGUI
     }
 
     /**
-     * Creates a PDF representation of the answers for a given question in a test
-     *
-     */
-    public function exportQuestionForAllParticipants()
-    {
-        $question_id = $this->testrequest->int('qid');
-        $question_content = $this->getQuestionResultForTestUsers($question_id, $this->object->getTestId());
-        $question_title = assQuestion::instantiateQuestion($question_id)->getTitle();
-        $page = $this->prepareContentForPrint($question_title, $question_content);
-        $this->sendPage($page);
-    }
-
-    /**
      * Creates a ZIP file containing all file uploads for a given question in a test
      *
      */
@@ -753,7 +739,7 @@ class ilTestEvaluationGUI extends ilTestServiceGUI
         $content = [];
         $anchors = [];
 
-        foreach($show_user_results as $selected_user) {
+        foreach ($show_user_results as $selected_user) {
             $active_id = (int) $selected_user;
             $pass = ilObjTest::_getResultPass($active_id);
 
@@ -1776,39 +1762,7 @@ class ilTestEvaluationGUI extends ilTestServiceGUI
 
     protected function redirectBackToParticipantsScreen()
     {
-        $this->ctrl->redirectByClass("ilTestParticipantsGUI");
-    }
-
-    protected function prepareContentForPrint(string $question_title, string $question_content): string
-    {
-        $tpl = new ilGlobalTemplate(
-            "tpl.question_statistics_print_view.html",
-            true,
-            true,
-            "components/ILIAS/Test"
-        );
-
-        $tpl->addCss(\ilUtil::getStyleSheetLocation("filesystem"));
-        $tpl->addCss(\ilObjStyleSheet::getContentPrintStyle());
-        $tpl->addCss(\ilObjStyleSheet::getSyntaxStylePath());
-        $tpl->addCss(ilUtil::getStyleSheetLocation("output", "test_print.css"), "print");
-
-        ilMathJax::getInstance()->includeMathJax($tpl);
-
-        foreach ($this->global_screen->layout()->meta()->getJs()->getItemsInOrderOfDelivery() as $js) {
-            $path = explode("?", $js->getContent());
-            $file = $path[0];
-            $tpl->addJavaScript($file, $js->addVersionNumber());
-        }
-        foreach ($this->global_screen->layout()->meta()->getOnLoadCode()->getItemsInOrderOfDelivery() as $code) {
-            $tpl->addOnLoadCode($code->getContent());
-        }
-
-        $tpl->addOnLoadCode("il.Util.print();");
-
-        $tpl->setVariable("QUESTION_TITLE", $question_title);
-        $tpl->setVariable("QUESTION_CONTENT", $question_content);
-        return $tpl->printToString();
+        $this->ctrl->redirectByClass('ilTestParticipantsGUI');
     }
 
     protected function sendPage(string $page)

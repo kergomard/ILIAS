@@ -24,6 +24,8 @@ use ILIAS\Test\Utilities\TitleColumnsBuilder;
 use ILIAS\Test\Questions\Presentation\QuestionsTable;
 use ILIAS\Test\Questions\Presentation\QuestionsTableQuery;
 use ILIAS\Test\Questions\Presentation\QuestionsTableActions;
+use ILIAS\Test\Questions\Presentation\Printer as QuestionPrinter;
+use ILIAS\Test\Questions\Properties\Repository as TestQuestionsRepository;
 use ILIAS\Test\Settings\MainSettings\SettingsMainGUI;
 use ILIAS\Test\Settings\ScoreReporting\SettingsScoringGUI;
 use ILIAS\Test\Scoring\Settings\Settings as SettingsScoring;
@@ -37,7 +39,6 @@ use ILIAS\Test\Logging\TestAdministrationInteractionTypes;
 use ILIAS\Test\Presentation\TestScreenGUI;
 use ILIAS\Test\Presentation\TabsManager;
 use ILIAS\Test\ExportImport\Factory as ExportImportFactory;
-use ILIAS\Test\Questions\Properties\Repository as TestQuestionsRepository;
 use ILIAS\TestQuestionPool\Questions\GeneralQuestionPropertiesRepository;
 use ILIAS\TestQuestionPool\RequestDataCollector as QPLRequestDataCollector;
 use ILIAS\TestQuestionPool\Import\TestQuestionsImportTrait;
@@ -835,12 +836,10 @@ class ilObjTestGUI extends ilObjectGUI implements ilCtrlBaseClassInterface, ilDe
                 $gui = new ilTestCorrectionsGUI(
                     $this->db,
                     $this->ctrl,
-                    $this->access,
                     $this->lng,
                     $this->tabs_gui,
                     $this->help,
                     $this->ui_factory,
-                    $this->ui_renderer,
                     $this->tpl,
                     $this->refinery,
                     $this->getTestObject()->getTestLogger(),
@@ -1577,11 +1576,6 @@ class ilObjTestGUI extends ilObjectGUI implements ilCtrlBaseClassInterface, ilDe
         exit;
     }
 
-    public function backObject()
-    {
-        $this->ctrl->redirect($this, self::SHOW_QUESTIONS_CMD);
-    }
-
     public function createQuestionPool($name = "dummy", $description = ""): ilObjQuestionPool
     {
         $parent_ref = $this->tree->getParentId($this->getTestObject()->getRefId());
@@ -1649,163 +1643,7 @@ class ilObjTestGUI extends ilObjectGUI implements ilCtrlBaseClassInterface, ilDe
         $this->ctrl->redirect($this, self::SHOW_QUESTIONS_CMD);
     }
 
-    public function cancelRemoveQuestionsObject()
-    {
-        $this->ctrl->redirect($this, self::SHOW_QUESTIONS_CMD);
-    }
-
-    /**
-    * @param array $selected_questions
-    */
-    public function removeQuestionsForm(array $selected_questions): void
-    {
-        $total = $this->getTestObject()->evalTotalPersons();
-        if ($total > 0) {
-            // the test was executed previously
-            $question = sprintf($this->lng->txt("tst_remove_questions_and_results"), $total);
-        } else {
-            $question = $this->lng->txt("tst_remove_questions");
-            if (count($selected_questions) === 1) {
-                $question = $this->lng->txt("tst_remove_question");
-            }
-        }
-
-        $cgui = new ilConfirmationGUI();
-        $cgui->setHeaderText($question);
-
-        $this->ctrl->saveParameter($this, 'q_id');
-
-        $cgui->setFormAction($this->ctrl->getFormAction($this));
-        $cgui->setCancel($this->lng->txt("cancel"), "cancelRemoveQuestions");
-        $cgui->setConfirm($this->lng->txt("confirm"), "confirmRemoveQuestions");
-        $removablequestions = $this->getTestObject()->getTestQuestions();
-        if (count($removablequestions)) {
-            foreach ($removablequestions as $data) {
-                if (in_array($data["question_id"], $selected_questions)) {
-                    $txt = $data["title"] . " (" . $this->questionrepository->getForQuestionId($data['question_id'])->getTypeName($this->lng) . ")";
-                    $txt .= ' [' . $this->lng->txt('question_id_short') . ': ' . $data['question_id'] . ']';
-
-                    if ($data["description"]) {
-                        $txt .= "<div class=\"small\">" . $data["description"] . "</div>";
-                    }
-
-                    $cgui->addItem("q_id[]", (string) $data["question_id"], $txt);
-                }
-            }
-        }
-
-        $this->tpl->setContent($cgui->getHTML());
-    }
-
-    /**
-     * Called when a selection of questions should be removed from the test
-     */
-    public function removeQuestionsObject()
-    {
-        $this->tabs_manager->getQuestionsSubTabs();
-        $this->tabs_manager->activateSubTab(TabsManager::SUBTAB_ID_QST_LIST_VIEW);
-
-        $selected_questions = $this->testrequest->raw('q_id');
-
-        if (!is_array($selected_questions) && $selected_questions) {
-            $selected_questions = [$selected_questions];
-        }
-
-        if (!is_array($selected_questions)) {
-            $selected_questions = [];
-        }
-
-        if (count($selected_questions) > 0) {
-            $this->removeQuestionsForm($selected_questions);
-        } elseif (0 === count($selected_questions)) {
-            $this->tpl->setOnScreenMessage('failure', $this->lng->txt("tst_no_question_selected_for_removal"), true);
-            $this->ctrl->redirect($this, "questions");
-        }
-    }
-
-    /**
-    * Marks selected questions for moving
-    */
-    public function moveQuestionsObject(): void
-    {
-        $selected_questions = $this->testrequest->getQuestionIds();
-        $selected_question = $this->testrequest->getQuestionId();
-        if ($selected_questions === [] && $selected_question !== 0) {
-            $selected_questions = [$selected_question];
-        }
-
-        if ($selected_questions === []) {
-            $this->tpl->setOnScreenMessage('failure', $this->lng->txt('no_selection_for_move'), true);
-            $this->ctrl->redirect($this, self::SHOW_QUESTIONS_CMD);
-            return;
-        }
-
-        ilSession::set('tst_qst_move_' . $this->getTestObject()->getTestId(), $selected_questions);
-        $this->tpl->setOnScreenMessage('success', $this->lng->txt("msg_selected_for_move"), true);
-        $this->ctrl->redirect($this, self::SHOW_QUESTIONS_CMD);
-    }
-
-    /**
-    * Insert checked questions before the actual selection
-    */
-    public function insertQuestionsBeforeObject()
-    {
-        // get all questions to move
-        $move_questions = ilSession::get('tst_qst_move_' . $this->getTestObject()->getTestId());
-
-        $qst_ids = $this->testrequest->getQuestionIds();
-        if ($qst_ids === []) {
-            $this->tpl->setOnScreenMessage('failure', $this->lng->txt("no_target_selected_for_move"), true);
-            $this->ctrl->redirect($this, self::SHOW_QUESTIONS_CMD);
-        }
-        if (count($qst_ids) > 1) {
-            $this->tpl->setOnScreenMessage('failure', $this->lng->txt("too_many_targets_selected_for_move"), true);
-            $this->ctrl->redirect($this, self::SHOW_QUESTIONS_CMD);
-        }
-        $insert_mode = 0;
-        $this->getTestObject()->moveQuestions(
-            ilSession::get('tst_qst_move_' . $this->getTestObject()->getTestId()),
-            $qst_ids[0],
-            $insert_mode
-        );
-        $this->tpl->setOnScreenMessage('success', $this->lng->txt("msg_questions_moved"), true);
-        ilSession::clear('tst_qst_move_' . $this->getTestObject()->getTestId());
-        $this->ctrl->redirect($this, "showQuestions");
-    }
-
-    /**
-    * Insert checked questions after the actual selection
-    */
-    public function insertQuestionsAfterObject()
-    {
-        // get all questions to move
-        $move_questions = ilSession::get('tst_qst_move_' . $this->getTestObject()->getTestId());
-        $qst_ids = $this->testrequest->getQuestionIds();
-        if ($qst_ids === []) {
-            $this->tpl->setOnScreenMessage('failure', $this->lng->txt("no_target_selected_for_move"), true);
-            $this->ctrl->redirect($this, self::SHOW_QUESTIONS_CMD);
-        }
-        if (count($qst_ids) > 1) {
-            $this->tpl->setOnScreenMessage('failure', $this->lng->txt("too_many_targets_selected_for_move"), true);
-            $this->ctrl->redirect($this, self::SHOW_QUESTIONS_CMD);
-        }
-        $insert_mode = 1;
-        $this->getTestObject()->moveQuestions(
-            ilSession::get('tst_qst_move_' . $this->getTestObject()->getTestId()),
-            $qst_ids[0],
-            $insert_mode
-        );
-        $this->tpl->setOnScreenMessage('success', $this->lng->txt("msg_questions_moved"), true);
-        ilSession::clear('tst_qst_move_' . $this->getTestObject()->getTestId());
-        $this->ctrl->redirect($this, "showQuestions");
-    }
-
-    /**
-    * Insert questions from the questionbrowser into the test
-    *
-    * @access	public
-    */
-    public function insertQuestionsObject(array $selected_array = null): void
+    private function insertQuestionsObject(array $selected_array = null): void
     {
         if (($selected_array ?? $this->testrequest->getQuestionIds()) === []) {
             $this->tpl->setOnScreenMessage('info', $this->lng->txt('tst_insert_missing_question'), true);
@@ -2004,12 +1842,11 @@ class ilObjTestGUI extends ilObjectGUI implements ilCtrlBaseClassInterface, ilDe
         $total = $this->getTestObject()->evalTotalPersons();
         if ($total > 0) {
             // the test was executed previously
-            $this->tpl->setOnScreenMessage('info', sprintf($this->lng->txt('tst_insert_questions_and_results'), $total));
-        } else {
-            $this->tpl->setOnScreenMessage('info', $this->lng->txt('tst_insert_questions'));
+            $this->tpl->setOnScreenMessage('failure', $this->lng->txt('test_has_datasets_warning_page_view'));
+            $this->showQuestionsObject();
+            return;
         }
-        // @PHP8-CR This call seems to be critically important for the method, but I cannot see how to fix it yet.
-        // I leave the warning "intact" for further analysis, possibly by T&A TechSquad.
+        $this->tpl->setOnScreenMessage('info', $this->lng->txt('tst_insert_questions'));
         $this->insertQuestionsObject($selected_array);
     }
 
@@ -2906,15 +2743,23 @@ class ilObjTestGUI extends ilObjectGUI implements ilCtrlBaseClassInterface, ilDe
                 $this->ui_factory,
                 $this->ui_renderer,
                 $this->tpl,
-                $this->tabs_manager,
-                $this->toolbar,
-                $this->refinery,
                 $this->request,
                 $this->getQuestionsTableQuery(),
                 $this->lng,
                 $this->ctrl,
                 $this->test_questions_repository,
-                new \ilTestQuestionHeaderBlockBuilder($this->lng),
+                new QuestionPrinter(
+                    $this->ui_factory,
+                    $this->tpl,
+                    $this->tabs_manager,
+                    $this->toolbar,
+                    $this->refinery,
+                    $this->lng,
+                    $this->ctrl,
+                    $this->test_questions_repository,
+                    new \ilTestQuestionHeaderBlockBuilder($this->lng),
+                    $this->getTestObject()
+                ),
                 $this->object,
                 $this->getTestObject()->getGlobalSettings()->isAdjustingQuestionsWithResultsAllowed(),
                 $this->getTestObject()->evalTotalPersons() !== 0,

@@ -19,7 +19,6 @@
 declare(strict_types=1);
 
 use ILIAS\Test\Questions\Presentation\QuestionsTableQuery;
-
 use ILIAS\DI\Container;
 
 class QuestionsTableQueryMock extends QuestionsTableQuery
@@ -163,31 +162,5 @@ class ilObjTestGUITest extends ilTestBaseTestCase
             ->with($testObj, ilObjTestGUI::SHOW_QUESTIONS_CMD)
         ;
         $testObj->cancelCreateQuestionObject();
-    }
-
-    public function testCancelRemoveQuestionsObject(): void
-    {
-        $ctrl_mock = $this->createMock(ilCtrl::class);
-        $this->setGlobalVariable('ilCtrl', $ctrl_mock);
-        $testObj = $this->getNewTestGUI();
-        $ctrl_mock
-            ->expects($this->once())
-            ->method('redirect')
-            ->with($testObj, ilObjTestGUI::SHOW_QUESTIONS_CMD)
-        ;
-        $testObj->cancelRemoveQuestionsObject();
-    }
-
-    public function testMoveQuestionsObject(): void
-    {
-        $ctrl_mock = $this->createMock(ilCtrl::class);
-        $this->setGlobalVariable('ilCtrl', $ctrl_mock);
-        $testObj = $this->getNewTestGUI();
-        $ctrl_mock
-            ->expects($this->once())
-            ->method('redirect')
-            ->with($testObj, ilObjTestGUI::SHOW_QUESTIONS_CMD)
-        ;
-        $testObj->moveQuestionsObject();
     }
 }
