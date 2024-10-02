@@ -23,10 +23,8 @@ use ILIAS\Test\RequestDataCollector;
 use ILIAS\Test\TestManScoringDoneHelper;
 use ILIAS\Test\Logging\TestLogger;
 use ILIAS\Test\Logging\TestLogViewer;
-
 use ILIAS\TestQuestionPool\Import\TestQuestionsImportTrait;
 use ILIAS\TestQuestionPool\Questions\GeneralQuestionPropertiesRepository;
-
 use ILIAS\Test\Logging\TestAdministrationInteractionTypes;
 use ILIAS\Test\Logging\TestScoringInteractionTypes;
 use ILIAS\Test\Logging\AdditionalInformationGenerator;
@@ -44,7 +42,6 @@ use ILIAS\Test\Settings\ScoreReporting\ScoreSettingsDatabaseRepository;
 use ILIAS\Test\Settings\ScoreReporting\SettingsResultSummary;
 use ILIAS\Test\Settings\ScoreReporting\ScoreSettings;
 use ILIAS\Test\Export\CSVExportTrait;
-
 use ILIAS\Refinery\Factory as Refinery;
 use ILIAS\Filesystem\Filesystem;
 use ILIAS\Filesystem\Stream\Streams;
@@ -1431,7 +1428,7 @@ class ilObjTest extends ilObject
      */
     public function getQuestionTitle($title, $nr = null, $points = null): string
     {
-        switch($this->getTitleOutput()) {
+        switch ($this->getTitleOutput()) {
             case '0':
             case '1':
                 return $title;
@@ -1448,7 +1445,7 @@ class ilObjTest extends ilObject
                 } else {
                     $txt = $this->lng->txt("ass_question");
                 }
-                if($points != '') {
+                if ($points != '') {
                     $lngv = $this->lng->txt('points');
                     if ($points == 1) {
                         $lngv = $this->lng->txt('point');
@@ -4115,7 +4112,8 @@ class ilObjTest extends ilObject
                     $matches[4],
                     $matches[5],
                     $matches[6]
-                )
+                ),
+                new \DateTimeZone('UTC')
             );
         }
         return null;
