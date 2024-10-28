@@ -27,9 +27,17 @@ class ilObjectCopyProgressTableGUI extends ilTable2GUI
 {
     protected array $objects = [];
 
+    protected \ILIAS\Data\Factory $data_factory;
+    protected \ILIAS\UI\Renderer $ui_renderer;
+    protected \ILIAS\UI\Factory $ui_factory;
+
     public function __construct(ilObjectCopyGUI $parent_obj, string $parent_cmd, int $id)
     {
+        global $DIC;
         $this->setId('obj_cp_prog_tbl_' . $id);
+        $this->ui_factory = $DIC->ui()->factory();
+        $this->ui_renderer = $DIC->ui()->renderer();
+        $this->data_factory = new \ILIAS\Data\Factory();
         parent::__construct($parent_obj, $parent_cmd);
     }
 
@@ -73,16 +81,11 @@ class ilObjectCopyProgressTableGUI extends ilTable2GUI
         $this->tpl->setVariable('TYPE_IMG', ilObject::_getIcon($set['obj_id'], "small", $set['type']));
         $this->tpl->setVariable('TYPE_STR', $this->lng->txt('obj_' . $set['type']));
 
-        $progress = ilProgressBar::getInstance();
-        $progress->setType(ilProgressBar::TYPE_SUCCESS);
-        $progress->setMin(0);
-        $progress->setMax($set['max_steps']);
-        $progress->setCurrent(0);
-        $progress->setAnimated(true);
-        $progress->setId((string) $set['copy_id']);
-
         $this->ctrl->setParameter($this->getParentObject(), '_copy_id', $set['copy_id']);
-        $progress->setAsyncStatusUrl(
+        $this->ctrl->setParameter($this->getParentObject(), '_max_steps', $set['max_steps']);
+
+        $progress_endpoint = $this->data_factory->uri(
+            ILIAS_HTTP_PATH . '/' .
             $this->ctrl->getLinkTarget(
                 $this->getParentObject(),
                 'updateProgress',
@@ -91,8 +94,15 @@ class ilObjectCopyProgressTableGUI extends ilTable2GUI
             )
         );
 
-        $progress->setAsynStatusTimeout(1);
-        $this->tpl->setVariable('PROGRESS_BAR', $progress->render());
+        $progress_bar = $this->ui_factory->progress()->bar(
+            $this->lng->txt('copy_of') . ' ' . $set['title'],
+            $progress_endpoint
+        );
+
+        $this->tpl->setVariable('PROGRESS_BAR', $this->ui_renderer->render($progress_bar));
+
+        // start pulling progress from $endpoint once as soon as the page has loaded.
+        $this->main_tpl->addOnLoadCode("il.UI.Progress.Bar.indeterminate('{$progress_bar->getUpdateSignal()}')");
     }
 
     public function parse(): void
