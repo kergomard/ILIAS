@@ -56,6 +56,7 @@ class Tag extends FormInput implements C\Input\Field\Tag
     protected int $suggestion_starts_with = 1;
     protected array $tags = [];
     protected ?Uri $async_autocomplete = null;
+    protected bool $sortable = false;
 
     public function __construct(
         DataFactory $data_factory,
@@ -82,8 +83,9 @@ class Tag extends FormInput implements C\Input\Field\Tag
         }));
     }
 
-    public function getConfiguration(): stdClass
-    {
+    public function getConfiguration(
+        Closure $txt
+    ): stdClass {
         $options = array_map(
             fn($tag) => [
                 'value' => urlencode(trim($tag)),
@@ -105,6 +107,7 @@ class Tag extends FormInput implements C\Input\Field\Tag
         $configuration->dropdownSuggestionsStartAfter = $this->getSuggestionsStartAfter();
         $configuration->suggestionStarts = $this->getSuggestionsStartAfter();
         $configuration->autocompleteEndpoint = $this->getAsyncAutocomplete()?->__toString();
+        $configuration->sortable = $this->getSortable();
         $configuration->maxChars = 2000;
         $configuration->suggestionLimit = 50;
         $configuration->debug = false;
@@ -112,8 +115,24 @@ class Tag extends FormInput implements C\Input\Field\Tag
         $configuration->highlight = true;
         $configuration->tagClass = "input-tag";
         $configuration->tagTextProp = "displayValue";
+        $configuration->accessibilityInfo = $this->buildAccessibilityInfo($txt);
 
         return $configuration;
+    }
+
+    protected function buildAccessibilityInfo(Closure $txt): array
+    {
+        $default_text = $txt('edit_tag_accessibility_info');
+        if ($this->getSortable()) {
+            $default_text .= " {$txt('sort_tags_accessibility_info')}";
+        }
+
+        return [
+            'default' => $default_text,
+            'tagSelected' => $txt('tag_selected_accessibility_info'),
+            'positionInfoFirst' => $txt('tag_position_first_accessibility_info'),
+            'positionInfo' => $txt('tag_position_accessibility_info')
+        ];
     }
 
     /**
@@ -284,6 +303,24 @@ class Tag extends FormInput implements C\Input\Field\Tag
     public function getAsyncAutocomplete(): ?URI
     {
         return $this->async_autocomplete;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function withSortable(bool $sortable): Tag
+    {
+        $clone = clone $this;
+        $clone->sortable = $sortable;
+        return $clone;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function getSortable(): bool
+    {
+        return $this->sortable;
     }
 
     /**

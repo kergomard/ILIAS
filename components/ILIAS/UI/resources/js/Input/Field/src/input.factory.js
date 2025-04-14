@@ -33,6 +33,7 @@ import TreeSelectFactory from './TreeSelect/TreeSelectFactory.js';
 import JQueryEventListener from '../../../Core/src/JQueryEventListener.js';
 import Tagify from 'Tagify';
 import tag from './Tag/tag.js';
+import draggable from '../../../Draggable/draggable.js';
 
 il.UI = il.UI || {};
 il.UI.Input = il.UI.Input || {};
@@ -48,5 +49,5 @@ il.UI.Input = il.UI.Input || {};
     document,
   );
   Input.tag = Input.tag || {};
-  Input.tag.init = (input, config, value) => tag(Tagify, input, config, value);
+  Input.tag.init = (input, config, value) => tag(Tagify, draggable, input, config, value);
 }(il.UI.Input));
