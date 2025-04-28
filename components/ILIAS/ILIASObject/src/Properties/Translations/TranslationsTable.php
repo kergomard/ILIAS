@@ -151,7 +151,7 @@ class TranslationsTable implements DataRetrieval
             'language' => $cf->text($this->lng->txt('language')),
         ];
         if ($this->translations->getContentTranslationActivated()) {
-            $columns['master'] = $cf->boolean(
+            $columns['base'] = $cf->boolean(
                 $this->lng->txt('obj_base_lang'),
                 $this->ui_factory->symbol()->icon()->custom('assets/images/standard/icon_checked.svg', '', 'small'),
                 $this->ui_factory->symbol()->icon()->custom('assets/images/standard/icon_unchecked.svg', '', 'small')
@@ -323,10 +323,10 @@ class TranslationsTable implements DataRetrieval
     {
         $affected_items = $this->retrieveAffectedItemsFromQuery();
         if (in_array($this->translations->getDefaultLanguage(), $affected_items)
-            || in_array($this->translations->getMasterLanguage(), $affected_items)) {
+            || in_array($this->translations->getBaseLanguage(), $affected_items)) {
             $this->sendAsync(
                 $this->ui_factory->messageBox()->failure(
-                    $this->lng->txt('default_master_lang_not_deletable')
+                    $this->lng->txt('default_base_lang_not_deletable')
                 )
             );
         }

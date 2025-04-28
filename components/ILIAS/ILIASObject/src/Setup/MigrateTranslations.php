@@ -65,7 +65,7 @@ class MigrateTranslations implements Migration
             $this->db->update(
                 'object_translation',
                 [
-                    'lang_master' => [\ilDBConstants::T_INTEGER, 1]
+                    'lang_base' => [\ilDBConstants::T_INTEGER, 1]
                 ],
                 [
                     'obj_id' => [\ilDBConstants::T_INTEGER, $row->obj_id],
