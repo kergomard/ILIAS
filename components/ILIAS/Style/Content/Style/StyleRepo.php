@@ -144,18 +144,8 @@ class StyleRepo
                 $rid,
                 "style.css"
             );
-            if ($add_random) {
-                $random = new \ilRandom();
-                $rand = $random->int(1, 999999);
-                $path .= "?dummy=$rand";
-            }
         } else {
             $path = \ilFileUtils::getWebspaceDir("output") . "/css/style_" . $style_id . ".css";
-            if ($add_random) {
-                $random = new \ilRandom();
-                $rand = $random->int(1, 999999);
-                $path .= "?dummy=$rand";
-            }
             if ($add_token) {
                 $path = \ilWACSignedPath::signFile($path);
             }
