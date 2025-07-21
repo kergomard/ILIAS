@@ -27,12 +27,12 @@ namespace ILIAS\UI\examples\Input\Field\Tag;
  *   form. This example does not contain any data processing.
  *
  * expected output: >
- *   ILIAS shows an input field titled "Sortable TagInput". The Tag, 'Interesting',
+ *   ILIAS shows an input field titled "Orderable TagInput". The Tag, 'Interesting',
  *   'Boring', 'Animating' are already displayed and can be removed through clicking
  *   the "X". Tags can be sorted by dragging and dropping them in the
  * ---
  */
-function base_with_sortable()
+function base_with_orderable()
 {
     /** @var \ILIAS\DI\Container $DIC */
     global $DIC;
@@ -40,11 +40,11 @@ function base_with_sortable()
     $renderer = $DIC->ui()->renderer();
 
     $tag_input = $ui->input()->field()->tag(
-        'Sortable TagInput',
+        'Orderable TagInput',
         ['Interesting', 'Boring', 'Animating', 'Repetitious'],
         'Just some tags'
     )->withValue(['Interesting', 'Boring', 'Animating'])
-    ->withSortable(true);
+    ->withOrderable(true);
 
     $form = $ui->input()->container()->form()->standard('#', [$tag_input]);
 

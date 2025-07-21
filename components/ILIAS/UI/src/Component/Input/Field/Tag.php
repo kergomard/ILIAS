@@ -102,14 +102,14 @@ interface Tag extends FormInput
     public function getAsyncAutocomplete(): ?URI;
 
     /**
-     * Get an input like this, but allow sorting the items. (Default: not sortable)
+     * Get an input like this, but allow ordering the items. (Default: not orderable)
      */
-    public function withSortable(bool $sortable): Tag;
+    public function withOrderable(bool $orderable): Tag;
 
     /**
-     * @see withAsyncAutocomplete
+     * @see withOrderable
      */
-    public function getSortable(): bool;
+    public function getOrderable(): bool;
 
     // Events
 

@@ -56,7 +56,7 @@ class Tag extends FormInput implements C\Input\Field\Tag
     protected int $suggestion_starts_with = 1;
     protected array $tags = [];
     protected ?Uri $async_autocomplete = null;
-    protected bool $sortable = false;
+    protected bool $orderable = false;
 
     public function __construct(
         DataFactory $data_factory,
@@ -308,19 +308,19 @@ class Tag extends FormInput implements C\Input\Field\Tag
     /**
      * @inheritDoc
      */
-    public function withSortable(bool $sortable): Tag
+    public function withOrderable(bool $orderable): Tag
     {
         $clone = clone $this;
-        $clone->sortable = $sortable;
+        $clone->orderable = $orderable;
         return $clone;
     }
 
     /**
      * @inheritDoc
      */
-    public function getSortable(): bool
+    public function getOrderable(): bool
     {
-        return $this->sortable;
+        return $this->orderable;
     }
 
     /**
