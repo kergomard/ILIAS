@@ -27,6 +27,7 @@ use ILIAS\UI\Implementation\FactoryInternal;
 use ILIAS\Refinery\Factory as RefineryFactory;
 use ILIAS\Refinery\Random\Group as RandomGroup;
 use GuzzleHttp\Psr7\Uri as GuzzleURI;
+use ILIAS\User\PublicInterface;
 
 trait ilTestBaseTestCaseTrait
 {
@@ -328,6 +329,14 @@ trait ilTestBaseTestCaseTrait
         $this->setGlobalVariable(
             'file_delivery',
             $this->getFileDelivery()
+        );
+    }
+
+    protected function addGlobal_user(): void
+    {
+        $this->setGlobalVariable(
+            'user',
+            $this->createMock(PublicInterface::class)
         );
     }
 
