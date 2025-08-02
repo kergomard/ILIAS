@@ -296,7 +296,7 @@ class ilObjUserFolder extends ilObject
 
         $up = new Profile();
         $up->skipField(Roles::class);
-        $profile_fields = $up->getStandardFields();
+        $profile_fields = $up->getFields();
 
         $query = "SELECT * FROM settings WHERE " .
             $ilDB->like("keyword", "text", '%usr_settings_export_%');
@@ -456,7 +456,7 @@ class ilObjUserFolder extends ilObject
         $up = new Profile();
         $up->skipField(Alias::class);
         $up->skipField(Roles::class);
-        $fds = $up->getStandardFields();
+        $fds = $up->getFields();
         $profile_fields = [];
         foreach ($fds as $k => $f) {
             $profile_fields[] = $k;
