@@ -19,7 +19,8 @@
 declare(strict_types=1);
 
 use ILIAS\User\UserGUIRequest;
-use ILIAS\Language\Language;
+use ILIAS\User\Profile\Profile;
+use ILIAS\User\Profile\PublicProfileGUI;
 use ILIAS\FileUpload\FileUpload;
 use ILIAS\ResourceStorage\Services as ResourceStorageServices;
 use ILIAS\ResourceStorage\Stakeholder\ResourceStakeholder;
@@ -45,7 +46,7 @@ class ilObjUserGUI extends ilObjectGUI
     private ResourceStorageServices $irss;
     private ResourceStakeholder $stakeholder;
 
-    private ilUserProfile $user_profile;
+    private Profile $user_profile;
 
     private string $requested_letter = '';
     private string $requested_baseClass = '';
@@ -76,7 +77,7 @@ class ilObjUserGUI extends ilObjectGUI
         $this->help = $DIC['ilHelp'];
         $this->mail_sender_factory = $DIC->mail()->mime()->senderFactory();
 
-        $this->user_profile = new ilUserProfile();
+        $this->user_profile = new Profile();
 
         $this->default_layout_and_style = $DIC['ilClientIniFile']->readVariable('layout', 'skin') .
                 ':' . $DIC['ilClientIniFile']->readVariable('layout', 'style');
@@ -1896,7 +1897,8 @@ class ilObjUserGUI extends ilObjectGUI
         } elseif ($target_cmd === 'contact_ignored') {
             $cmd = 'ignoreContactRequest';
         }
-        $ilCtrl->redirectByClass([ilPublicUserProfileGUI::class], $cmd);
+        $ilCtrl->setParameterByClass('ilpublicuserprofilegui', 'user_id', (int) $a_target);
+        $ilCtrl->redirectByClass([PublicProfileGUI::class], $cmd);
     }
 
     /**
