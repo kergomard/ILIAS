@@ -107,7 +107,7 @@ class Tag extends FormInput implements C\Input\Field\Tag
         $configuration->dropdownSuggestionsStartAfter = $this->getSuggestionsStartAfter();
         $configuration->suggestionStarts = $this->getSuggestionsStartAfter();
         $configuration->autocompleteEndpoint = $this->getAsyncAutocomplete()?->__toString();
-        $configuration->sortable = $this->getSortable();
+        $configuration->orderable = $this->isOrderable();
         $configuration->maxChars = 2000;
         $configuration->suggestionLimit = 50;
         $configuration->debug = false;
@@ -123,7 +123,7 @@ class Tag extends FormInput implements C\Input\Field\Tag
     protected function buildAccessibilityInfo(Closure $txt): array
     {
         $default_text = $txt('edit_tag_accessibility_info');
-        if ($this->getSortable()) {
+        if ($this->isOrderable()) {
             $default_text .= " {$txt('sort_tags_accessibility_info')}";
         }
 
@@ -308,7 +308,7 @@ class Tag extends FormInput implements C\Input\Field\Tag
     /**
      * @inheritDoc
      */
-    public function withOrderable(bool $orderable): Tag
+    public function withIsOrderable(bool $orderable): Tag
     {
         $clone = clone $this;
         $clone->orderable = $orderable;
@@ -318,7 +318,7 @@ class Tag extends FormInput implements C\Input\Field\Tag
     /**
      * @inheritDoc
      */
-    public function getOrderable(): bool
+    public function isOrderable(): bool
     {
         return $this->orderable;
     }

@@ -29,7 +29,9 @@ namespace ILIAS\UI\examples\Input\Field\Tag;
  * expected output: >
  *   ILIAS shows an input field titled "Orderable TagInput". The Tag, 'Interesting',
  *   'Boring', 'Animating' are already displayed and can be removed through clicking
- *   the "X". Tags can be sorted by dragging and dropping them in the
+ *   the "X". Tags can be orderd by dragging and dropping them or by selecting them
+ *   with the "space"-key, moving them with the arrows and dropping them with the
+ *   "escape"-key.
  * ---
  */
 function base_with_orderable()
@@ -44,7 +46,7 @@ function base_with_orderable()
         ['Interesting', 'Boring', 'Animating', 'Repetitious'],
         'Just some tags'
     )->withValue(['Interesting', 'Boring', 'Animating'])
-    ->withOrderable(true);
+    ->withIsOrderable(true);
 
     $form = $ui->input()->container()->form()->standard('#', [$tag_input]);
 

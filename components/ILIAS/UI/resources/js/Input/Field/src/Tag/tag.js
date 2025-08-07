@@ -105,6 +105,10 @@ function retrieveAutocomplete(
     context.timeout = undefined;
   }
 
+  if (event.detail.value.length < context.suggestionsStartAfter) {
+    return;
+  }
+
   context.timeout = instance.DOM.scope.ownerDocument.defaultView.setTimeout(
     () => {
       const searchTerm = event.detail.value;
@@ -229,6 +233,7 @@ export default function init(Tagify, makeDraggable, input, config, value) {
     const context = {
       controller: new AbortController(),
       timeout : undefined,
+      suggestionsStartAfter: config.suggestionStarts,
     };
     instance.on('input', (event) => {
       retrieveAutocomplete(
@@ -239,7 +244,7 @@ export default function init(Tagify, makeDraggable, input, config, value) {
       );
     });
   }
-  if (config.sortable) {
+  if (config.orderable) {
     makeDraggable(
       'move',
       instance.DOM.scope,
