@@ -1250,7 +1250,7 @@ class ilObjUserGUI extends ilObjectGUI
         }
 
         if ($target_user > 0) {
-            $ilCtrl->setParameterByClass(ilPublicUserProfileGUI::class, 'user_id', $target_user);
+            $ilCtrl->setParameterByClass(PublicProfileGUI::class, 'user_id', $target_user);
         }
 
         $cmd = 'view';
@@ -1259,7 +1259,7 @@ class ilObjUserGUI extends ilObjectGUI
         } elseif ($target_cmd === 'contact_ignored') {
             $cmd = 'ignoreContactRequest';
         }
-        $ilCtrl->setParameterByClass('ilpublicuserprofilegui', 'user_id', (int) $a_target);
+        $ilCtrl->setParameterByClass(PublicProfileGUI::class, 'user_id', (int) $a_target);
         $ilCtrl->redirectByClass([PublicProfileGUI::class], $cmd);
     }
 
