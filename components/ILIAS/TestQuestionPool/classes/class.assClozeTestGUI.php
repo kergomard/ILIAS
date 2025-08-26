@@ -36,7 +36,7 @@ use ILIAS\Refinery\Random\Seed;
  * @ingroup 	ModulesTestQuestionPool
  * @ilCtrl_Calls assClozeTestGUI: ilFormPropertyDispatchGUI
  */
-class assClozeTestGUI extends assQuestionGUI implements ilGuiQuestionScoringAdjustable, ilGuiAnswerScoringAdjustable
+class assClozeTestGUI extends assQuestionGUI implements ilGuiQuestionScoringAdjustable, ilGuiAnswerScoringAdjustable, \ILIAS\UI\Component\Table\DataRetrieval
 {
     public const JS_INSERT_GAP_CODE_AT_CARET = <<<JS
     jQuery.fn.extend({
@@ -262,48 +262,693 @@ JS;
         bool $checkonly = false,
         ?bool $is_save_cmd = null
     ): bool {
-        $save = $is_save_cmd ?? $this->isSaveCommand();
+        /** @var ILIAS\DI\Container $DIC */
+        global $DIC;
+        $cmd = $DIC->http()->wrapper()->query()->retrieve(
+            'sub_cmd',
+            $DIC->refinery()->byTrying([
+                $this->refinery->kindlyTo()->string(),
+                $this->refinery->always(null)
+            ])
+        );
 
-        $form = new ilPropertyFormGUI();
-        $this->editForm = $form;
+        $is_edit = $DIC->http()->wrapper()->query()->retrieve(
+            'edit',
+            $DIC->refinery()->byTrying([
+                $this->refinery->kindlyTo()->bool(),
+                $this->refinery->always(false)
+            ])
+        );
 
-        $form->setFormAction($this->ctrl->getFormAction($this));
-        $form->setTitle($this->outQuestionType());
-        $form->setMultipart(false);
-        $form->setTableWidth("100%");
-        $form->setId("assclozetest");
-
-        $this->addBasicQuestionFormProperties($form);
-        $this->populateQuestionSpecificFormPart($form);
-        $this->populateAnswerSpecificFormPart($form);
-        $this->populateTaxonomyFormSection($form);
-
-        $this->addQuestionFormCommandButtons($form);
-
-        $errors = false;
-
-        if ($save) {
-            $form->setValuesByPost();
-            $errors = !$form->checkInput();
-            $form->setValuesByPost();
-
-            $gap_combinations = $this->request_data_collector->raw('gap_combination');
-            if (is_array($gap_combinations)
-                && $gap_combinations !== []
-                && $this->hasErrorInGapCombinationPoints($gap_combinations)) {
-                $this->tpl->setOnScreenMessage('failure', $this->lng->txt('points_non_numeric_or_negative_msg'));
-                $errors = true;
+        if ($cmd !== 'questionOverview'
+            && $cmd !== 'editCombinations'
+            && $cmd !== 'addCombination') {
+            $this->tabs_gui->clearTargets();
+            if ($is_edit) {
+                $this->ctrl->setParameterByClass(
+                    self::class,
+                    'sub_cmd',
+                    $cmd === 'addCombination' ? 'editCombinations' : 'questionOverview'
+                );
             }
-
-            if ($errors) {
-                $checkonly = false;
-            }
+            $this->tabs_gui->setBackTarget(
+                'Cancel',
+                $this->ctrl->getFormActionByClass(
+                    $is_edit ? self::class : ilAssQuestionPreviewGUI::class,
+                    $is_edit ? 'editQuestion' : 'show'
+                )
+            );
+            $this->ctrl->clearParameterByClass(self::class, 'sub_cmd');
         }
 
-        if (!$checkonly) {
-            $this->renderEditForm($form);
+        if ($cmd === 'questionOverview'
+            || $cmd === 'editCombinations') {
+            $this->ctrl->setParameterByClass(self::class, 'sub_cmd', 'questionOverview');
+            $this->tabs_gui->addSubTab('properties', 'Properties', $this->ctrl->getLinkTargetByClass(self::class));
+            $this->ctrl->clearParameterByClass(self::class, 'sub_cmd');
+            $this->ctrl->setParameterByClass(self::class, 'sub_cmd', 'editCombinations');
+            $this->tabs_gui->addSubTab('combis', 'Edit Combinations', $this->ctrl->getLinkTargetByClass(self::class));
+            $this->ctrl->clearParameterByClass(self::class, 'sub_cmd');
         }
-        return $errors;
+
+        if ($cmd === 'questionOverview') {
+            $this->tabs_gui->activateSubTab('properties');
+        }
+
+        if ($cmd === 'editCombinations'
+            || $cmd === 'addCombination'
+            || $cmd === 'editCombinationValues'
+            || $cmd === 'addCombinationAwardingPoints') {
+            $this->tabs_gui->activateSubTab('combis');
+        }
+
+        if ($cmd === null) {
+            $content = $this->buildBasicForm($is_edit);
+        } elseif ($cmd === 'gapTypes') {
+            $content = $this->buildGapTypesForm();
+        } elseif ($cmd === 'gapAnswerOptions') {
+            $content = $this->buildGapAnswerOptions();
+        } elseif ($cmd === 'gapPoints') {
+            $content = $this->buildGapPoints();
+        } elseif ($cmd === 'questionOverview') {
+            $content = $this->buildQuestionOverview();
+        } elseif ($cmd === 'editCombinations' || $cmd === 'addCombination') {
+            $content = $this->buildCombisOverview($cmd);
+        }
+
+        $this->getQuestionTemplate();
+        $this->tpl->setVariable(
+            'QUESTION_DATA',
+            $this->ui_renderer->render($content)
+        );
+        return true;
+    }
+
+    private function buildBasicForm(bool $is_edit)
+    {
+        $ff = $this->ui_factory->input()->field();
+        $is_edit ? $this->ctrl->setParameterByClass(self::class, 'sub_cmd', 'questionOverview') : $this->ctrl->setParameterByClass(self::class, 'sub_cmd', 'gapTypes');
+        return $this->ui_factory->input()->container()->form()->standard(
+            $this->ctrl->getFormActionByClass(self::class, 'editQuestion'),
+            [
+                'cloze_text' => $ff->markdown(new ilUIMarkdownPreviewGUI(), $this->lng->txt('cloze_text'))
+                    ->withValue(
+                        $is_edit
+                            ? "# This is a text with a text GAP [GAP_0d439578-a36d-4eb2-8308-beb17ed381e3],\n"
+                                . " *a numeric gap [GAP_6bd5c18f-653d-47e4-be95-1c9b6a2663e4]*,\n"
+                                . " **a select gap [GAP_d9bac92a-a783-44b1-98cb-7814464d5346]**,\n"
+                                . " and a long menu gap [GAP_f5454353-391c-4ebf-8d0d-19f753c14d86]"
+                            : ''
+                    )
+                    ->withRequired(true),
+                'mm' => $ff->select(
+                    $this->lng->txt('text_rating'),
+                    [
+                        "ci" => $this->lng->txt("cloze_textgap_case_insensitive"),
+                        "cs" => $this->lng->txt("cloze_textgap_case_sensitive"),
+                        "l1" => sprintf($this->lng->txt("cloze_textgap_levenshtein_of"), "1"),
+                        "l2" => sprintf($this->lng->txt("cloze_textgap_levenshtein_of"), "2"),
+                        "l3" => sprintf($this->lng->txt("cloze_textgap_levenshtein_of"), "3"),
+                        "l4" => sprintf($this->lng->txt("cloze_textgap_levenshtein_of"), "4"),
+                        "l5" => sprintf($this->lng->txt("cloze_textgap_levenshtein_of"), "5")
+                    ]
+                )->withValue('ci')
+                ->withRequired(true),
+                'min_chars' => $ff->numeric('Minimal Characters for Suggestions')->withValue(3)
+                    ->withRequired(true),
+                'ident' => $ff->select(
+                    'Scoring of Identical Responses',
+                    [
+                        0 => 'All Responses are Scored',
+                        1 => 'Only Unique Responses are Scored'
+                    ]
+                )->withValue(0)->withRequired(true),
+                'fixed_length' => $ff->numeric(
+                    $this->lng->txt("cloze_fixed_textlength"),
+                    $this->lng->txt('cloze_fixed_textlength_description')
+                ),
+                'combis' => $ff->checkbox('Enable Gap Combinations')
+            ]
+        )->withSubmitLabel($is_edit ? $this->lng->txt('save') : $this->lng->txt('next'));
+    }
+
+    private function buildGapTypesForm()
+    {
+        $ff = $this->ui_factory->input()->field();
+        $this->ctrl->setParameterByClass(self::class, 'sub_cmd', 'gapAnswerOptions');
+        return [
+            $this->ui_factory->panel()->standard(
+                $this->lng->txt('cloze_text'),
+                $this->ui_factory->legacy()->content(
+                    (new ilUIMarkdownPreviewGUI())->render(
+                        "# This is a text with a text GAP [GAP_0d43],\n"
+                        . " *a numeric gap [GAP_6bd5]*,\n"
+                        . " **a select gap [GAP_d9ba]**,\n"
+                        . " and a long menu gap [GAP_f545]"
+                    )
+                )
+            ),
+            $this->ui_factory->input()->container()->form()->standard(
+                $this->ctrl->getFormActionByClass(self::class, 'editQuestion'),
+                [
+                    'types' => $ff->section(
+                        [
+                            'gap_1' => $ff->select(
+                                'GAP_0d43',
+                                [
+                                    0 => $this->lng->txt("text_gap"),
+                                    1 => $this->lng->txt("select_gap"),
+                                    2 => $this->lng->txt("numeric_gap"),
+                                    3 => $this->lng->txt('assLongMenu') . ' Gap'
+                                ]
+                            )->withValue(0)
+                            ->withRequired(true),
+                            'gap_2' => $ff->select(
+                                'GAP_6bd5',
+                                [
+                                    0 => $this->lng->txt("text_gap"),
+                                    1 => $this->lng->txt("select_gap"),
+                                    2 => $this->lng->txt("numeric_gap"),
+                                    3 => $this->lng->txt('assLongMenu') . ' Gap'
+                                ]
+                            )->withValue(1)
+                            ->withRequired(true),
+                            'gap_3' => $ff->select(
+                                'GAP_d9bac',
+                                [
+                                    0 => $this->lng->txt("text_gap"),
+                                    1 => $this->lng->txt("select_gap"),
+                                    2 => $this->lng->txt("numeric_gap"),
+                                    3 => $this->lng->txt('assLongMenu') . ' Gap'
+                                ]
+                            )->withValue(2)
+                            ->withRequired(true),
+                            'gap_4' => $ff->select(
+                                'GAP_f545',
+                                [
+                                    0 => $this->lng->txt("text_gap"),
+                                    1 => $this->lng->txt("select_gap"),
+                                    2 => $this->lng->txt("numeric_gap"),
+                                    3 => $this->lng->txt('assLongMenu') . ' Gap'
+                                ]
+                            )->withValue(3)
+                            ->withRequired(true)
+                        ],
+                        'Select the Types for the Gaps'
+                    )
+                ]
+            )->withSubmitLabel($this->lng->txt('next'))
+        ];
+    }
+
+    private function buildGapAnswerOptions()
+    {
+        $ff = $this->ui_factory->input()->field();
+        $this->ctrl->setParameterByClass(self::class, 'sub_cmd', 'gapPoints');
+        return [
+            $this->ui_factory->panel()->standard(
+                $this->lng->txt('cloze_text'),
+                $this->ui_factory->legacy()->content(
+                    (new ilUIMarkdownPreviewGUI())->render(
+                        "# This is a text with a text GAP [GAP_0d43],\n"
+                        . " *a numeric gap [GAP_6bd5]*,\n"
+                        . " **a select gap [GAP_d9ba]**,\n"
+                        . " and a long menu gap [GAP_f545]"
+                    )
+                )
+            ),
+            $this->ui_factory->input()->container()->form()->standard(
+                $this->ctrl->getFormActionByClass(self::class, 'editQuestion'),
+                [
+                    'options' => $ff->section(
+                        [
+                            'gap_1' => $ff->section(
+                                [
+                                    $ff->tag(
+                                        'Answer Options',
+                                        []
+                                    )->withRequired(true)
+                                ],
+                                'GAP_0d43'
+                            ),
+                            'gap_2' => $ff->section(
+                                [
+                                    $ff->tag(
+                                        'Answer Options',
+                                        []
+                                    )->withRequired(true)
+                                ],
+                                'GAP_6bd'
+                            ),
+                            'gap_3' => $ff->section(
+                                [
+                                    $ff->numeric(
+                                        'Lower Limit',
+                                    )->withStepSize(0.0001)
+                                    ->withRequired(true),
+                                    $ff->numeric(
+                                        'Upper Limit',
+                                    )->withStepSize(0.0001),
+                                ],
+                                'GAP_d9ba',
+                                'If you only set the lower limit this will be used as the single value defining the correct response.'
+                            ),
+                            'gap_4' => $ff->section(
+                                [
+                                    $ff->tag(
+                                        'Answer Options',
+                                        []
+                                    ),
+                                    $ff->file(new QuestionPoolImportUploadHandlerGUI(), 'Upload Answer Options', 'Choose an answer text (UTF-8) file to upload.'),
+                                    $ff->tag(
+                                        'Answer Options Awarding Points',
+                                        []
+                                    )->withRequired(true)
+                                ],
+                                'GAP_f545'
+                            )
+                        ],
+                        'Set the Answer Options Awarding Points'
+                    )
+                ]
+            )->withSubmitLabel($this->lng->txt('next'))
+        ];
+    }
+
+    private function buildGapPoints()
+    {
+        $ff = $this->ui_factory->input()->field();
+        $this->ctrl->setParameterByClass(self::class, 'sub_cmd', 'questionOverview');
+        return [
+            $this->ui_factory->panel()->standard(
+                $this->lng->txt('cloze_text'),
+                $this->ui_factory->legacy()->content(
+                    (new ilUIMarkdownPreviewGUI())->render(
+                        "# This is a text with a text GAP [GAP_0d43],\n"
+                        . " *a numeric gap [GAP_6bd5]*,\n"
+                        . " **a select gap [GAP_d9ba]**,\n"
+                        . " and a long menu gap [GAP_f545]"
+                    )
+                )
+            ),
+            $this->ui_factory->input()->container()->form()->standard(
+                $this->ctrl->getFormActionByClass(self::class, 'editQuestion'),
+                [
+                    'points' => $ff->section(
+                        [
+                            'gap_1' => $ff->section(
+                                [
+                                    $ff->numeric(
+                                        'My first really correct answer option'
+                                    )->withStepSize(0.0001)
+                                    ->withRequired(true),
+                                    $ff->numeric(
+                                        'My second half correct answer option'
+                                    )->withStepSize(0.0001)
+                                    ->withRequired(true)
+                                ],
+                                'GAP_0d43'
+                            ),
+                            'gap_2' => $ff->section(
+                                [
+                                    $ff->numeric(
+                                        'My first really correct answer option'
+                                    )->withStepSize(0.0001)
+                                    ->withRequired(true),
+                                    $ff->numeric(
+                                        'My second half correct answer option'
+                                    )->withStepSize(0.0001)
+                                    ->withRequired(true),
+                                    $ff->numeric(
+                                        'My third not correct answer option'
+                                    )->withStepSize(0.0001)
+                                    ->withRequired(true),
+                                    $ff->numeric(
+                                        'My fourth not correct answer option'
+                                    )->withStepSize(0.0001)
+                                    ->withRequired(true),
+                                ],
+                                'GAP_6bd5c'
+                            ),
+                            'gap_3' => $ff->section(
+                                [
+                                    $ff->numeric(
+                                        'Between 1.753 and 1.755',
+                                    )->withStepSize(0.0001)
+                                    ->withRequired(true)
+                                ],
+                                'GAP_d9ba'
+                            ),
+                            'gap_4' => $ff->section(
+                                [
+                                    $ff->numeric(
+                                        'My first really correct answer option'
+                                    )->withStepSize(0.0001)
+                                    ->withRequired(true),
+                                    $ff->numeric(
+                                        'My second half correct answer option'
+                                    )->withStepSize(0.0001)
+                                    ->withRequired(true)
+                                ],
+                                'GAP_f545'
+                            )
+                        ],
+                        'Set the Points for the Answer Options'
+                    )
+                ]
+            )->withSubmitLabel('Finalize')
+        ];
+    }
+
+    private function buildQuestionOverview()
+    {
+        /** @var ILIAS\DI\Container $DIC */
+        global $DIC;
+        [$url_builder, $token] = (new ILIAS\UI\URLBuilder(new ILIAS\Data\URI($DIC->http()->request()->getUri()->__toString())))
+            ->acquireParameter(['table'], 'test');
+        $this->ctrl->setParameterByClass(self::class, 'edit', '1');
+        return [
+            $this->ui_factory->panel()->standard(
+                'Basic Answer Form Properties',
+                [
+                    $this->ui_factory->panel()->sub(
+                        $this->lng->txt('cloze_text'),
+                        $this->ui_factory->legacy()->content((new ilUIMarkdownPreviewGUI())->render(
+                            "# This is a text with a text GAP [GAP_0d43],\n"
+                            . " *a numeric gap [GAP_6bd5]*,\n"
+                            . " **a select gap [GAP_d9ba]**,\n"
+                            . " and a long menu gap [GAP_f545]"
+                        ))
+                    ),
+                    $this->ui_factory->panel()->sub(
+                        $this->lng->txt('other'),
+                        $this->ui_factory->listing()->characteristicValue()->text([
+                            $this->lng->txt('text_rating') => $this->lng->txt('cloze_textgap_case_insensitive'),
+                            $this->lng->txt("cloze_fixed_textlength") => $this->lng->txt('unlimited'),
+                            'Minimal Characters for Suggestions' => '3',
+                            'Scoring of identical Responses' => 'Only Unique Responses are Scored'
+                        ])
+                    ),
+                    $this->ui_factory->button()->standard(
+                        'Edit Basic Answer Form Properties',
+                        $this->ctrl->getFormActionByClass(self::class)
+                    )
+                ]
+            ),
+            $this->ui_factory->table()->data(
+                $this,
+                'Gaps',
+                [
+                    'gap' => $this->ui_factory->table()->column()->text('Gap'),
+                    'type' => $this->ui_factory->table()->column()->text('Type'),
+                    'options' => $this->ui_factory->table()->column()->text('Answer Options Awarding Points'),
+                    'points' => $this->ui_factory->table()->column()->text('Available Points'),
+                ]
+            )->withActions([
+                $this->ui_factory->table()->action()->standard(
+                    'Edit Gap(s)',
+                    $url_builder,
+                    $token
+                )
+            ])->withRequest($DIC->http()->request())
+        ];
+    }
+
+    private function buildCombisOverview(string $cmd)
+    {
+        /** @var ILIAS\DI\Container $DIC */
+        global $DIC;
+        [$url_builder, $token] = (new ILIAS\UI\URLBuilder(new ILIAS\Data\URI($DIC->http()->request()->getUri()->__toString())))
+            ->acquireParameter(['table'], 'test');
+        $this->ctrl->setParameterByClass(self::class, 'sub_cmd', 'addCombination');
+
+        $modal = $this->ui_factory->modal()->roundtrip(
+            'Add Combination',
+            $this->ui_factory->panel()->standard(
+                $this->lng->txt('cloze_text'),
+                $this->ui_factory->legacy()->content((new ilUIMarkdownPreviewGUI())->render(
+                    "# This is a text with a text GAP [GAP_0d43],\n"
+                    . " *a numeric gap [GAP_6bd5]*,\n"
+                    . " **a select gap [GAP_d9ba]**,\n"
+                    . " and a long menu gap [GAP_f545]"
+                ))
+            ),
+            [
+                'select_gaps' => $this->ui_factory->input()->field()->multiSelect(
+                    'Select the Gaps to become part of the combination',
+                    [
+                        0 => 'GAP_0d43',
+                        1 => 'GAP_6bd5',
+                        2 => 'GAP_d9ba',
+                        3 => 'GAP_f545'
+                    ]
+                )->withRequired(true)
+            ],
+            $this->ctrl->getFormActionByClass(self::class)
+        )->withSubmitLabel($this->lng->txt('next'));
+
+        $DIC->toolbar()->addComponent(
+            $this->ui_factory->button()->standard('Add Combination', $modal->getShowSignal())
+        );
+
+        if (isset($_GET['table_test'][0])) {
+            echo $this->ui_renderer->renderAsync(
+                $this->ui_factory->modal()->roundtrip(
+                    'Remove Values Awarding Points',
+                    $this->ui_factory->panel()->standard(
+                        $this->lng->txt('cloze_text'),
+                        $this->ui_factory->legacy()->content((new ilUIMarkdownPreviewGUI())->render(
+                            "# This is a text with a text GAP [GAP_0d43],\n"
+                            . " *a numeric gap [GAP_6bd5]*,\n"
+                            . " **a select gap [GAP_d9ba]**,\n"
+                            . " and a long menu gap [GAP_f545]"
+                        ))
+                    ),
+                    [
+                        $this->ui_factory->input()->field()->multiSelect(
+                            'Select the value combinations to be removed',
+                            [
+                                '0' => 'My first re... - My second... (2 Points)',
+                                '1' => 'My second re... - My second... (1 Points)'
+                            ]
+                        )
+                    ],
+                    $this->ctrl->getFormActionByClass(self::class)
+                )
+            );
+            exit;
+        }
+
+        if ($cmd === 'addCombination') {
+            $modal2 = $this->ui_factory->modal()->roundtrip(
+                'Add Values Awarding Points',
+                $this->ui_factory->panel()->standard(
+                    $this->lng->txt('cloze_text'),
+                    $this->ui_factory->legacy()->content((new ilUIMarkdownPreviewGUI())->render(
+                        "# This is a text with a text GAP [GAP_0d43],\n"
+                        . " *a numeric gap [GAP_6bd5]*,\n"
+                        . " **a select gap [GAP_d9ba]**,\n"
+                        . " and a long menu gap [GAP_f545]"
+                    ))
+                ),
+                [
+                    'GAP_6bd5c18f4' => $this->ui_factory->input()->field()->select(
+                        'GAP_6bd5c',
+                        [
+                            0 => 'My first really correct answer option',
+                            1 => 'My second half correct answer option'
+                        ]
+                    )->withRequired(true),
+                    'GAP_f5454353' => $this->ui_factory->input()->field()->select(
+                        'GAP_f545',
+                        [
+                            0 => 'My first really correct answer option',
+                            1 => 'My second half correct answer option'
+                        ]
+                    )->withRequired(true),
+                    'points' => $this->ui_factory->input()->field()->numeric('Points')
+                        ->withStepSize(0.0001)
+                        ->withRequired(true)
+                ],
+                $this->ctrl->getFormActionByClass(self::class)
+            );
+        }
+
+        $this->ctrl->clearParameterByClass(self::class, 'sub_cmd');
+        return [
+            $this->ui_factory->table()->data(
+                $this,
+                'Combinations',
+                [
+                    'gaps' => $this->ui_factory->table()->column()->text('Gaps'),
+                    'options' => $this->ui_factory->table()->column()->text('Combinations Awarding Points'),
+                    'points' => $this->ui_factory->table()->column()->text('Available Points'),
+                ]
+            )->withActions([
+                $this->ui_factory->table()->action()->single(
+                    'Add Values Awarding Points',
+                    $url_builder,
+                    $token
+                )->withAsync(true),
+                $this->ui_factory->table()->action()->single(
+                    'Remove Values Awarding Points',
+                    $url_builder,
+                    $token
+                )->withAsync(true),
+                $this->ui_factory->table()->action()->single(
+                    'Delete Combination',
+                    $url_builder,
+                    $token
+                )->withAsync(true)
+            ])->withRequest($DIC->http()->request()),
+            isset($modal2) ? [$modal2->withOnLoad($modal2->getShowSignal()), $modal] : $modal
+        ];
+    }
+
+    private function buildEditCombinationValues()
+    {
+        /** @var ILIAS\DI\Container $DIC */
+        global $DIC;
+        [$url_builder, $token] = (new ILIAS\UI\URLBuilder(new ILIAS\Data\URI($DIC->http()->request()->getUri()->__toString())))
+            ->acquireParameter(['table'], 'test');
+        $this->ctrl->setParameterByClass(self::class, 'sub_cmd', 'addCombinationAwardingPoints');
+        $DIC->toolbar()->addComponent(
+            $this->ui_factory->button()->standard('Add Combination Awarding Points', $this->ctrl->getLinkTargetByClass(self::class))
+        );
+        $this->ctrl->clearParameterByClass(self::class, 'sub_cmd');
+        return [
+            $this->ui_factory->table()->data(
+                $this,
+                'Combinations',
+                [
+                    'gaps' => $this->ui_factory->table()->column()->text('Gaps'),
+                    'options' => $this->ui_factory->table()->column()->text('Combinations Awarding Points'),
+                    'points' => $this->ui_factory->table()->column()->text('Available Points'),
+                ]
+            )->withActions([
+                $this->ui_factory->table()->action()->single(
+                    'Edit Combination',
+                    $url_builder,
+                    $token
+                ),
+                $this->ui_factory->table()->action()->single(
+                    'Delete',
+                    $url_builder,
+                    $token
+                )
+            ])->withRequest($DIC->http()->request())
+        ];
+    }
+
+    public function getRows(\ILIAS\UI\Component\Table\DataRowBuilder $row_builder, array $visible_column_ids, \ILIAS\Data\Range $range, \ILIAS\Data\Order $order, ?array $filter_data, ?array $additional_parameters): \Generator
+    {
+        global $DIC;
+        $cmd = $DIC->http()->wrapper()->query()->retrieve(
+            'sub_cmd',
+            $DIC->refinery()->byTrying([
+                $this->refinery->kindlyTo()->string(),
+                $this->refinery->always(null)
+            ])
+        );
+
+        if ($cmd === 'questionOverview') {
+            yield from [
+                $row_builder->buildDataRow(
+                    'GAP_0d439578-a36d-4eb2-8308-beb17ed381e3',
+                    [
+                        'gap' => 'GAP_0d43',
+                        'type' => 'Text Gap',
+                        'options' => $this->ui_renderer->render(
+                            $this->ui_factory->listing()->unordered([
+                                'My first really correct answer option (2 Points)',
+                                'My second half correct answer option (0.5 Points)'
+                            ])
+                        ),
+                        'points' => '2',
+                    ]
+                ),
+                 $row_builder->buildDataRow(
+                     'GAP_6bd5c18f-653d-47e4-be95-1c9b6a2663e4',
+                     [
+                        'gap' => 'GAP_6bd5',
+                        'type' => 'Select Gap',
+                        'options' => $this->ui_renderer->render(
+                            $this->ui_factory->listing()->unordered([
+                                'My first really correct answer option (2 Points)',
+                                'My second half correct answer option (0.5 Points)'
+                            ])
+                        ),
+                        'points' => '2',
+                    ]
+                 ),
+                 $row_builder->buildDataRow(
+                     'GAP_d9bac92a-a783-44b1-98cb-7814464d5346',
+                     [
+                        'gap' => 'GAP_d9ba',
+                        'type' => 'Numeric Gap',
+                        'options' => $this->ui_renderer->render(
+                            $this->ui_factory->listing()->unordered([
+                                'Between 1.753 and 1.755 (1 Point)'
+                            ])
+                        ),
+                        'points' => '1',
+                    ]
+                 ),
+                 $row_builder->buildDataRow(
+                     'GAP_f5454353-391c-4ebf-8d0d-19f753c14d86',
+                     [
+                        'gap' => 'GAP_f545',
+                        'type' => 'Long Menu Gap',
+                        'options' => $this->ui_renderer->render(
+                            $this->ui_factory->listing()->unordered([
+                                'My first really correct answer option (2 Points)',
+                                'My second half correct answer option (0.5 Points)'
+                            ])
+                        ),
+                        'points' => '2',
+                    ]
+                 )
+            ];
+            return null;
+        }
+
+        yield from [
+            $row_builder->buildDataRow(
+                'GAP_0d439578',
+                [
+                    'gaps' => $this->ui_renderer->render(
+                        $this->ui_factory->listing()->unordered([
+                            'GAP_0d43',
+                            'GAP_f545'
+                        ])
+                    ),
+                    'options' => $this->ui_renderer->render(
+                        $this->ui_factory->listing()->unordered([
+                            'My first re... - My second... (2 Points)',
+                            'My second re... - My second... (1 Points)'
+                        ])
+                    ),
+                    'points' => '2',
+                ]
+            )
+        ];
+    }
+
+    public function getTotalRowCount(?array $filter_data, ?array $additional_parameters): ?int
+    {
+        global $DIC;
+        $cmd = $DIC->http()->wrapper()->query()->retrieve(
+            'sub_cmd',
+            $DIC->refinery()->byTrying([
+                $this->refinery->kindlyTo()->string(),
+                $this->refinery->always(null)
+            ])
+        );
+
+        if ($cmd === 'questionOverview') {
+            return 4;
+        }
+        return 1;
     }
 
     private function hasErrorInGapCombinationPoints(array $gap_combinations): bool

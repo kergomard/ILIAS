@@ -102,7 +102,7 @@ abstract class assQuestionGUI
     private ilObjectDataCache $ilObjDataCache;
     private ilHelpGUI $ilHelp;
     private ilAccessHandler $access;
-    private ilTabsGUI $tabs_gui;
+    protected ilTabsGUI $tabs_gui;
     private ilRbacSystem $rbacsystem;
     private ilTree $tree;
     private ilDBInterface $db;
@@ -1613,16 +1613,13 @@ abstract class assQuestionGUI
 
     protected function addTab_Question(ilTabsGUI $tabs_gui): void
     {
-        $tabs_gui->addTarget(
+        $tabs_gui->addTab(
             'edit_question',
+            'Answer Form',
             $this->ctrl->getLinkTargetByClass(
                 static::class,
                 'editQuestion'
-            ),
-            'editQuestion',
-            '',
-            '',
-            false
+            )
         );
     }
 
