@@ -387,7 +387,11 @@ JS;
                     $this->lng->txt("cloze_fixed_textlength"),
                     $this->lng->txt('cloze_fixed_textlength_description')
                 ),
-                'combis' => $ff->checkbox('Enable Gap Combinations')
+                'combis' => $ff->checkbox(
+                    'Enable Gap Combinations',
+                    'An additional sub-tab will be shown where you can group gaps, so that they only award points '
+                    . 'if the correct values are provided for all of them.'
+                )
             ]
         )->withSubmitLabel($is_edit ? $this->lng->txt('save') : $this->lng->txt('next'));
     }
@@ -489,7 +493,7 @@ JS;
                                         []
                                     )->withRequired(true)
                                 ],
-                                'GAP_0d43'
+                                "GAP_0d43 ({$this->lng->txt("text_gap")})"
                             ),
                             'gap_2' => $ff->section(
                                 [
@@ -498,7 +502,7 @@ JS;
                                         []
                                     )->withRequired(true)
                                 ],
-                                'GAP_6bd'
+                                "GAP_6bd ({$this->lng->txt("select_gap")})"
                             ),
                             'gap_3' => $ff->section(
                                 [
@@ -510,7 +514,7 @@ JS;
                                         'Upper Limit',
                                     )->withStepSize(0.0001),
                                 ],
-                                'GAP_d9ba',
+                                "GAP_d9ba ({$this->lng->txt("numeric_gap")})",
                                 'If you only set the lower limit this will be used as the single value defining the correct response.'
                             ),
                             'gap_4' => $ff->section(
@@ -525,7 +529,7 @@ JS;
                                         []
                                     )->withRequired(true)
                                 ],
-                                'GAP_f545'
+                                "GAP_f545 (Long Menu Gap)"
                             )
                         ],
                         'Set the Answer Options Awarding Points'
@@ -567,7 +571,7 @@ JS;
                                     )->withStepSize(0.0001)
                                     ->withRequired(true)
                                 ],
-                                'GAP_0d43'
+                                "GAP_0d43 ({$this->lng->txt("text_gap")})"
                             ),
                             'gap_2' => $ff->section(
                                 [
@@ -588,7 +592,7 @@ JS;
                                     )->withStepSize(0.0001)
                                     ->withRequired(true),
                                 ],
-                                'GAP_6bd5c'
+                                "GAP_6bd ({$this->lng->txt("select_gap")})"
                             ),
                             'gap_3' => $ff->section(
                                 [
@@ -597,7 +601,7 @@ JS;
                                     )->withStepSize(0.0001)
                                     ->withRequired(true)
                                 ],
-                                'GAP_d9ba'
+                                "GAP_d9ba ({$this->lng->txt("numeric_gap")})"
                             ),
                             'gap_4' => $ff->section(
                                 [
@@ -610,7 +614,7 @@ JS;
                                     )->withStepSize(0.0001)
                                     ->withRequired(true)
                                 ],
-                                'GAP_f545'
+                                "GAP_f545 (Long Menu Gap)"
                             )
                         ],
                         'Set the Points for the Answer Options'

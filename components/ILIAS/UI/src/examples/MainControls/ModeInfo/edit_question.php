@@ -72,13 +72,15 @@ if ($request_wrapper->has('new_mode_info')
 
 function renderQuestionEdit(\ILIAS\DI\Container $dic)
 {
-    $edit = $dic->http()->wrapper()->query()->retrieve(
-        'edit',
+    $cmd = $dic->http()->wrapper()->query()->retrieve(
+        'sub_cmd',
         $dic->refinery()->byTrying([
             $dic->refinery()->kindlyTo()->string(),
-            $dic->refinery()->always(false)
+            $dic->refinery()->always('')
         ])
     );
+    $edit = $cmd === 'editQuestion';
+    $create = $cmd === 'createQuestion';
     $f = $dic->ui()->factory();
     $ff = $f->input()->field();
     $data_factory = new \ILIAS\Data\Factory();
@@ -239,47 +241,25 @@ HTML
             ->withAdditionalToolEntry('editor', $tools);
     }
 
-    $question_create = $f->mainControls()->slate()->legacy(
-        "Create Question",
+    $question_create = $f->button()->bulky(
         $f->symbol()->icon()->standard('', '')->withAbbreviation('CQ'),
-        $f->legacy()->content(
-            $renderer->render(
-                $f->input()->container()->form()->standard(
-                    '#',
-                    [
-                        $ff->section(
-                            [
-                                $ff->text('Title'),
-                                $ff->text('Author')->withValue($dic->user()->fullname),
-                                $ff->select(
-                                    'Lifecycle',
-                                    [
-                                        'draft' => 'Draft',
-                                        'to_review' => 'To Be Reviewed',
-                                        'rejected' => 'Rejected',
-                                        'final' => 'Final',
-                                        'shareable' => 'Shareable',
-                                        'outdated' => 'Outdated'
-                                    ]
-                                )->withValue('draft'),
-                                $ff->textarea('Remarks')
-                            ],
-                            'Create Question'
-                        )
-                    ]
-                )
-            )
-        )
+        "Create Question",
+        $dic->http()->request()->getUri()->__toString() . '&sub_cmd=createQuestion'
     );
 
-    $header = "<div id='mainspacekeeper'><div style='padding: 15px;'><div class='media il_HeaderInner'><img id='headerimage' class='media-object' src='./assets/images/standard/icon_qpl.svg' alt='' title=''><h1 class='il-page-content-header media-heading ilHeader '>My Question Pool: My Question</h1><div class='media-body'><div class='ilHeaderDesc'></div></div></div>";
-    if (!$edit) {
+    $question_title = '';
+    if (!$create) {
+        $question_title = ': My First Question';
+    }
+
+    $header = "<div id='mainspacekeeper'><div style='padding: 15px;'><div class='media il_HeaderInner'><img id='headerimage' class='media-object' src='./assets/images/standard/icon_qpl.svg' alt='' title=''><h1 class='il-page-content-header media-heading ilHeader '>My Question Pool{$question_title}</h1><div class='media-body'><div class='ilHeaderDesc'></div></div></div>";
+    if (!$edit && !$create) {
         $header .= "<ul id='ilTab' class='nav ilCollapsable hidden-print'><li id='tab_question' class='active'><a href='#'>Question</a> <span class='ilAccHidden'>(Selected)</span></li><li id='tab_statistics' class=''><a href='#'>Statistics</a></li></ul>";
     }
 
     $content = <<<HTML
 <form name="ilAssQuestionPreview" action="ilias.php?baseClass=ilrepositorygui&amp;cmdNode=wt:oz:4h&amp;cmdClass=ilAssQuestionPreviewGUI&amp;cmd=post&amp;fallbackCmd=show&amp;ref_id=540&amp;q_id=5982&amp;rtoken=45160b5bae17f4611a15a5870ad4f12bbdabf8943dd4d4e4376649f2b30acfce#focus" method="post" enctype="multipart/form-data">
-    <a class="small" id="ilPageShowAdvContent" style="display:none; text-align:right;" href="#"><span>Show Advanced Knowledge</span><span>Hide Advanced Knowledge</span></a><h1 class="ilc_page_title_PageTitle">My Question</h1><!--COPage-PageTop--><!--ilPageTocH31--><h3 id="ilPageTocA31" class="ilc_Paragraph ilc_heading3_Headline3"><!--PageTocPH-->Richtig ist richtig, falsch ist&nbsp; falsch<!--Break--></h3><div class="ilc_question_Standard">	 <div class="ilc_question_SingleChoice">
+    <a class="small" id="ilPageShowAdvContent" style="display:none; text-align:right;" href="#"><span>Show Advanced Knowledge</span><span>Hide Advanced Knowledge</span></a><h1 class="ilc_page_title_PageTitle">My First Question</h1><!--COPage-PageTop--><!--ilPageTocH31--><h3 id="ilPageTocA31" class="ilc_Paragraph ilc_heading3_Headline3"><!--PageTocPH-->Richtig ist richtig, falsch ist&nbsp; falsch<!--Break--></h3><div class="ilc_question_Standard">	 <div class="ilc_question_SingleChoice">
         <div class="ilc_answers answers answer-table ilClearFloat">
             <div class="ilc_qanswer_Answer">
                 <div>
@@ -332,7 +312,7 @@ HTML;
 <form action="ilias.php?baseClass=ilrepositorygui&amp;cmdNode=wt:oz:4g:uz&amp;cmdClass=ilpageeditorgui&amp;cmd=post&amp;ref_id=540&amp;q_id=5982&amp;rtoken=0ff1ba4f7f6a418d1566b373e814902d5a146cbdfd4c9c66463d97ec9444db52" name="objectItems" method="post">
 <div class="ilc_page_cont_PageContainer" id="il-edit-cont">
 <div class="ilc_page_Page">
-<h1 class="ilc_page_title_PageTitle">SC Frage </h1><!--COPage-PageTop--><div data-copg-ed-type="add-area" data-hierid="pg" data-pcid="" id="add"><div class="il_droparea" id="TARGETpg:" style="display: none;"></div><div class="dropdown"><button class="btn btn-default dropdown-toggle copg-add" type="button" aria-label="Actions" aria-haspopup="true" aria-expanded="false" aria-controls="il_ui_fw_68a87183eaa361_91099572_menu" style=""><span class="glyphicon glyphicon-plus-sign"></span></button>
+<!--COPage-PageTop--><div data-copg-ed-type="add-area" data-hierid="pg" data-pcid="" id="add"><div class="il_droparea" id="TARGETpg:" style="display: none;"></div><div class="dropdown"><button class="btn btn-default dropdown-toggle copg-add" type="button" aria-label="Actions" aria-haspopup="true" aria-expanded="false" aria-controls="il_ui_fw_68a87183eaa361_91099572_menu" style=""><span class="glyphicon glyphicon-plus-sign"></span></button>
 <ul class="dropdown-menu" style="display: none;" data-copg-d-d-shown="0">
 	<li><a href="#">label</a></li>
 </ul>
@@ -432,17 +412,14 @@ td.mceIframeContainer {
 <div id="ilIntLinkModal" data-show-signal="il_signal_68a871826c2f76_53426113" data-close-signal="il_signal_68a871826c2f80_99253057"></div>
 </div>
 HTML;
-    }
-
-    $page = $f->layout()->page()->standard(
-        [
-            $f->legacy()->content($header),
-            $edit ? $f->legacy()->content('') : $f->input()->container()->form()->standard(
+    } elseif ($create) {
+        $content = $dic->ui()->renderer()->render(
+            $f->input()->container()->form()->standard(
                 '#',
                 [
                     $ff->section(
                         [
-                            $ff->text('Title')->withValue('My Question'),
+                            $ff->text('Title'),
                             $ff->text('Author')->withValue($dic->user()->fullname),
                             $ff->select(
                                 'Lifecycle',
@@ -454,21 +431,51 @@ HTML;
                                     'shareable' => 'Shareable',
                                     'outdated' => 'Outdated'
                                 ]
-                            )->withValue('shareable'),
+                            )->withValue('draft'),
+                            $ff->textarea('Remarks')
+                        ],
+                        'Create Question'
+                    )
+                ]
+            )
+        );
+    }
+
+    $page = $f->layout()->page()->standard(
+        [
+            $f->legacy()->content($header),
+            $edit || $create ? $f->legacy()->content('') : $f->input()->container()->form()->standard(
+                '#',
+                [
+                    $ff->section(
+                        [
+                            $ff->text('Title')->withValue('My First Question')->withRequired(true),
+                            $ff->text('Author')->withValue($dic->user()->fullname),
+                            $ff->select(
+                                'Lifecycle',
+                                [
+                                    'draft' => 'Draft',
+                                    'to_review' => 'To Be Reviewed',
+                                    'rejected' => 'Rejected',
+                                    'final' => 'Final',
+                                    'shareable' => 'Shareable',
+                                    'outdated' => 'Outdated'
+                                ]
+                            )->withValue('shareable')->withRequired(true),
                             $ff->textarea('Remarks')
                         ],
                         'Edit Basic Question Properties'
                     )
                 ]
             ),
-            $f->panel()->standard(
+            $edit || $create ? $f->legacy()->content($content) : $f->panel()->standard(
                 'Preview',
                 $f->legacy()->content($content)
             )->withActions(
                 $f->dropdown()->standard([
                     $f->link()->standard(
                         'Edit',
-                        $dic->http()->request()->getUri()->__toString() . '&edit=question'
+                        $dic->http()->request()->getUri()->__toString() . '&sub_cmd=editQuestion'
                     ),
                     $f->link()->standard('Reset Preview', '#')
                 ])
