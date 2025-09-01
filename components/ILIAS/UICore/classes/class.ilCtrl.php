@@ -56,7 +56,7 @@ class ilCtrl implements ilCtrlInterface
         protected Refinery $refinery,
         protected ilComponentFactory $component_factory,
         protected ilCtrlSubject $subject,
-        protected  ilCtrlQueryParserInterface $query_parser,
+        protected ilCtrlQueryParserInterface $query_parser,
     ) {
     }
 
@@ -888,7 +888,7 @@ class ilCtrl implements ilCtrlInterface
             $target_url = $this->appendParameterString(
                 $target_url,
                 self::PARAM_CID_PATH,
-                $path->getCidPath(),
+                rawurlencode($path->getCidPath()),
                 $is_escaped
             );
 
