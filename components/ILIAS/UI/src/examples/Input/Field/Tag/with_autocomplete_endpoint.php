@@ -60,7 +60,7 @@ function with_autocomplete_endpoint()
     if ($search_term !== '') {
         $response = json_encode(
             array_reduce(
-                ['Interesting', 'Boring', 'Animating', 'Repetitious'],
+                ['Stephan Kergomard', 'Yvonne Seiler', 'Oliver Samoila', 'Matthias Kunkel', 'Herr Vorragend'],
                 static function (array $c, string $v) use ($refinery, $search_term): array {
                     if (stristr($v, $search_term)) {
                         $c[] = [
