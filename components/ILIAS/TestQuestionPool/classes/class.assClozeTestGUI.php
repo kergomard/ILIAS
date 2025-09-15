@@ -491,7 +491,11 @@ JS;
                                     $ff->tag(
                                         'Answer Options',
                                         []
-                                    )->withRequired(true)
+                                    )->withRequired(true),
+                                    $ff->numeric(
+                                        $this->lng->txt("cloze_fixed_textlength"),
+                                        $this->lng->txt('cloze_gap_size_info')
+                                    )
                                 ],
                                 "GAP_0d43 ({$this->lng->txt("text_gap")})"
                             ),
