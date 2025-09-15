@@ -680,6 +680,16 @@ JS;
                     'Edit Gap(s)',
                     $url_builder,
                     $token
+                ),
+                $this->ui_factory->table()->action()->standard(
+                    'Edit Answer Options',
+                    $url_builder,
+                    $token
+                ),
+                $this->ui_factory->table()->action()->standard(
+                    'Edit Available Points',
+                    $url_builder,
+                    $token
                 )
             ])->withRequest($DIC->http()->request())
         ];
