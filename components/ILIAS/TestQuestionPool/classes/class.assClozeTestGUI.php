@@ -636,39 +636,26 @@ JS;
             ->acquireParameter(['table'], 'test');
         $this->ctrl->setParameterByClass(self::class, 'edit', '1');
         return [
-            $this->ui_factory->panel()->report(
+            $this->ui_factory->panel()->standard(
                 'Basic Answer Form Properties',
                 [
-                    $this->ui_factory->panel()->sub(
-                        $this->lng->txt('cloze_text'),
-                        [
-                            $this->ui_factory->legacy()->content((new ilUIMarkdownPreviewGUI())->render(
-                                "# This is a text with a text GAP [GAP_0d43],\n"
-                                . " *a numeric gap [GAP_6bd5]*,\n"
-                                . " **a select gap [GAP_d9ba]**,\n"
-                                . " and a long menu gap [GAP_f545]"
-                            ))
-                        ]
-                    )->withFurtherInformation(
-                        $this->ui_factory->card()->standard(
-                            $this->lng->txt('other')
-                        )->withSections([
-                            $this->ui_factory->listing()->descriptive([
-                                $this->lng->txt('text_rating') => $this->lng->txt('cloze_textgap_case_insensitive'),
-                                $this->lng->txt("cloze_fixed_textlength") => $this->lng->txt('unlimited'),
-                                'Minimal Characters for Suggestions' => '3',
-                                'Scoring of identical Responses' => 'Only Unique Responses are Scored'
-                            ])
-                        ])
-                    )
-                ]
-            )->withActions(
-                $this->ui_factory->dropdown()->standard([
-                    $this->ui_factory->button()->shy(
+                    $this->ui_factory->listing()->descriptive([
+                        $this->lng->txt('cloze_text') => (new ilUIMarkdownPreviewGUI())->render(
+                            "# This is a text with a text GAP [GAP_0d43],\n"
+                            . " *a numeric gap [GAP_6bd5]*,\n"
+                            . " **a select gap [GAP_d9ba]**,\n"
+                            . " and a long menu gap [GAP_f545]"
+                        ),
+                        $this->lng->txt('text_rating') => $this->lng->txt('cloze_textgap_case_insensitive'),
+                        $this->lng->txt("cloze_fixed_textlength") => $this->lng->txt('unlimited'),
+                        'Minimal Characters for Suggestions' => '3',
+                        'Scoring of identical Responses' => 'Only Unique Responses are Scored'
+                    ]),
+                    $this->ui_factory->button()->standard(
                         'Edit Basic Answer Form Properties',
                         $this->ctrl->getFormActionByClass(self::class)
                     )
-                ])
+                ]
             ),
             $this->ui_factory->table()->data(
                 $this,
