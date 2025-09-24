@@ -81,6 +81,8 @@ function renderQuestionEdit(\ILIAS\DI\Container $dic)
     );
     $edit = $cmd === 'editQuestion';
     $create = $cmd === 'createQuestion';
+    $steptwo = $cmd === 'steptwo';
+
     $f = $dic->ui()->factory();
     $ff = $f->input()->field();
     $data_factory = new \ILIAS\Data\Factory();
@@ -420,7 +422,7 @@ HTML;
                     $ff->section(
                         [
                             $ff->text('Title'),
-                            $ff->text('Author')->withValue($dic->user()->fullname),
+                            $ff->text('Author')->withValue($dic->user()->getFullname()),
                             $ff->select(
                                 'Lifecycle',
                                 [
@@ -432,10 +434,41 @@ HTML;
                                     'outdated' => 'Outdated'
                                 ]
                             )->withValue('draft'),
-                            $ff->textarea('Remarks')
+                            $ff->textarea('Remarks'),
+                            $ff->radio('Create Mode')
+                                ->withOption('simple', 'Simple', 'Only unformatted text can be added for the question text and exactly one answer form will be created.')
+                                ->withOption('full', 'Full', 'All options can be used for the question text and as many answer forms can be added as needed.')
+                                ->withValue('simple')
                         ],
                         'Create Question'
                     )
+                ]
+            )
+        );
+    } elseif ($steptwo) {
+        $content = $dic->ui()->renderer()->render(
+            $f->input()->container()->form()->standard(
+                '#',
+                [
+                   $ff->section(
+                       [
+                           $ff->textarea('Question Text')
+                               ->withRequired(true),
+                           $ff->select(
+                               'Type of Answer Form',
+                               [
+                                   'mc' => 'Multiple Choice',
+                                   'cloze' => 'Cloze',
+                                   'kprim' => 'KPrim',
+                                   'odering' => 'Ordering',
+                                   'matching' => 'Matching',
+                                   'imagemap' => 'Imagemap',
+                                   'formula' => 'Formula Question'
+                               ]
+                           )->withRequired(true),
+                       ],
+                       'Create Question'
+                   )
                 ]
             )
         );
@@ -444,13 +477,13 @@ HTML;
     $page = $f->layout()->page()->standard(
         [
             $f->legacy()->content($header),
-            $edit || $create ? $f->legacy()->content('') : $f->input()->container()->form()->standard(
+            $edit || $create || $steptwo ? $f->legacy()->content('') : $f->input()->container()->form()->standard(
                 '#',
                 [
                     $ff->section(
                         [
                             $ff->text('Title')->withValue('My First Question')->withRequired(true),
-                            $ff->text('Author')->withValue($dic->user()->fullname),
+                            $ff->text('Author')->withValue($dic->user()->getFullname()),
                             $ff->select(
                                 'Lifecycle',
                                 [
@@ -468,7 +501,7 @@ HTML;
                     )
                 ]
             ),
-            $edit || $create ? $f->legacy()->content($content) : $f->panel()->standard(
+            $edit || $create || $steptwo ? $f->legacy()->content($content) : $f->panel()->standard(
                 'Preview',
                 $f->legacy()->content($content)
             )->withActions(
