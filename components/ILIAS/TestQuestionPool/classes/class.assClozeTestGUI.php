@@ -512,11 +512,13 @@ JS;
                                 [
                                     $ff->numeric(
                                         'Lower Limit',
-                                    )->withStepSize(0.0001)
+                                    )->withStepSize(0.000001)
                                     ->withRequired(true),
                                     $ff->numeric(
                                         'Upper Limit',
-                                    )->withStepSize(0.0001),
+                                    )->withStepSize(0.000001),
+                                    $ff->numeric('Precision')
+                                    ->withStepSize(0.000001)
                                 ],
                                 "GAP_d9ba ({$this->lng->txt("numeric_gap")})",
                                 'If you only set the lower limit this will be used as the single value defining the correct response.'
