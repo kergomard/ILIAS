@@ -14609,12 +14609,12 @@ rbac#:#rcrs_edit_permission#:#User can change permission settings
 rbac#:#rcrs_read#:#User can use ECS Course
 rbac#:#rcrs_visible#:#ECS Course is visible
 rbac#:#rcrs_write#:#User can edit settings of ECS Course
+rbac#:#read_all_accounts#:#Read All Accounts
 rbac#:#read_comp#:#Read Competences
 rbac#:#read_learning_progress#:#View learning progress of other users
 rbac#:#read_outcomes#:#View learning experiences of other users
 rbac#:#read_profiles#:#Read Profiles
 rbac#:#read_results#:#Survey Results
-rbac#:#read_users#:#Read Access to User Accounts
 rbac#:#recf_edit_permission#:#User can change permission settings of Restored Objects administration
 rbac#:#recf_read#:#User has read access to Restored Objects administration
 rbac#:#recf_visible#:#Restored Objects administration is visible
@@ -14781,7 +14781,7 @@ rbac#:#usrf_edit_permission#:#User can change permission settings in User admini
 rbac#:#usrf_edit_roleassignment#:#User can change role assignment of user account
 rbac#:#usrf_push_desktop_items#:#User is allowed to add recommended content for role members.
 rbac#:#usrf_read#:#User has read access to User administration
-rbac#:#usrf_read_users#:#User has read access to local user accounts (local administrators)
+rbac#:#usrf_read_all_accounts#:#User can list all accounts in User administration
 rbac#:#usrf_visible#:#User administration is visible
 rbac#:#usrf_write#:#Edit settings in User administration
 rbac#:#wbdv_edit_permission#:#User can change permission settings of WebDAV administration.
