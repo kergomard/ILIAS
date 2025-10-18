@@ -42,59 +42,16 @@ function with_autocomplete_endpoint()
 {
     /** @var \ILIAS\DI\Container $DIC */
     global $DIC;
-    $ui = $DIC->ui()->factory();
-    $renderer = $DIC->ui()->renderer();
-    $refinery = $DIC->refinery();
-    $http = $DIC->http();
+    $ui = $DIC['ui.factory'];
+    $renderer = $DIC['ui.renderer'];
 
-    $df = new \ILIAS\Data\Factory();
-
-    [$url_builder, $term_token] = (new URLBuilder($df->uri($http->request()->getUri()->__toString())))
-        ->acquireParameter(['examples'], 'term');
-
-    $search_term = $http->wrapper()->query()->retrieve(
-        $term_token->getName(),
-        $refinery->byTrying([
-            $refinery->kindlyTo()->string(),
-            $refinery->always('')
-        ])
-    );
-
-    if ($search_term !== '') {
-        $response = json_encode(
-            array_reduce(
-                ['Interesting', 'Boring', 'Animating', 'Repetitious'],
-                static function (array $c, string $v) use ($refinery, $search_term): array {
-                    if (stristr($v, $search_term)) {
-                        $c[] = [
-                            'value' => urlencode($refinery->encode()->htmlSpecialCharsAsEntities()->transform($v)),
-                            'display' => $v,
-                            'searchBy' => $v
-                        ];
-                    }
-                    return $c;
-                },
-                []
-            )
-        );
-        $http->saveResponse(
-            $http->response()->withBody(
-                Streams::ofString($response)
-            )
-        );
-        $http->sendResponse();
-        $http->close();
-    }
-
-    $tag_input = $ui->input()->field()->tag(
-        "Tag Input with Autocomplete",
-        []
-    )->withAsyncAutocomplete(
-        $url_builder,
-        $term_token
-    )->withUserCreatedTagsAllowed(false);
+    /** @var \ILIAS\User\Search\Search  $search */
+    $search = $DIC['user']->getSearch();
 
     return  $renderer->render(
-        $ui->input()->container()->form()->standard("#", [$tag_input])
+        $ui->input()->container()->form()->standard(
+            "#",
+            [$search->getInput('User Search', $search->getDefaultEndpointConfigurator([\ilObjUserFolderGUI::class]))]
+        )
     );
 }

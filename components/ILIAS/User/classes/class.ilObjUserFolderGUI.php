@@ -51,7 +51,7 @@ use ILIAS\ResourceStorage\Services as ResourceStorage;
  * @ilCtrl_Calls ilObjUserFolderGUI: ILIAS\User\Profile\Fields\ConfigurationGUI
  * @ilCtrl_Calls ilObjUserFolderGUI: ILIAS\User\Profile\Fields\CustomFieldsGUI
  * @ilCtrl_Calls ilObjUserFolderGUI: ILIAS\User\Profile\Prompt\SettingsGUI
- * @ilCtrl_Calls ilObjUserFolderGUI: ILIAS\User\Search\DefaultEndpointGUI
+ * @ilCtrl_Calls ilObjUserFolderGUI: ILIAS\User\Search\EndpointGUI
  */
 class ilObjUserFolderGUI extends ilObjectGUI
 {
@@ -178,6 +178,13 @@ class ilObjUserFolderGUI extends ilObjectGUI
         $this->prepareOutput();
 
         switch ($next_class) {
+            case strtolower(ILIAS\User\Search\EndpointGUI::class):
+                $this->ctrl->forwardCommand(
+                    LocalDIC::dic()[\ILIAS\User\Search\Search::class]->getEndpointGUI(
+                        LocalDIC::dic()[\ILIAS\User\Search\Search::class]->getDefaultEndpointConfigurator([self::class])
+                    )
+                );
+                break;
             case strtolower(ilUserTableGUI::class):
                 $u_table = new ilUserTableGUI(
                     $this,
