@@ -34,12 +34,12 @@ class AddReadAllAccountsPermissionObjective implements Objective
 
     public function getHash(): string
     {
-        return hash("sha256", self::class);
+        return hash('sha256', self::class);
     }
 
     public function getLabel(): string
     {
-        return ("Add the 'Read All Accounts' permission to the user folder");
+        return ('Add the "Read All Accounts" permission to the user folder');
     }
 
     public function isNotable(): bool
@@ -98,7 +98,7 @@ class AddReadAllAccountsPermissionObjective implements Objective
         /** @var \ilDBInterface $db */
         $db = $environment->getResource(Environment::RESOURCE_DATABASE);
 
-        $query = "SELECT ops_id FROM rbac_operations WHERE operation ='read_all_accounts'";
+        $query = 'SELECT ops_id FROM rbac_operations WHERE operation ="read_all_accounts"';
         $result = $db->query($query);
         while ($row = $db->fetchAssoc($result)) {
             return (int) $row['ops_id'];

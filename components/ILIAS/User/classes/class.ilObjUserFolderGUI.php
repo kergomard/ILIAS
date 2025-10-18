@@ -172,7 +172,6 @@ class ilObjUserFolderGUI extends ilObjectGUI
 
     public function executeCommand(): void
     {
-        // read permission is needed for the whole GUI
         $this->checkPermission('read');
 
         $next_class = $this->ctrl->getNextClass($this);
@@ -403,22 +402,6 @@ class ilObjUserFolderGUI extends ilObjectGUI
             );
         }
 
-
-        if ($this->access->checkAccess(\ilObjUserFolder::PERM_READ_ALL, '', USER_FOLDER_ID)) {
-            $list_of_users = null;
-        } elseif ($this->access->checkPositionAccess(
-            \ilObjUserFolder::ORG_OP_EDIT_USER_ACCOUNTS,
-            USER_FOLDER_ID
-        )) {
-            $list_of_users = $this->access->filterUserIdsByPositionOfCurrentUser(
-                \ilObjUserFolder::ORG_OP_EDIT_USER_ACCOUNTS,
-                USER_FOLDER_ID,
-                \ilLocalUser::_getAllUserIds(\ilLocalUser::_getUserFolderId())
-            );
-        } else {
-            $list_of_users = [];
-        }
-
         $utab = new ilUserTableGUI(
             $this,
             'view',
@@ -427,7 +410,7 @@ class ilObjUserFolderGUI extends ilObjectGUI
         );
         $utab->addFilterItemValue(
             'user_ids',
-            $list_of_users
+            $this->retrieveUserList()
         );
         $utab->getItems();
 
@@ -2368,6 +2351,26 @@ class ilObjUserFolderGUI extends ilObjectGUI
             $this,
             'view'
         );
+    }
+
+    private function retrieveUserList(): array
+    {
+        if ($this->access->checkAccess(\ilObjUserFolder::PERM_READ_ALL, '', USER_FOLDER_ID)) {
+            return null;
+        }
+
+        if ($this->access->checkPositionAccess(
+            \ilObjUserFolder::ORG_OP_EDIT_USER_ACCOUNTS,
+            USER_FOLDER_ID
+        )) {
+            return $this->access->filterUserIdsByPositionOfCurrentUser(
+                \ilObjUserFolder::ORG_OP_EDIT_USER_ACCOUNTS,
+                USER_FOLDER_ID,
+                \ilLocalUser::_getAllUserIds(\ilLocalUser::_getUserFolderId())
+            );
+        }
+
+        return [];
     }
 
     private function checkbox(string $name): ilCheckboxInputGUI
