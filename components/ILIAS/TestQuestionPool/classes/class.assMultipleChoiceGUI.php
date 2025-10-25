@@ -16,6 +16,10 @@
  *
  *********************************************************************/
 
+use ILIAS\UI\Factory as UIFactory;
+use ILIAS\UI\Renderer as UIRenderer;
+use ILIAS\Data\ImagePurpose;
+
 /**
  * Multiple choice question GUI representation
  *
@@ -33,6 +37,8 @@
 class assMultipleChoiceGUI extends assQuestionGUI implements ilGuiQuestionScoringAdjustable, ilGuiAnswerScoringAdjustable
 {
     private bool $rebuild_thumbnails = false;
+    private UIFactory $ui_factory;
+    private UIRenderer $ui_renderer;
 
     /**
     * assMultipleChoiceGUI constructor
@@ -49,6 +55,10 @@ class assMultipleChoiceGUI extends assQuestionGUI implements ilGuiQuestionScorin
         if ($id >= 0) {
             $this->object->loadFromDb($id);
         }
+
+        global $DIC;
+        $this->ui_factory = $DIC['ui.factory'];
+        $this->ui_renderer = $DIC['ui.renderer'];
     }
 
     /**
@@ -104,60 +114,236 @@ class assMultipleChoiceGUI extends assQuestionGUI implements ilGuiQuestionScorin
         return $this->object->isSingleline();
     }
 
+    /**
+    * Creates an output of the edit form for the question
+    *
+    * @access public
+    */
     public function editQuestion(
         bool $checkonly = false,
         ?bool $is_save_cmd = null
     ): bool {
-        $save = $is_save_cmd ?? $this->isSaveCommand();
+        /** @var ILIAS\DI\Container $DIC */
+        global $DIC;
+        $cmd = $DIC->http()->wrapper()->query()->retrieve(
+            'sub_cmd',
+            $DIC->refinery()->byTrying([
+                $this->refinery->kindlyTo()->string(),
+                $this->refinery->always(null)
+            ])
+        );
 
-        $is_singleline = $this->getEditAnswersSingleLine($checkonly);
+        $is_edit = $DIC->http()->wrapper()->query()->retrieve(
+            'edit',
+            $DIC->refinery()->byTrying([
+                $this->refinery->kindlyTo()->bool(),
+                $this->refinery->always(false)
+            ])
+        );
 
-        $form = $this->buildEditForm($is_singleline);
-
-        if ($is_singleline) {
-            $form->setMultipart(true);
-        } else {
-            $form->setMultipart(false);
-        }
-
-        $errors = false;
-
-        if ($save) {
-            $form->getItemByPostVar('selection_limit')->setMaxValue(count($this->request_data_collector->raw('choice')['answer'] ?? []));
-
-            $form->setValuesByPost();
-            $errors = !$this->checkMaxPointsNotNegative($form) || !$form->checkInput();
-            if ($errors) {
-                $checkonly = false;
+        if ($cmd !== 'questionOverview') {
+            $this->tabs_gui->clearTargets();
+            if ($is_edit) {
+                $this->ctrl->setParameterByClass(
+                    self::class,
+                    'sub_cmd',
+                    $cmd === 'questionOverview'
+                );
             }
+            $this->tabs_gui->setBackTarget(
+                'Cancel',
+                $this->ctrl->getFormActionByClass(
+                    $is_edit ? self::class : ilAssQuestionPreviewGUI::class,
+                    $is_edit ? 'editQuestion' : 'show'
+                )
+            );
+            $this->ctrl->clearParameterByClass(self::class, 'sub_cmd');
         }
 
-        if (!$checkonly) {
-            $this->renderEditForm($form);
+        if ($cmd === null) {
+            $content = $this->buildBasicForm($is_edit);
+        } elseif ($cmd === 'answerOptions') {
+            $content = $this->buildAnswerOptionsForm();
+        } elseif ($cmd === 'questionOverview') {
+            $content = $this->buildQuestionOverview();
         }
-        return $errors;
+
+        $this->getQuestionTemplate();
+        $this->tpl->setVariable(
+            'QUESTION_DATA',
+            $this->ui_renderer->render($content)
+        );
+        return true;
     }
 
-    private function checkMaxPointsNotNegative(ilPropertyFormGUI $form): bool
+    private function buildBasicForm(bool $is_edit)
     {
-        $choice = $form->getItemByPostVar('choice');
-        if (!$choice instanceof ilMultipleChoiceWizardInputGUI) {
-            return true;
-        }
+        $ff = $this->ui_factory->input()->field();
+        $is_edit ? $this->ctrl->setParameterByClass(self::class, 'sub_cmd', 'questionOverview') : $this->ctrl->setParameterByClass(self::class, 'sub_cmd', 'answerOptions');
+        return $this->ui_factory->input()->container()->form()->standard(
+            $this->ctrl->getFormActionByClass(self::class, 'editQuestion'),
+            [
+                $ff->section(
+                    [
+                        'answer_options' => $ff->numeric('Amount of Answer Options')->withValue(4),
+                        'selectable' => $ff->numeric(
+                            'Amount of Selectable Answer Options',
+                            'Define the amount of answer options a user can select at most. If this field is left empty, a user can select all available options.'
+                        ),
+                        'scoring' => $ff->switchableGroup(
+                            [
+                                $ff->group(
+                                    [
+                                        $ff->numeric('Points')->withStepSize(0.0001)->withRequired(true)
+                                    ],
+                                    'Points are awarded if all selected answer options are correct.'
+                                ),
+                                $ff->group(
+                                    [],
+                                    'Points are awarded per answer option.'
+                                ),
+                            ],
+                            'Marking'
+                        )
+                    ],
+                    'Basic Answer Form Properties'
+                )->withRequired(true)
+            ]
+        )->withSubmitLabel($is_edit ? $this->lng->txt('save') : $this->lng->txt('next'));
+    }
 
-        $answers = $choice->getValues();
-        $total_max_points = 0;
-        /** @var ASS_AnswerMultipleResponseImage $answer */
-        foreach ($answers as $answer) {
-            $total_max_points += max($answer->getPointsChecked(), $answer->getPointsUnchecked());
-        }
+    private function buildAnswerOptionsForm()
+    {
+        $ff = $this->ui_factory->input()->field();
+        $this->ctrl->setParameterByClass(self::class, 'sub_cmd', 'questionOverview');
+        return $this->ui_factory->input()->container()->form()->standard(
+            $this->ctrl->getFormActionByClass(self::class, 'editQuestion'),
+            [
+                    $ff->section(
+                        [
+                            'option_1' => $ff->section(
+                                [
+                                    'text' => $ff->markdown(
+                                        new ilUIMarkdownPreviewGUI(),
+                                        'Answer Text'
+                                    ),
+                                    'image' => $ff->image(
+                                        new \ilUIDemoFileUploadHandlerGUI(),
+                                        ImagePurpose::USER_DEFINED,
+                                        'Answer Image'
+                                    ),
+                                    'correctness' => $ff->checkbox('Answer is correct.')
+                                ],
+                                'Options 1'
+                            ),
+                            'option_2' => $ff->section(
+                                [
+                                    'text' => $ff->markdown(
+                                        new ilUIMarkdownPreviewGUI(),
+                                        'Answer Text'
+                                    ),
+                                    'image' => $ff->image(
+                                        new \ilUIDemoFileUploadHandlerGUI(),
+                                        ImagePurpose::USER_DEFINED,
+                                        'Answer Image'
+                                    ),
+                                    'correctness' => $ff->checkbox('Answer is correct.')
+                                ],
+                                'Options 2'
+                            ),
+                            'option_3' => $ff->section(
+                                [
+                                    'text' => $ff->markdown(
+                                        new ilUIMarkdownPreviewGUI(),
+                                        'Answer Text'
+                                    ),
+                                    'image' => $ff->image(
+                                        new \ilUIDemoFileUploadHandlerGUI(),
+                                        ImagePurpose::USER_DEFINED,
+                                        'Answer Image'
+                                    ),
+                                    'correctness' => $ff->checkbox('Answer is correct.')
+                                ],
+                                'Options 3'
+                            ),
+                            'option_4' => $ff->section(
+                                [
+                                    'text' => $ff->markdown(
+                                        new ilUIMarkdownPreviewGUI(),
+                                        'Answer Text'
+                                    ),
+                                    'image' => $ff->image(
+                                        new \ilUIDemoFileUploadHandlerGUI(),
+                                        ImagePurpose::USER_DEFINED,
+                                        'Answer Image'
+                                    ),
+                                    'correctness' => $ff->checkbox('Answer is correct.')
+                                ],
+                                'Options 4'
+                            )
+                        ],
+                        'Define Answer Options'
+                    )
+                ]
+        )->withSubmitLabel('Finalise');
+    }
 
-        if ($total_max_points < 0) {
-            $choice->setAlert($this->lng->txt('total_max_points_cannot_be_negative'));
-            return false;
-        }
-
-        return true;
+    private function buildQuestionOverview()
+    {
+        /** @var ILIAS\DI\Container $DIC */
+        global $DIC;
+        [$url_builder, $token] = (new ILIAS\UI\URLBuilder(new ILIAS\Data\URI($DIC->http()->request()->getUri()->__toString())))
+            ->acquireParameter(['table'], 'test');
+        $this->ctrl->setParameterByClass(self::class, 'edit', '1');
+        return [
+            $this->ui_factory->panel()->standard(
+                'Basic Answer Form Properties',
+                [
+                    $this->ui_factory->listing()->descriptive([
+                        $this->lng->txt('cloze_text') => (new ilUIMarkdownPreviewGUI())->render(
+                            "# This is a text with a text GAP [GAP_0d43],\n"
+                            . " *a numeric gap [GAP_6bd5]*,\n"
+                            . " **a select gap [GAP_d9ba]**,\n"
+                            . " and a long menu gap [GAP_f545]"
+                        ),
+                        $this->lng->txt('text_rating') => $this->lng->txt('cloze_textgap_case_insensitive'),
+                        $this->lng->txt("cloze_fixed_textlength") => $this->lng->txt('unlimited'),
+                        'Minimal Characters for Suggestions' => '3',
+                        'Scoring of identical Responses' => 'Only Unique Responses are Scored'
+                    ]),
+                    $this->ui_factory->button()->standard(
+                        'Edit Basic Answer Form Properties',
+                        $this->ctrl->getFormActionByClass(self::class)
+                    )
+                ]
+            ),
+            $this->ui_factory->table()->data(
+                $this,
+                'Gaps',
+                [
+                    'gap' => $this->ui_factory->table()->column()->text('Gap'),
+                    'type' => $this->ui_factory->table()->column()->text('Type'),
+                    'options' => $this->ui_factory->table()->column()->text('Answer Options Awarding Points'),
+                    'points' => $this->ui_factory->table()->column()->text('Available Points'),
+                ]
+            )->withActions([
+                $this->ui_factory->table()->action()->standard(
+                    'Edit Gap(s)',
+                    $url_builder,
+                    $token
+                ),
+                $this->ui_factory->table()->action()->standard(
+                    'Edit Answer Options',
+                    $url_builder,
+                    $token
+                ),
+                $this->ui_factory->table()->action()->standard(
+                    'Edit Available Points',
+                    $url_builder,
+                    $token
+                )
+            ])->withRequest($DIC->http()->request())
+        ];
     }
 
     public function addBasicQuestionFormProperties(ilPropertyFormGUI $form): void
