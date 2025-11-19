@@ -185,10 +185,10 @@ class assMultipleChoiceGUI extends assQuestionGUI implements ilGuiQuestionScorin
             [
                 $ff->section(
                     [
-                        'answer_options' => $ff->numeric('Amount of Answer Options')->withValue(4),
+                        'answer_options' => $ff->numeric('Amount of Answer Options')->withValue(4)->withRequired(true),
                         'selectable' => $ff->numeric(
                             'Amount of Selectable Answer Options',
-                            'Define the amount of answer options a user can select at most. If this field is left empty, a user can select all available options.'
+                            'Define the amount of answer options a user can select at most. If this field is left empty, a user can select all available options. If this field is set to one inputs of the type radio will be used for presentation.'
                         ),
                         'scoring' => $ff->switchableGroup(
                             [
@@ -204,10 +204,16 @@ class assMultipleChoiceGUI extends assQuestionGUI implements ilGuiQuestionScorin
                                 ),
                             ],
                             'Marking'
-                        )
+                        )->withRequired(true),
+                        'shuffle' => $ff->checkbox('Shuffle Answer Options'),
+                        'image_size' => $ff->numeric(
+                            'Image Size',
+                            'Images will be reduced to this size preserving aspect ratio.'
+                        )->withValue(150)
+                        ->withRequired(true)
                     ],
                     'Basic Answer Form Properties'
-                )->withRequired(true)
+                )
             ]
         )->withSubmitLabel($is_edit ? $this->lng->txt('save') : $this->lng->txt('next'));
     }

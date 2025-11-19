@@ -854,7 +854,7 @@ JS;
         ];
     }
 
-    public function getRows(\ILIAS\UI\Component\Table\DataRowBuilder $row_builder, array $visible_column_ids, \ILIAS\Data\Range $range, \ILIAS\Data\Order $order, ?array $filter_data, ?array $additional_parameters): \Generator
+    public function getRows(\ILIAS\UI\Component\Table\DataRowBuilder $row_builder, array $visible_column_ids, \ILIAS\Data\Range $range, \ILIAS\Data\Order $order, mixed $additional_viewcontrol_data, mixed $filter_data, mixed $additional_parameters): \Generator
     {
         global $DIC;
         $cmd = $DIC->http()->wrapper()->query()->retrieve(
@@ -948,7 +948,7 @@ JS;
         ];
     }
 
-    public function getTotalRowCount(?array $filter_data, ?array $additional_parameters): ?int
+    public function getTotalRowCount(mixed $additional_viewcontrol_data, mixed $filter_data, mixed $additional_parameters): ?int
     {
         global $DIC;
         $cmd = $DIC->http()->wrapper()->query()->retrieve(
