@@ -19,7 +19,9 @@
 declare(strict_types=1);
 
 use ILIAS\TestQuestionPool\Questions\QuestionAutosaveable;
+use ILIAS\TestQuestionPool\QuestionPoolDIC;
 use ILIAS\Test\Logging\AdditionalInformationGenerator;
+use ILIAS\Questions\Units\Repository as UnitsRepository;
 
 /**
  * Class for single choice questions
@@ -33,7 +35,7 @@ class assFormulaQuestion extends assQuestion implements iQuestionCondition, Ques
     private array $variables;
     private array $results;
     private array $resultunits;
-    private ilUnitConfigurationRepository $unitrepository;
+    private UnitsRepository $unitrepository;
     protected PassPresentedVariablesRepo $pass_presented_variables_repo;
 
     public function __construct(
@@ -47,7 +49,7 @@ class assFormulaQuestion extends assQuestion implements iQuestionCondition, Ques
         $this->variables = [];
         $this->results = [];
         $this->resultunits = [];
-        $this->unitrepository = new ilUnitConfigurationRepository(0);
+        $this->unitrepository = QuestionPoolDIC::dic()['units.repository'];
         $this->pass_presented_variables_repo = new PassPresentedVariablesRepo($this->db);
     }
 
@@ -705,8 +707,6 @@ class assFormulaQuestion extends assQuestion implements iQuestionCondition, Ques
             } catch (ilTestQuestionPoolException $e) {
             }
 
-            $this->unitrepository = new ilUnitConfigurationRepository($question_id);
-
             $this->setQuestion(ilRTE::_replaceMediaObjectImageSrc((string) $data["question_text"], 1));
 
             // load variables
@@ -1118,7 +1118,7 @@ class assFormulaQuestion extends assQuestion implements iQuestionCondition, Ques
                     isset($available_units[$result_name])
                     && in_array($user_solution[$result_name]['unit'] ?? null, $available_units[$result_name])
                 ) {
-                    $unit_factor = assFormulaQuestionUnit::lookupUnitFactor($user_solution[$result_name]['unit']);
+                    $unit_factor = $this->unitrepository->lookupUnitFactor($user_solution[$result_name]['unit']);
                 }
 
                 try {
@@ -1147,15 +1147,9 @@ class assFormulaQuestion extends assQuestion implements iQuestionCondition, Ques
     public function setId(int $id = -1): void
     {
         parent::setId($id);
-        $this->unitrepository->setConsumerId($this->getId());
     }
 
-    public function setUnitrepository(\ilUnitConfigurationRepository $unitrepository): void
-    {
-        $this->unitrepository = $unitrepository;
-    }
-
-    public function getUnitrepository(): ilUnitConfigurationRepository
+    public function getUnitrepository(): UnitsRepository
     {
         return $this->unitrepository;
     }

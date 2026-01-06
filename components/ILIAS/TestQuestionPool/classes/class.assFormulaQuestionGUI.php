@@ -16,6 +16,7 @@
  *
  *********************************************************************/
 
+use ILIAS\Questions\Units\LocalConfigurationGUI as LocalUnitsConfigurationGUI;
 use ILIAS\UI\Factory as UIFactory;
 use ILIAS\UI\Renderer as UIRenderer;
 
@@ -56,8 +57,17 @@ class assFormulaQuestionGUI extends assQuestionGUI
 
     protected function setQuestionSpecificTabs(ilTabsGUI $ilTabs): void
     {
-        $this->ctrl->setParameterByClass(ilLocalUnitConfigurationGUI::class, 'q_id', $this->object->getId());
-        $ilTabs->addTarget('units', $this->ctrl->getLinkTargetByClass(ilLocalUnitConfigurationGUI::class, ''), '', 'illocalunitconfigurationgui');
+        $this->ctrl->setParameterByClass(
+            LocalUnitsConfigurationGUI::class,
+            'q_id',
+            $this->object->getId()
+        );
+
+        $ilTabs->addTab(
+            'units',
+            $this->lng->txt('units'),
+            $this->ctrl->getLinkTargetByClass(LocalUnitsConfigurationGUI::class, ''),
+        );
     }
 
     public function suggestRange(): void
@@ -221,7 +231,9 @@ class assFormulaQuestionGUI extends assQuestionGUI
         $question->setInfo($this->lng->txt('fq_question_desc'));
 
         $variables = $this->object->getVariables();
-        $categorized_units = $this->object->getUnitrepository()->getCategorizedUnits();
+        $categorized_units = $this->object->getUnitrepository()->getCategorizedUnits(
+            $this->object->getId()
+        );
         $result_units = $this->object->getAllResultUnits();
 
         $unit_options = [];
@@ -232,13 +244,14 @@ class assFormulaQuestionGUI extends assQuestionGUI
              * @var $item assFormulaQuestionUnitCategory|assFormulaQuestionUnit
              */
             if ($item instanceof assFormulaQuestionUnitCategory) {
-                if ($category_name != $item->getDisplayString()) {
+                if ($category_name !== $item->getDisplayString($this->lng)) {
                     $new_category = true;
-                    $category_name = $item->getDisplayString();
+                    $category_name = $item->getDisplayString($this->lng);
                 }
                 continue;
             }
-            $unit_options[$item->getId()] = $item->getDisplayString() . ($new_category ? ' (' . $category_name . ')' : '');
+            $unit_options[$item->getId()] = $item->getDisplayString($this->lng)
+                . ($new_category ? ' (' . $category_name . ')' : '');
             $new_category = false;
         }
 

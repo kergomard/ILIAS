@@ -16,6 +16,9 @@
  *
  *********************************************************************/
 
+use ILIAS\Questions\Units\Category;
+use ILIAS\Questions\Units\ConfigurationGUI;
+
 /**
  * Class ilUnitTableGUI
  */
@@ -28,13 +31,11 @@ class ilUnitTableGUI extends ilTable2GUI
     private \ILIAS\UI\Factory $ui_factory;
     private \ILIAS\UI\Renderer $ui_renderer;
 
-    /**
-     * @param ilUnitConfigurationGUI         $controller
-     * @param string                         $default_cmd
-     * @param assFormulaQuestionUnitCategory $category
-     */
-    public function __construct(ilUnitConfigurationGUI $controller, $default_cmd, assFormulaQuestionUnitCategory $category)
-    {
+    public function __construct(
+        ConfigurationGUI $controller,
+        string $default_cmd,
+        Category $category
+    ) {
         /**
          * @var $ilCtrl ilCtrl
          * @var $lng    ilLanguage
@@ -58,7 +59,12 @@ class ilUnitTableGUI extends ilTable2GUI
             $this->addCommandButton('saveOrder', $this->lng->txt('un_save_order'));
         }
 
-        $this->setTitle(sprintf($this->lng->txt('un_units_of_category_x'), $category->getDisplayString()));
+        $this->setTitle(
+            sprintf(
+                $this->lng->txt('un_units_of_category_x'),
+                $category->getDisplayString($this->lng)
+            )
+        );
 
         $this->addColumn($this->lng->txt('un_sequence'), '');
         $this->addColumn($this->lng->txt('unit'), '');

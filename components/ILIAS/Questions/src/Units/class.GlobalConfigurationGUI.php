@@ -41,26 +41,29 @@ class GlobalConfigurationGUI extends ConfigurationGUI
 
     public function getUniqueId(): string
     {
-        return $this->repository->getConsumerId() . '_global';
+        return $this->request->getQuestionId() . '_global';
     }
 
+    #[\Override]
     protected function showGlobalUnitCategories(): void
     {
-        global $DIC;
-
-        $ilToolbar = $DIC->toolbar();
-        $rbacsystem = $DIC->rbac()->system();
-
-        if ($rbacsystem->checkAccess('write', $this->request->getRefId())) {
-            $ilToolbar->addButton($this->lng->txt('un_add_category'), $this->ctrl->getLinkTargetByClass(self::class, 'showUnitCategoryCreationForm'));
+        if ($this->rbac_system->checkAccess('write', $this->request->getRefId())) {
+            $this->toolbar->addButton(
+                $this->lng->txt('un_add_category'),
+                $this->ctrl->getLinkTargetByClass(
+                    self::class,
+                    'showUnitCategoryCreationForm'
+                )
+            );
         }
 
         parent::showGlobalUnitCategories();
     }
 
+    #[\Override]
     protected function showUnitCategories(array $categories): void
     {
-        $table = new \ilGlobalUnitCategoryTableGUI(this, $this->getUnitCategoryOverviewCommand());
+        $table = new \ilGlobalUnitCategoryTableGUI($this, $this->getUnitCategoryOverviewCommand());
         $table->setData($categories);
 
         $this->tpl->setContent($table->getHTML());

@@ -24,11 +24,13 @@ class LocalConfigurationGUI extends ConfigurationGUI
 {
     private const REQUEST_PARAM_SUB_CONTEXT_ID = 'question_fi';
 
+    #[\Override]
     protected function getDefaultCommand(): string
     {
         return 'showLocalUnitCategories';
     }
 
+    #[\Override]
     public function getUnitCategoryOverviewCommand(): string
     {
         if ($this->isCRUDContext()) {
@@ -38,19 +40,21 @@ class LocalConfigurationGUI extends ConfigurationGUI
         return 'showGlobalUnitCategories';
     }
 
+    #[\Override]
     public function isCRUDContext(): bool
     {
         if (!$this->request->isset(self::REQUEST_PARAM_SUB_CONTEXT_ID) ||
-            $this->request->raw(self::REQUEST_PARAM_SUB_CONTEXT_ID) == $this->repository->getConsumerId()) {
+            $this->request->int(self::REQUEST_PARAM_SUB_CONTEXT_ID) === $this->request->getQuestionId()) {
             return true;
         }
 
         return false;
     }
 
+    #[\Override]
     public function getUniqueId(): string
     {
-        $id = $this->repository->getConsumerId();
+        $id = $this->request->getQuestionId();
         if ($this->isCRUDContext()) {
             $id .= '_local';
         } else {
@@ -60,71 +64,94 @@ class LocalConfigurationGUI extends ConfigurationGUI
         return $id;
     }
 
+    #[\Override]
     public function executeCommand(): void
     {
-        global $DIC;
-
-        /** @var ilHelpGUI $ilHelp */
-        $ilHelp = $DIC['ilHelp'];
-
         $this->ctrl->saveParameter($this, self::REQUEST_PARAM_SUB_CONTEXT_ID);
+        $this->help->setScreenIdComponent('qpl');
 
-        $ilHelp->setScreenIdComponent('qpl');
         parent::executeCommand();
     }
 
+    #[\Override]
     protected function handleSubtabs(): void
     {
-        global $DIC;
+        $this->ctrl->setParameterByClass(
+            self::class,
+            self::REQUEST_PARAM_SUB_CONTEXT_ID,
+            $this->request->getQuestionId()
+        );
 
-        $ilTabs = $DIC->tabs();
+        $this->tabs->addSubTab(
+            'view_unit_ctx_local',
+            $this->lng->txt('un_local_units'),
+            $this->ctrl->getLinkTargetByClass(
+                self::class,
+                'showLocalUnitCategories'
+            )
+        );
 
-        $this->ctrl->setParameter($this, self::REQUEST_PARAM_SUB_CONTEXT_ID, $this->repository->getConsumerId());
-        $ilTabs->addSubTab('view_unit_ctx_local', $this->lng->txt('un_local_units'), $this->ctrl->getLinkTarget($this, 'showLocalUnitCategories'));
-        $this->ctrl->setParameter($this, self::REQUEST_PARAM_SUB_CONTEXT_ID, 0);
-        $ilTabs->addSubTab('view_unit_ctx_global', $this->lng->txt('un_global_units'), $this->ctrl->getLinkTarget($this, 'showGlobalUnitCategories'));
-        $this->ctrl->setParameter($this, self::REQUEST_PARAM_SUB_CONTEXT_ID, '');
+        $this->ctrl->setParameterByClass(
+            self::class,
+            self::REQUEST_PARAM_SUB_CONTEXT_ID,
+            0
+        );
+
+        $this->tabs->addSubTab(
+            'view_unit_ctx_global',
+            $this->lng->txt('un_global_units'),
+            $this->ctrl->getLinkTargetByClass(
+                self::class,
+                'showGlobalUnitCategories'
+            )
+        );
+
+        $this->ctrl->setParameterByClass(
+            self::class,
+            self::REQUEST_PARAM_SUB_CONTEXT_ID,
+            ''
+        );
 
         if ($this->isCRUDContext()) {
-            $ilTabs->activateSubTab('view_unit_ctx_local');
+            $this->tabs->activateSubTab('view_unit_ctx_local');
         } else {
-            $ilTabs->activateSubTab('view_unit_ctx_global');
+            $this->tabs->activateSubTab('view_unit_ctx_global');
         }
     }
 
     protected function showLocalUnitCategories(): void
     {
-        global $DIC;
-
-        $ilToolbar = $DIC->toolbar();
-
-        $ilToolbar->addButton($this->lng->txt('un_add_category'), $this->ctrl->getLinkTarget($this, 'showUnitCategoryCreationForm'));
-
-        $repo = $this->repository;
-        $categories = array_filter(
-            $this->repository->getAllUnitCategories(),
-            static function (assFormulaQuestionUnitCategory $category) use ($repo): bool {
-                return $category->getQuestionFi() === $repo->getConsumerId();
-            }
+        $this->toolbar->addButton(
+            $this->lng->txt('un_add_category'),
+            $this->ctrl->getLinkTargetByClass(
+                self::class,
+                'showUnitCategoryCreationForm'
+            )
         );
-        $data = [];
-        foreach ($categories as $category) {
-            /** @var assFormulaQuestionUnitCategory $category */
-            $data[] = [
-                'category_id' => $category->getId(),
-                'category' => $category->getDisplayString()
-            ];
-        }
 
-        $this->showUnitCategories($data);
+        $question_id = $this->request->getQuestionId();
+        $this->showUnitCategories(
+            array_map(
+                fn(Category $v): array => [
+                    'category_id' => $v->getId(),
+                    'category' => $v->getDisplayString($this->lng)
+                ],
+                array_filter(
+                    $this->repository->getAllUnitCategories($question_id),
+                    fn(Category $category): bool => $category->getQuestionFi() === $question_id
+                )
+            )
+        );
     }
 
     /**
      * @param array $categories
      */
-    protected function showUnitCategories(array $categories): void
-    {
-        $table = new ilLocalUnitCategoryTableGUI($this, $this->getUnitCategoryOverviewCommand());
+    #[\Override]
+    protected function showUnitCategories(
+        array $categories
+    ): void {
+        $table = new \ilLocalUnitCategoryTableGUI($this, $this->getUnitCategoryOverviewCommand());
         $table->setData($categories);
 
         $this->tpl->setContent($table->getHTML());
@@ -139,14 +166,16 @@ class LocalConfigurationGUI extends ConfigurationGUI
         $this->confirmImportGlobalCategories([$this->request->raw('category_id')]);
     }
 
-    protected function confirmImportGlobalCategories(array $category_ids): void
-    {
+    protected function confirmImportGlobalCategories(
+        array $category_ids
+    ): void {
         // @todo: Confirmation Currently not implemented, so forward to import
         $this->importGlobalCategories($category_ids);
     }
 
-    protected function importGlobalCategories(array $category_ids): void
-    {
+    protected function importGlobalCategories(
+        array $category_ids
+    ): void {
         if ($this->isCRUDContext()) {
             $this->{$this->getDefaultCommand()}();
             return;
@@ -156,15 +185,22 @@ class LocalConfigurationGUI extends ConfigurationGUI
         foreach ($category_ids as $category_id) {
             try {
                 $category = $this->repository->getUnitCategoryById((int) $category_id);
-            } catch (ilException $e) {
+            } catch (\ilException $e) {
                 continue;
             }
 
             // Copy admin-category to custom-category (with question_fi)
-            $new_cat_id = $this->repository->copyCategory($category->getId(), $this->repository->getConsumerId());
+            $new_cat_id = $this->repository->copyCategory(
+                $this->request->getQuestionId(),
+                $category->getId()
+            );
 
             // Copy units to custom_category
-            $this->repository->copyUnitsByCategories($category->getId(), $new_cat_id, $this->repository->getConsumerId());
+            $this->repository->copyUnitsByCategories(
+                $this->request->getQuestionId(),
+                $category->getId(),
+                $new_cat_id
+            );
             ++$i;
         }
 
