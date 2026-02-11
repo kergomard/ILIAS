@@ -43,7 +43,7 @@ class ilObjQuestionsGUI extends ilObjectGUI
 
     private readonly UnitsRepository $units_repository;
     private readonly Edit $edit_view;
-    private readonly ConfigurationRepository $configurations_repository;
+    private readonly ConfigurationRepository $configuration_repository;
 
     private readonly ilHelpGUI $help;
     private readonly DataFactory $data_factory;
