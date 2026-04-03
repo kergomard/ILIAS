@@ -121,6 +121,10 @@ class LocalDIC extends PimpleContainer
                     ),
                 Capabilities\Marking\Marking::class => new Capabilities\Marking\Capability()
             ]);
+        $dic[Capabilities\Edit::class] = fn($c): Capabilities\Edit
+            => new Capabilities\Edit(
+                $c[Capabilities\Factory::class]
+            );
         $dic[AnswerFormFactory::class] = static fn($c): AnswerFormFactory
             => new AnswerFormFactory(
                 $c[UuidFactory::class],
@@ -163,7 +167,7 @@ class LocalDIC extends PimpleContainer
             $DIC['ilTabs'],
             $DIC->uiService(),
             $c[UuidFactory::class],
-            $c[Capabilities\Factory::class],
+            $c[Capabilities\Edit::class],
             $c[AnswerFormFactory::class],
             $c[QuestionsRepository::class],
             $c[LayoutFactory::class]
@@ -249,7 +253,9 @@ class LocalDIC extends PimpleContainer
                     $c[UuidFactory::class],
                     $c[DataFactory::class]->text()
                 ),
-                Capabilities\Marking\Marking::class => new Cloze\Capabilities\Marking()
+                Capabilities\Marking\Marking::class => new Cloze\Capabilities\Marking(
+                    $c[Cloze\Properties\Factory::class]
+                )
             ],
             $c[Cloze\Views\Edit::class],
             $c[Cloze\Views\Participant::class]
