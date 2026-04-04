@@ -20,6 +20,7 @@ declare(strict_types=1);
 
 namespace ILIAS\Questions\Units;
 
+use ILIAS\Database\FieldDefinition;
 use ILIAS\Language\Language;
 
 class Repository
@@ -47,7 +48,7 @@ class Repository
     ): bool {
         $res = $this->db->queryF(
             'SELECT * FROM ' . self::CATEGORY_TABLE . ' WHERE category_id = %s',
-            [\ilDBConstants::T_INTEGER],
+            [FieldDefinition::T_INTEGER],
             [$category_id]
         );
         $row = $this->db->fetchAssoc($res);
@@ -61,7 +62,7 @@ class Repository
     ): int {
         $res = $this->db->queryF(
             'SELECT category FROM ' . self::CATEGORY_TABLE . ' WHERE category_id = %s',
-            [\ilDBConstants::T_INTEGER],
+            [FieldDefinition::T_INTEGER],
             [$category_id]
         );
         $row = $this->db->fetchAssoc($res);
@@ -74,9 +75,9 @@ class Repository
         $this->db->insert(
             self::CATEGORY_TABLE,
             [
-                'category_id' => [\ilDBConstants::T_INTEGER, $next_id],
-                'category' => [\ilDBConstants::T_TEXT, $category_name],
-                'question_fi' => [\ilDBConstants::T_INTEGER, (int) $question_fi]
+                'category_id' => [FieldDefinition::T_INTEGER, $next_id],
+                'category' => [FieldDefinition::T_TEXT, $category_name],
+                'question_fi' => [FieldDefinition::T_INTEGER, (int) $question_fi]
             ]
         );
 
@@ -90,7 +91,7 @@ class Repository
     ): void {
         $res = $this->db->queryF(
             'SELECT * FROM ' . self::UNIT_TABLE . ' WHERE category_fi = %s',
-            [\ilDBConstants::T_INTEGER],
+            [FieldDefinition::T_INTEGER],
             [$from_category_id]
         );
         $i = 0;
@@ -104,13 +105,13 @@ class Repository
             $this->db->insert(
                 self::UNIT_TABLE,
                 [
-                    'unit_id' => [\ilDBConstants::T_INTEGER, $next_id],
-                    'unit' => [\ilDBConstants::T_TEXT, $row['unit']],
-                    'factor' => [\ilDBConstants::T_FLOAT, $row['factor']],
-                    'baseunit_fi' => [\ilDBConstants::T_INTEGER, (int) $row['baseunit_fi']],
-                    'category_fi' => [\ilDBConstants::T_INTEGER, (int) $to_category_id],
-                    'sequence' => [\ilDBConstants::T_INTEGER, (int) $row['sequence']],
-                    'question_fi' => [\ilDBConstants::T_INTEGER, (int) $question_id]
+                    'unit_id' => [FieldDefinition::T_INTEGER, $next_id],
+                    'unit' => [FieldDefinition::T_TEXT, $row['unit']],
+                    'factor' => [FieldDefinition::T_FLOAT, $row['factor']],
+                    'baseunit_fi' => [FieldDefinition::T_INTEGER, (int) $row['baseunit_fi']],
+                    'category_fi' => [FieldDefinition::T_INTEGER, (int) $to_category_id],
+                    'sequence' => [FieldDefinition::T_INTEGER, (int) $row['sequence']],
+                    'question_fi' => [FieldDefinition::T_INTEGER, (int) $question_id]
                 ]
             );
             $i++;
@@ -121,11 +122,11 @@ class Repository
             $this->db->update(
                 self::UNIT_TABLE,
                 [
-                    'baseunit_fi' => [\ilDBConstants::T_INTEGER, (int) $unit['new_unit_id']]
+                    'baseunit_fi' => [FieldDefinition::T_INTEGER, (int) $unit['new_unit_id']]
                 ],
                 [
-                    'baseunit_fi' => [\ilDBConstants::T_INTEGER, $unit['old_unit_id']],
-                    'category_fi' => [\ilDBConstants::T_INTEGER, $to_category_id]
+                    'baseunit_fi' => [FieldDefinition::T_INTEGER, $unit['old_unit_id']],
+                    'category_fi' => [FieldDefinition::T_INTEGER, $to_category_id]
                 ]
             );
 
@@ -133,11 +134,11 @@ class Repository
             $this->db->update(
                 self::VARIABLES_TABLE,
                 [
-                    'unit_fi' => [\ilDBConstants::T_INTEGER, (int) $unit['new_unit_id']]
+                    'unit_fi' => [FieldDefinition::T_INTEGER, (int) $unit['new_unit_id']]
                 ],
                 [
-                    'unit_fi' => [\ilDBConstants::T_INTEGER, $unit['old_unit_id']],
-                    'question_fi' => [\ilDBConstants::T_INTEGER, $question_id]
+                    'unit_fi' => [FieldDefinition::T_INTEGER, $unit['old_unit_id']],
+                    'question_fi' => [FieldDefinition::T_INTEGER, $question_id]
                 ]
             );
 
@@ -145,11 +146,11 @@ class Repository
             $this->db->update(
                 self::RESULTS_TABLE,
                 [
-                    'unit_fi' => [\ilDBConstants::T_INTEGER, (int) $unit['new_unit_id']]
+                    'unit_fi' => [FieldDefinition::T_INTEGER, (int) $unit['new_unit_id']]
                 ],
                 [
-                    'unit_fi' => [\ilDBConstants::T_INTEGER, $unit['old_unit_id']],
-                    'question_fi' => [\ilDBConstants::T_INTEGER, $question_id]
+                    'unit_fi' => [FieldDefinition::T_INTEGER, $unit['old_unit_id']],
+                    'question_fi' => [FieldDefinition::T_INTEGER, $question_id]
                 ]
             );
 
@@ -157,11 +158,11 @@ class Repository
             $this->db->update(
                 self::RESULT_UNITS_TABLE,
                 [
-                    'unit_fi' => [\ilDBConstants::T_INTEGER, (int) $unit['new_unit_id']]
+                    'unit_fi' => [FieldDefinition::T_INTEGER, (int) $unit['new_unit_id']]
                 ],
                 [
-                    'unit_fi' => [\ilDBConstants::T_INTEGER, $unit['old_unit_id']],
-                    'question_fi' => [\ilDBConstants::T_INTEGER, $question_id]
+                    'unit_fi' => [FieldDefinition::T_INTEGER, $unit['old_unit_id']],
+                    'question_fi' => [FieldDefinition::T_INTEGER, $question_id]
                 ]
             );
         }
@@ -173,7 +174,7 @@ class Repository
         $row = $this->db->fetchObject(
             $this->db->queryF(
                 'SELECT COUNT(category_id) FROM ' . self::UNIT_TABLE . ' WHERE category_fi = %s',
-                [\ilDBConstants::T_INTEGER],
+                [FieldDefinition::T_INTEGER],
                 [$id]
             )
         );
@@ -187,7 +188,7 @@ class Repository
         $use_in_result_units = $this->db->fetchObject(
             $this->db->queryF(
                 'SELECT COUNT(result_unit_id) cnt FROM ' . self::RESULT_UNITS_TABLE . ' WHERE unit_fi = %s',
-                [\ilDBConstants::T_INTEGER],
+                [FieldDefinition::T_INTEGER],
                 [$id]
             )
         );
@@ -199,7 +200,7 @@ class Repository
         $use_in_vars = $this->db->fetchObject(
             $this->db->queryF(
                 'SELECT COUNT(variable_id) cnt FROM ' . self::VARIABLES_TABLE . ' WHERE unit_fi = %s',
-                [\ilDBConstants::T_INTEGER],
+                [FieldDefinition::T_INTEGER],
                 [$id]
             )
         );
@@ -210,7 +211,7 @@ class Repository
         $use_in_results = $this->db->fetchObject(
             $this->db->queryF(
                 'SELECT COUNT(result_id) cnt FROM ' . self::RESULTS_TABLE . ' WHERE unit_fi = %s',
-                [\ilDBConstants::T_INTEGER],
+                [FieldDefinition::T_INTEGER],
                 [$id]
             )
         );
@@ -226,7 +227,7 @@ class Repository
     ): ?string {
         $res = $this->db->queryF(
             'SELECT unit_id FROM ' . self::UNIT_TABLE . ' WHERE category_fi = %s',
-            [\ilDBConstants::T_INTEGER],
+            [FieldDefinition::T_INTEGER],
             [$id]
         );
 
@@ -250,7 +251,7 @@ class Repository
 
         $affected_rows = $this->db->manipulateF(
             'DELETE FROM ' . self::UNIT_TABLE . ' WHERE unit_id = %s',
-            [\ilDBConstants::T_INTEGER],
+            [FieldDefinition::T_INTEGER],
             [$id]
         );
 
@@ -292,7 +293,7 @@ class Repository
                 . 'LEFT JOIN ' . self::UNIT_TABLE . ' baseunits ON baseunits.unit_id = units.baseunit_fi' . PHP_EOL
                 . 'WHERE	units.question_fi = %s' . PHP_EOL
                 . 'ORDER BY ' . self::CATEGORY_TABLE . '.category, units.sequence' . PHP_EOL,
-                [\ilDBConstants::T_INTEGER],
+                [FieldDefinition::T_INTEGER],
                 [$question_id]
             );
 
@@ -355,7 +356,7 @@ class Repository
             . 'LEFT JOIN ' . self::UNIT_TABLE . ' baseunits ON baseunits.unit_id = units.baseunit_fi' . PHP_EOL
             . 'WHERE ' . self::CATEGORY_TABLE . '.category_id = %s' . PHP_EOL
             . 'ORDER BY units.sequence',
-            [\ilDBConstants::T_INTEGER],
+            [FieldDefinition::T_INTEGER],
             [$category]
         );
 
@@ -393,7 +394,7 @@ class Repository
         $categories = [];
         $result = $this->db->queryF(
             'SELECT * FROM ' . self::CATEGORY_TABLE . ' WHERE question_fi > %s ORDER BY category',
-            [\ilDBConstants::T_INTEGER],
+            [FieldDefinition::T_INTEGER],
             [0]
         );
 
@@ -424,7 +425,7 @@ class Repository
 
         $result = $this->db->queryF(
             'SELECT * FROM ' . self::CATEGORY_TABLE . ' WHERE question_fi = %s  ORDER BY category',
-            [\ilDBConstants::T_INTEGER],
+            [FieldDefinition::T_INTEGER],
             [0]
         );
 
@@ -454,9 +455,9 @@ class Repository
         $this->db->manipulateF(
             'UPDATE ' . self::UNIT_TABLE . ' SET sequence = %s WHERE unit_id = %s AND question_fi = %s',
             [
-                \ilDBConstants::T_INTEGER,
-                \ilDBConstants::T_INTEGER,
-                \ilDBConstants::T_INTEGER
+                FieldDefinition::T_INTEGER,
+                FieldDefinition::T_INTEGER,
+                FieldDefinition::T_INTEGER
             ],
             [
                 $sequence,
@@ -473,7 +474,7 @@ class Repository
         $use_in_vars = $this->db->fetchObject(
             $this->db->queryF(
                 'SELECT COUNT(variable_id) cnt FROM ' . self::VARIABLES_TABLE . ' WHERE unit_fi = %s',
-                [\ilDBConstants::T_INTEGER],
+                [FieldDefinition::T_INTEGER],
                 [$id]
             )
         );
@@ -484,7 +485,7 @@ class Repository
         $use_in_results = $this->db->fetchObject(
             $this->db->queryF(
                 'SELECT COUNT(result_id) cnt FROM ' . self::RESULTS_TABLE . ' WHERE unit_fi = %s',
-                [\ilDBConstants::T_INTEGER],
+                [FieldDefinition::T_INTEGER],
                 [$id]
             )
         );
@@ -503,7 +504,7 @@ class Repository
             $this->db->queryF(
                 'SELECT COUNT(unit_id) cnt FROM ' . self::UNIT_TABLE . '' . PHP_EOL
                     . "WHERE baseunit_fi = %s AND {$additional_where}",
-                [\ilDBConstants::T_INTEGER, \ilDBConstants::T_INTEGER],
+                [FieldDefinition::T_INTEGER, FieldDefinition::T_INTEGER],
                 $values_array
             )
         );
@@ -520,7 +521,7 @@ class Repository
     ): Category {
         $res = $this->db->query(
             'SELECT * FROM ' . self::CATEGORY_TABLE . ' WHERE category_id = '
-                . $this->db->quote($id, \ilDBConstants::T_INTEGER)
+                . $this->db->quote($id, FieldDefinition::T_INTEGER)
         );
 
         if ($this->db->numRows($res) === 0) {
@@ -540,9 +541,9 @@ class Repository
                 'SELECT COUNT(category_id) cnt FROM ' . self::CATEGORY_TABLE . '' . PHP_EOL
                 . 'WHERE category = %s AND question_fi = %s AND category_id != %s',
                 [
-                    \ilDBConstants::T_TEXT,
-                    \ilDBConstants::T_INTEGER,
-                    \ilDBConstants::T_INTEGER
+                    FieldDefinition::T_TEXT,
+                    FieldDefinition::T_INTEGER,
+                    FieldDefinition::T_INTEGER
                 ],
                 [
                     $category->getCategory(),
@@ -558,9 +559,9 @@ class Repository
         $this->db->manipulateF(
             'UPDATE ' . self::CATEGORY_TABLE . ' SET category = %s WHERE question_fi = %s AND category_id = %s',
             [
-                \ilDBConstants::T_TEXT,
-                \ilDBConstants::T_INTEGER,
-                \ilDBConstants::T_INTEGER
+                FieldDefinition::T_TEXT,
+                FieldDefinition::T_INTEGER,
+                FieldDefinition::T_INTEGER
             ],
             [
                 $category->getCategory(),
@@ -577,8 +578,8 @@ class Repository
             $this->db->queryF(
                 'SELECT COUNT(category_id) cnt FROM ' . self::CATEGORY_TABLE . ' WHERE category = %s AND question_fi = %s',
                 [
-                    \ilDBConstants::T_TEXT,
-                    \ilDBConstants::T_INTEGER
+                    FieldDefinition::T_TEXT,
+                    FieldDefinition::T_INTEGER
                 ],
                 [
                     $category->getCategory(),
@@ -594,9 +595,9 @@ class Repository
         $this->db->manipulateF(
             'INSERT INTO ' . self::CATEGORY_TABLE . ' (category_id, category, question_fi) VALUES (%s, %s, %s)',
             [
-                \ilDBConstants::T_INTEGER,
-                \ilDBConstants::T_TEXT,
-                \ilDBConstants::T_INTEGER
+                FieldDefinition::T_INTEGER,
+                FieldDefinition::T_TEXT,
+                FieldDefinition::T_INTEGER
             ],
             [
                 $next_id,
@@ -617,8 +618,8 @@ class Repository
         $result = $this->db->queryF(
             'SELECT * FROM ' . self::CATEGORY_TABLE . ' WHERE question_fi = %s OR question_fi = %s ORDER BY category',
             [
-                \ilDBConstants::T_INTEGER,
-                \ilDBConstants::T_INTEGER
+                FieldDefinition::T_INTEGER,
+                FieldDefinition::T_INTEGER
             ],
             [
                 $question_id,
@@ -644,7 +645,7 @@ class Repository
 
         $res = $this->db->queryF(
             'SELECT * FROM ' . self::UNIT_TABLE . ' WHERE category_fi = %s',
-            [\ilDBConstants::T_INTEGER],
+            [FieldDefinition::T_INTEGER],
             [$id]
         );
         while (($row = $this->db->fetchAssoc($res)) !== null) {
@@ -653,7 +654,7 @@ class Repository
 
         $ar = $this->db->manipulateF(
             'DELETE FROM ' . self::CATEGORY_TABLE . ' WHERE category_id = %s',
-            [\ilDBConstants::T_INTEGER],
+            [FieldDefinition::T_INTEGER],
             [$id]
         );
 
@@ -673,13 +674,13 @@ class Repository
             'INSERT INTO ' . self::UNIT_TABLE . ' (unit_id, unit, factor, baseunit_fi, category_fi, sequence, question_fi)' . PHP_EOL
             . 'VALUES (%s, %s, %s, %s, %s, %s, %s)',
             [
-                \ilDBConstants::T_INTEGER,
-                \ilDBConstants::T_TEXT,
-                \ilDBConstants::T_FLOAT,
-                \ilDBConstants::T_INTEGER,
-                \ilDBConstants::T_INTEGER,
-                \ilDBConstants::T_INTEGER,
-                \ilDBConstants::T_INTEGER
+                FieldDefinition::T_INTEGER,
+                FieldDefinition::T_TEXT,
+                FieldDefinition::T_FLOAT,
+                FieldDefinition::T_INTEGER,
+                FieldDefinition::T_INTEGER,
+                FieldDefinition::T_INTEGER,
+                FieldDefinition::T_INTEGER
             ],
             [
                 $next_id,
@@ -706,7 +707,7 @@ class Repository
         $row = $this->db->fetchObject(
             $this->db->queryF(
                 'SELECT COUNT(unit_id) cnt FROM ' . self::UNIT_TABLE . ' WHERE unit_id = %s',
-                [\ilDBConstants::T_INTEGER],
+                [FieldDefinition::T_INTEGER],
                 [$unit->getId()]
             )
         );
@@ -723,13 +724,13 @@ class Repository
             . 'SET unit = %s, factor = %s, baseunit_fi = %s, category_fi = %s, sequence = %s' . PHP_EOL
             . 'WHERE unit_id = %s AND question_fi = %s',
             [
-                \ilDBConstants::T_TEXT,
-                \ilDBConstants::T_FLOAT,
-                \ilDBConstants::T_INTEGER,
-                \ilDBConstants::T_INTEGER,
-                \ilDBConstants::T_INTEGER,
-                \ilDBConstants::T_INTEGER,
-                \ilDBConstants::T_INTEGER
+                FieldDefinition::T_TEXT,
+                FieldDefinition::T_FLOAT,
+                FieldDefinition::T_INTEGER,
+                FieldDefinition::T_INTEGER,
+                FieldDefinition::T_INTEGER,
+                FieldDefinition::T_INTEGER,
+                FieldDefinition::T_INTEGER
             ],
             [
                 $unit->getUnit(), $unit->getFactor(), (int) $unit->getBaseUnit(),
@@ -752,7 +753,7 @@ class Repository
 
         $res = $this->db->queryF(
             'SELECT * FROM ' . self::CATEGORY_TABLE . ' WHERE question_fi = %s',
-            [\ilDBConstants::T_INTEGER],
+            [FieldDefinition::T_INTEGER],
             [$from_consumer_id]
         );
         while ($row = $this->db->fetchAssoc($res)) {
@@ -763,7 +764,7 @@ class Repository
         foreach ($category_mapping as $old_category_id => $new_category_id) {
             $res = $this->db->queryF(
                 'SELECT * FROM ' . self::UNIT_TABLE . ' WHERE category_fi = %s',
-                [\ilDBConstants::T_INTEGER],
+                [FieldDefinition::T_INTEGER],
                 [$old_category_id]
             );
 
@@ -778,13 +779,13 @@ class Repository
                 $this->db->insert(
                     self::UNIT_TABLE,
                     [
-                        'unit_id' => [\ilDBConstants::T_INTEGER, $next_id],
-                        'unit' => [\ilDBConstants::T_TEXT, $row['unit']],
-                        'factor' => [\ilDBConstants::T_FLOAT, $row['factor']],
-                        'baseunit_fi' => [\ilDBConstants::T_INTEGER, (int) $row['baseunit_fi']],
-                        'category_fi' => [\ilDBConstants::T_INTEGER, (int) $new_category_id],
-                        'sequence' => [\ilDBConstants::T_INTEGER, (int) $row['sequence']],
-                        'question_fi' => [\ilDBConstants::T_INTEGER, $to_consumer_id]
+                        'unit_id' => [FieldDefinition::T_INTEGER, $next_id],
+                        'unit' => [FieldDefinition::T_TEXT, $row['unit']],
+                        'factor' => [FieldDefinition::T_FLOAT, $row['factor']],
+                        'baseunit_fi' => [FieldDefinition::T_INTEGER, (int) $row['baseunit_fi']],
+                        'category_fi' => [FieldDefinition::T_INTEGER, (int) $new_category_id],
+                        'sequence' => [FieldDefinition::T_INTEGER, (int) $row['sequence']],
+                        'question_fi' => [FieldDefinition::T_INTEGER, $to_consumer_id]
                     ]
                 );
                 $i++;
@@ -795,11 +796,11 @@ class Repository
                 $this->db->update(
                     self::UNIT_TABLE,
                     [
-                        'baseunit_fi' => [\ilDBConstants::T_INTEGER, (int) $unit['new_unit_id']]
+                        'baseunit_fi' => [FieldDefinition::T_INTEGER, (int) $unit['new_unit_id']]
                     ],
                     [
-                        'baseunit_fi' => [\ilDBConstants::T_INTEGER, (int) $unit['old_unit_id']],
-                        'question_fi' => [\ilDBConstants::T_INTEGER, $to_consumer_id]
+                        'baseunit_fi' => [FieldDefinition::T_INTEGER, (int) $unit['old_unit_id']],
+                        'question_fi' => [FieldDefinition::T_INTEGER, $to_consumer_id]
                     ]
                 );
 
@@ -807,11 +808,11 @@ class Repository
                 $this->db->update(
                     self::VARIABLES_TABLE,
                     [
-                        'unit_fi' => [\ilDBConstants::T_INTEGER, (int) $unit['new_unit_id']]
+                        'unit_fi' => [FieldDefinition::T_INTEGER, (int) $unit['new_unit_id']]
                     ],
                     [
-                        'unit_fi' => [\ilDBConstants::T_INTEGER, (int) $unit['old_unit_id']],
-                        'question_fi' => [\ilDBConstants::T_INTEGER, $to_consumer_id]
+                        'unit_fi' => [FieldDefinition::T_INTEGER, (int) $unit['old_unit_id']],
+                        'question_fi' => [FieldDefinition::T_INTEGER, $to_consumer_id]
                     ]
                 );
 
@@ -819,11 +820,11 @@ class Repository
                 $this->db->update(
                     self::RESULTS_TABLE,
                     [
-                        'unit_fi' => [\ilDBConstants::T_INTEGER, (int) $unit['new_unit_id']]
+                        'unit_fi' => [FieldDefinition::T_INTEGER, (int) $unit['new_unit_id']]
                     ],
                     [
-                        'unit_fi' => [\ilDBConstants::T_INTEGER, (int) $unit['old_unit_id']],
-                        'question_fi' => [\ilDBConstants::T_INTEGER, $to_consumer_id]
+                        'unit_fi' => [FieldDefinition::T_INTEGER, (int) $unit['old_unit_id']],
+                        'question_fi' => [FieldDefinition::T_INTEGER, $to_consumer_id]
                     ]
                 );
 
@@ -831,11 +832,11 @@ class Repository
                 $this->db->update(
                     self::RESULT_UNITS_TABLE,
                     [
-                        'unit_fi' => [\ilDBConstants::T_INTEGER, (int) $unit['new_unit_id']]
+                        'unit_fi' => [FieldDefinition::T_INTEGER, (int) $unit['new_unit_id']]
                     ],
                     [
-                        'unit_fi' => [\ilDBConstants::T_INTEGER, (int) $unit['old_unit_id']],
-                        'question_fi' => [\ilDBConstants::T_INTEGER, $to_consumer_id]
+                        'unit_fi' => [FieldDefinition::T_INTEGER, (int) $unit['old_unit_id']],
+                        'question_fi' => [FieldDefinition::T_INTEGER, $to_consumer_id]
                     ]
                 );
             }
@@ -849,7 +850,7 @@ class Repository
         $res = $this->db->fetchObject(
             $this->db->queryF(
                 'SELECT factor FROM il_qpl_qst_fq_unit WHERE unit_id = %s',
-                [\ilDBConstants::T_INTEGER],
+                [FieldDefinition::T_INTEGER],
                 [$a_unit_id]
             )
         );
