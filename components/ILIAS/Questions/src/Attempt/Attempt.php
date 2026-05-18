@@ -26,7 +26,7 @@ use ILIAS\Questions\Persistence\TableNameBuilder;
 use ILIAS\Data\UUID\Uuid;
 use ILIAS\Refinery\Random\Seed\GivenSeed;
 
-class Attempt
+class Attempt implements AdditionalAttemptData
 {
     /**
      * @var array<Response>
@@ -75,13 +75,13 @@ class Attempt
         return $clone;
     }
 
-    public function getResponseFor(
+    public function getResponseForQuestion(
         Uuid $question_id
     ): ?Response {
         return $this->responses[$question_id->toString()] ?? null;
     }
 
-    public function withAdditionalResponse(
+    public function withResponse(
         Response $response
     ): self {
         $clone = clone $this;

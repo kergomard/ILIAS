@@ -23,7 +23,6 @@ namespace ILIAS\Questions\AnswerFormTypes\Cloze\Capabilities;
 use ILIAS\Questions\AnswerForm\Capabilities\Feedback\Feedback;
 use ILIAS\Questions\AnswerForm\Capabilities\Feedback\OverviewTable;
 use ILIAS\Questions\AnswerForm\Capabilities\Feedback\SpecificFeedback;
-use ILIAS\Questions\AnswerForm\Capabilities\Marking\Marking;
 use ILIAS\Questions\AnswerFormTypes\Cloze\Properties\Gaps\Gap;
 use ILIAS\Questions\Presentation\Definitions\Environment;
 use ILIAS\Questions\Presentation\Layout\Async;
@@ -36,7 +35,6 @@ use ILIAS\Language\Language;
 use ILIAS\Refinery\Custom\Transformation as CustomTransformation;
 use ILIAS\Refinery\Factory as Refinery;
 use ILIAS\UI\Component\Input\Field\Section;
-use ILIAS\UI\Component\Modal\InterruptiveItem\InterruptiveItem;
 use ILIAS\UI\Component\Modal\RoundTrip as RoundTripModal;
 use ILIAS\UI\Component\Table\Column\Factory as ColumnFactory;
 use ILIAS\UI\Component\Table\Data as DataTable;
@@ -169,7 +167,7 @@ class FeedbackOverviewTable implements OverviewTable
         InputsBuilderSession $inputs_builder
     ): RoundTripModal {
         return $environment->getUIFactory()->modal()->roundtrip(
-            $environment->getLanguage()->txt('create_feedback'),
+            $environment->getLanguage()->txt('edit_feedback'),
             null,
             [
                 'feedback' => $inputs_builder->getInputs()
@@ -340,7 +338,7 @@ class FeedbackOverviewTable implements OverviewTable
                         $environment->getAnswerFormProperties()
                             ->getGaps()
                             ->getGapById($gap_id),
-                        $environment->isCapabilityRequired(Marking::class),
+                        $environment->isMarkingRequired(),
                         $feedback->getSpecificFeedbacks(),
                         $selected_conditions,
                         $feedback_text
@@ -397,7 +395,7 @@ class FeedbackOverviewTable implements OverviewTable
                 )->withRequired(true)
                 ->withValue($feedback_text)
             ],
-            $lng->txt('enter_feedback')
+            $lng->txt('feedback')
         );
     }
 

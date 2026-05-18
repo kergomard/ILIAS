@@ -44,6 +44,7 @@ abstract class ConfigurationGUI
         $this->request = $local_dic['request_data_collector'];
 
         $this->lng->loadLanguageModule('assessment');
+        $this->lng->loadLanguageModule('qsts');
         $this->tabs->activateTab('units');
     }
 

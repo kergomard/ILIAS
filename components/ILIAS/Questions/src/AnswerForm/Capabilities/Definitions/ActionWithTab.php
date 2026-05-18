@@ -18,8 +18,9 @@
 
 declare(strict_types=1);
 
-namespace ILIAS\Questions\AnswerForm\Capabilities;
+namespace ILIAS\Questions\AnswerForm\Capabilities\Definitions;
 
+use ILIAS\Questions\AnswerForm\Capabilities\Capability;
 use ILIAS\Questions\Presentation\Definitions\Environment;
 use ILIAS\Questions\Presentation\Layout\Async;
 use ILIAS\Questions\Presentation\Layout\Viewable;

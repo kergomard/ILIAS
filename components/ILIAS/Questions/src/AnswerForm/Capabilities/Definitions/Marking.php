@@ -18,14 +18,19 @@
 
 declare(strict_types=1);
 
-namespace ILIAS\Questions\AnswerForm\Capabilities\Async;
+namespace ILIAS\Questions\AnswerForm\Capabilities\Definitions;
 
+use ILIAS\Questions\AnswerForm\Response;
 use ILIAS\Questions\AnswerForm\Properties;
-use ILIAS\Questions\Presentation\Layout\Viewable;
 
-interface Async
+interface Marking
 {
-    public function getViewable(
-        Properties $answer_form_properties
-    ): Viewable;
+    public function calculateAwardedPoints(
+        Properties $properties,
+        Response $response
+    ): float;
+
+    public function getBestResponse(
+        Properties $properties
+    ): Response;
 }

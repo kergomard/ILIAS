@@ -23,12 +23,16 @@ namespace ILIAS\Questions\AnswerFormTypes\Cloze\Capabilities;
 use ILIAS\Questions\AnswerForm\Capabilities\Feedback\Feedback as FeedbackBase;
 use ILIAS\Questions\AnswerForm\Capabilities\Feedback\SpecificFeedback;
 use ILIAS\Questions\AnswerForm\Capabilities\Feedback\OverviewTable;
+use ILIAS\Questions\AnswerForm\Capabilities\Feedback\Types as FeedbackTypes;
 use ILIAS\Questions\AnswerForm\Properties;
+use ILIAS\Questions\AnswerForm\Response;
+use ILIAS\Questions\AnswerFormTypes\Cloze\Properties\Gaps\Gaps;
+use ILIAS\Questions\AnswerFormTypes\Cloze\Response\AnswerInput as AnswerInputResponse;
 use ILIAS\Questions\Presentation\Definitions\Environment;
-use ILIAS\Questions\Question\Response;
 use ILIAS\Data\Text\Factory as TextFactory;
 use ILIAS\Data\UUID\Factory as UuidFactory;
 use ILIAS\Language\Language;
+use ILIAS\Refinery\Factory as Refinery;
 use ILIAS\UI\Factory as UIFactory;
 
 class Feedback extends FeedbackBase
@@ -57,8 +61,9 @@ class Feedback extends FeedbackBase
             $this->uuid_factory,
             $this->text_factory,
             new FeedbackOverviewDataRetrieval(
-                $this->uuid_factory,
+                $environment->getLanguage(),
                 $environment->getRefinery(),
+                $this->uuid_factory,
                 $environment->getAnswerFormProperties(),
                 $this
             )
@@ -67,10 +72,60 @@ class Feedback extends FeedbackBase
 
     #[\Override]
     public function getSpecificFeedbackParticipantOutput(
-        Response $response,
-        string $answer_id
+        UIFactory $ui_factory,
+        Refinery $refinery,
+        Properties $properties,
+        ?Response $response
     ): array {
+        $specific_feedbacks = $this->getSpecificFeedbacks();
+        if ($response === null || $specific_feedbacks === []) {
+            return [];
+        }
 
+        /** @var Gaps $gaps */
+        $gaps = $properties->getGaps();
+
+        return array_reduce(
+            $this->orderFeedbacksByAnswerInputId($specific_feedbacks),
+            function (
+                array $c,
+                array $v
+            ) use (
+                $ui_factory,
+                $refinery,
+                $gaps,
+                $response
+            ): array {
+                $gap_id = $v[0]->getAnswerInputId();
+
+                /** @var ?AnswerInputResponse $answer_for_gap */
+                $answer_for_gap = $response?->getResponseForInput($gap_id);
+
+                if ($answer_for_gap === null) {
+                    return $this->addFeedbackForNoSelectionToParticipantOutput(
+                        $ui_factory,
+                        $refinery,
+                        $v,
+                        $c
+                    );
+                }
+
+                $gap = $gaps->getGapById($gap_id);
+                $output = $gap->getType()->getSpecificFeedbackParticipantOutput(
+                    $ui_factory,
+                    $gap,
+                    $v,
+                    $answer_for_gap
+                );
+
+                if ($output !== null) {
+                    $c[] = $output;
+                }
+
+                return $c;
+            },
+            []
+        );
     }
 
     #[\Override]
@@ -127,5 +182,45 @@ class Feedback extends FeedbackBase
             },
             []
         );
+    }
+
+    private function orderFeedbacksByAnswerInputId(
+        array $specific_feedbacks
+    ): array {
+        return array_reduce(
+            $specific_feedbacks,
+            function (array $c, SpecificFeedback $v): array {
+                $parent_id = $v->getParentId()->toString();
+                if (!array_key_exists($parent_id, $c)) {
+                    $c[$parent_id] = [];
+                }
+
+                $c[$parent_id][] = $v;
+                return $c;
+            },
+            []
+        );
+    }
+
+    private function addFeedbackForNoSelectionToParticipantOutput(
+        UIFactory $ui_factory,
+        Refinery $refinery,
+        array $specific_feedbacks,
+        array $participant_output
+    ): array {
+        $feedback_nothing_selected = array_filter(
+            $specific_feedbacks,
+            fn(SpecificFeedback $v): bool => FeedbackTypes::tryFrom($v->getCondition()) === FeedbackTypes::NoResponse
+        );
+
+        if ($feedback_nothing_selected !== []) {
+            $participant_output[] = $ui_factory->legacy()->content(
+                $refinery->string()->markdown()->toHTML(
+                    $feedback_nothing_selected[0]->getFeedbackText()
+                )
+            );
+        }
+
+        return $participant_output;
     }
 }

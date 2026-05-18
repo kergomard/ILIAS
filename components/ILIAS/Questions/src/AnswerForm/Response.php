@@ -26,4 +26,6 @@ use ILIAS\Data\UUID\Uuid;
 interface Response extends Storable
 {
     public function getAnswerFormId(): Uuid;
+
+    public function isBest(): bool;
 }

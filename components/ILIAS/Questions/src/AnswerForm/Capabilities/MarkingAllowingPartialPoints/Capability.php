@@ -18,16 +18,25 @@
 
 declare(strict_types=1);
 
-namespace ILIAS\Questions\AnswerForm\Capabilities\Marking;
+namespace ILIAS\Questions\AnswerForm\Capabilities\MarkingAllowingPartialPoints;
 
 use ILIAS\Questions\AnswerForm\Capabilities\Capability as CapabilityInterface;
-use ILIAS\Questions\AnswerForm\Capabilities\AdditionalFormStepAction;
+use ILIAS\Questions\AnswerForm\Capabilities\Definitions\AdditionalFormStepAction;
+use ILIAS\Questions\AnswerForm\Capabilities\Definitions\AdditionalStepProvider;
+use ILIAS\Questions\AnswerForm\Capabilities\Definitions\Marking;
+use ILIAS\Questions\AnswerForm\Capabilities\Definitions\MarkingProvider;
 use ILIAS\Questions\AnswerForm\Properties;
 use ILIAS\Questions\Presentation\Definitions\Environment;
 use ILIAS\Questions\Presentation\Layout\Tools\InputsBuilderSession;
 
-class Capability implements CapabilityInterface
+class Capability implements CapabilityInterface, AdditionalStepProvider, MarkingProvider
 {
+    #[\Override]
+    public static function getIdentifier(): string
+    {
+        return 'MarkingAllowingPartialPoints';
+    }
+
     #[\Override]
     public function isAvailableFor(
         Properties $answer_form_properties
@@ -36,29 +45,11 @@ class Capability implements CapabilityInterface
             ->getTypeGenericProperties()
             ->getDefinition()
             ->hasCapability(
-                Marking::class
+                self::getIdentifier()
             )
         && $answer_form_properties
             ->getTypeGenericProperties()
             ->getAvailablePoints() !== null;
-    }
-
-    #[\Override]
-    public function providesAnswerFormEditAdditionalTab(): bool
-    {
-        return false;
-    }
-
-    #[\Override]
-    public function getAnswerFormEditAdditionalTab(): null
-    {
-        return null;
-    }
-
-    #[\Override]
-    public function providesAnswerFormEditAdditionalStep(): bool
-    {
-        return true;
     }
 
     #[\Override]
@@ -70,22 +61,18 @@ class Capability implements CapabilityInterface
             fn(Environment $v): InputsBuilderSession
                 => $v->getAnswerFormProperties()
                     ->getDefinition()
-                    ->getCapability(Marking::class)
+                    ->getCapability(self::getIdentifier())
                     ->getEditFormInputsBuilder($v)
         );
     }
 
     #[\Override]
-    public function providesRenderer(): bool
-    {
-        return false;
-    }
-
-    #[\Override]
-    public function getRenderer(
+    public function getMarking(
         Properties $answer_form_properties
-    ): null {
-        return null;
+    ): Marking {
+        return $answer_form_properties
+            ->getDefinition()
+            ->getCapability(self::getIdentifier());
     }
 
     #[\Override]

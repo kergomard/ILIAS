@@ -20,17 +20,20 @@ declare(strict_types=1);
 
 namespace ILIAS\Questions\AnswerFormTypes\Cloze\Capabilities;
 
-use ILIAS\Questions\AnswerForm\Capabilities\Marking\Marking as MarkingInterface;
+use ILIAS\Questions\AnswerForm\Capabilities\MarkingAllowingPartialPoints\MarkingAllowingPartialPoints as MarkingAllowingPartialPointsInterface;
+use ILIAS\Questions\AnswerForm\Properties;
+use ILIAS\Questions\AnswerForm\Response;
 use ILIAS\Questions\AnswerFormTypes\Cloze\Properties\Factory as PropertiesFactory;
+use ILIAS\Questions\AnswerFormTypes\Cloze\Response\Factory as ResponseFactory;
 use ILIAS\Questions\Presentation\Definitions\Environment;
 use ILIAS\Questions\Presentation\Layout\Tools\InputsBuilderSession;
-use ILIAS\Questions\Response\Response;
 use ILIAS\UI\Component\Input\Field\Section;
 
-class Marking implements MarkingInterface
+class MarkingAllowingPartialPoints extends MarkingAllowingPartialPointsInterface
 {
     public function __construct(
-        private readonly PropertiesFactory $properties_factory
+        private readonly PropertiesFactory $properties_factory,
+        private readonly ResponseFactory $response_factory
     ) {
     }
 
@@ -49,7 +52,7 @@ class Marking implements MarkingInterface
                     return $properties_from_carry->getGaps()
                         ->buildPointInputs(
                             $environment->getLanguage(),
-                            $environment->getUIFactory()->input()->field(),
+                            $environment->getUIFactory(),
                             $properties_from_carry,
                             $environment->isInCreationContext(),
                             $environment->getTableRowIds()
@@ -60,15 +63,17 @@ class Marking implements MarkingInterface
     }
 
     #[\Override]
-    public function addAchievedPointsToResponse(
+    public function calculateAwardedPoints(
+        Properties $properties,
         Response $response
-    ): Response {
-
+    ): float {
+        return $response->calculateAwardedPoints($properties);
     }
 
     #[\Override]
-    public function getBestResponse(): Response
-    {
-
+    public function getBestResponse(
+        Properties $properties
+    ): Response {
+        return $this->response_factory->getBestResponse($properties);
     }
 }

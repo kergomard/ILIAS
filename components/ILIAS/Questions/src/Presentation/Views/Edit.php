@@ -20,22 +20,23 @@ declare(strict_types=1);
 
 namespace ILIAS\Questions\Presentation\Views;
 
-use ILIAS\Questions\AnswerForm\Capabilities\Edit as CapabilitiesEditView;
+use ILIAS\Questions\AnswerForm\Capabilities\Factory as CapabilitiesFactory;
+use ILIAS\Questions\AnswerForm\Capabilities\RequiredCapabilities;
 use ILIAS\Questions\AnswerForm\Definition;
 use ILIAS\Questions\AnswerForm\Factory as AnswerFormFactory;
 use ILIAS\Questions\AnswerForm\Properties as AnswerFormProperties;
 use ILIAS\Questions\AnswerForm\Views\Edit as AnswerFormEditView;
 use ILIAS\Questions\Administration\ConfigurationRepository;
+use ILIAS\Questions\Presentation\Definitions\DefaultEnvironment;
+use ILIAS\Questions\Presentation\Definitions\Editability;
+use ILIAS\Questions\Presentation\Definitions\Environment;
+use ILIAS\Questions\Presentation\Definitions\ForImmediateStorage;
 use ILIAS\Questions\Presentation\Layout\Async;
 use ILIAS\Questions\Presentation\Layout\EditForm;
 use ILIAS\Questions\Presentation\Layout\Factory as LayoutFactory;
-use ILIAS\Questions\Presentation\Layout\Viewable;
-use ILIAS\Questions\Presentation\Definitions\Editability;
-use ILIAS\Questions\Presentation\Definitions\Environment;
-use ILIAS\Questions\Presentation\Definitions\DefaultEnvironment;
-use ILIAS\Questions\Presentation\Definitions\ForImmediateStorage;
-use ILIAS\Questions\Presentation\Layout\QuestionsTable;
 use ILIAS\Questions\Presentation\Layout\GlobalScreen\LayoutProvider;
+use ILIAS\Questions\Presentation\Layout\QuestionsTable;
+use ILIAS\Questions\Presentation\Layout\Viewable;
 use ILIAS\Questions\Question\Persistence\Repository;
 use ILIAS\Questions\Question\Question;
 use ILIAS\Questions\UserSettings\CreateModes;
@@ -65,6 +66,11 @@ class Edit
     private Editability $editability = Editability::Full;
     private bool $ordering_enabled = false;
 
+    private readonly RequiredCapabilities $required_capabilities;
+
+    /**
+     * @param list<class-string<Capability>> $capability_identifiers
+     */
     public function __construct(
         private readonly Language $lng,
         private readonly \ilObjUser $current_user,
@@ -83,18 +89,13 @@ class Edit
         private readonly AnswerFormFactory $answer_form_factory,
         private readonly Repository $questions_repository,
         private readonly LayoutFactory $layout_factory,
-        private CapabilitiesEditView $capabilities_edit_view,
+        private readonly CapabilitiesFactory $capabilities_factory,
+        array $capability_identifiers,
         private readonly int $owner_object_id
     ) {
-    }
-
-    public function withRequiredCapabilities(
-        array $capability_class_names
-    ): self {
-        $clone = clone $this;
-        $clone->capabilities_edit_view = $this->capabilities_edit_view
-            ->withRequiredCapabilities($capability_class_names);
-        return $clone;
+        $this->required_capabilities = $this->capabilities_factory->get(
+            $capability_identifiers
+        );
     }
 
     public function withEditable(
@@ -166,7 +167,12 @@ class Edit
                     $this->questions_repository->getForQuestionId(
                         $environment->getQuestionId()
                     ),
-                    $this->owner_object_id
+                    $this->owner_object_id,
+                    $this->required_capabilities,
+                    true,
+                    false,
+                    false,
+                    false
                 )->withEditView(
                     $this
                 )->withReturnURI(
@@ -241,7 +247,7 @@ class Edit
         $action = $environment->getAction();
         $edit_view = $type_definition->getEditView();
 
-        $from_capabilites = $this->capabilities_edit_view->edit(
+        $from_capabilites = $this->required_capabilities->edit(
             $this->tabs_gui,
             $environment,
             $edit_view,
@@ -274,7 +280,7 @@ class Edit
 
         $from_edit_view = $edit_view->edit($environment);
         if ($from_edit_view instanceof EditForm
-            && $this->capabilities_edit_view->providesAnswerFormEditAdditionalSteps()) {
+            && $this->required_capabilities->additionalAnswerFormStepsRequired()) {
             return $from_edit_view->withIsFinalStep(false)->getUI();
         }
 
@@ -294,7 +300,7 @@ class Edit
             );
         }
 
-        $return_form_step_actions = $this->capabilities_edit_view
+        $return_form_step_actions = $this->required_capabilities
             ->doFirstFormStepAction(
                 $environment->withAnswerFormProperties($from_edit_view),
                 $edit_view
@@ -333,7 +339,7 @@ class Edit
             $this->ctrl,
             $this->ui_renderer,
             $this->configuration_repository,
-            $this->capabilities_edit_view->getRequiredCapabilities()
+            $this->required_capabilities
         )->create(
             $environment->withActionParameter(self::ACTION_CREATE_QUESTION)
         );
@@ -372,7 +378,7 @@ class Edit
             $this->ctrl,
             $this->ui_renderer,
             $this->configuration_repository,
-            $this->capabilities_edit_view->getRequiredCapabilities()
+            $this->required_capabilities
         )->edit(
             $environment_with_question_parameter
                 ->withActionParameter(self::ACTION_EDIT_QUESTION)
@@ -414,7 +420,7 @@ class Edit
         return $environment->getPresentationFactory()->getAsync(
             $this->ui_factory->modal()->interruptive(
                 $this->lng->txt('confirm'),
-                $this->lng->txt('qpl_confirm_delete_questions'),
+                $this->lng->txt('confirm_delete_questions'),
                 $environment->withActionParameter(
                     self::ACTION_DELETE_QUESTIONS
                 )->withSubActionParameter(
@@ -434,7 +440,7 @@ class Edit
             $this->answer_form_factory,
             $this->questions_repository,
             $environment,
-            $this->capabilities_edit_view->getRequiredCapabilities()
+            $this->required_capabilities
         )->withCreateQuestionButton(
             $this->ui_factory->button()->primary(
                 $this->lng->txt('create'),
@@ -523,7 +529,7 @@ class Edit
         if ($from_edit_view instanceof EditForm) {
             return $this->addSaveAndNewToAnswerFormCreateIfNeeded(
                 $environment,
-                $this->capabilities_edit_view->providesAnswerFormEditAdditionalSteps()
+                $this->capabilities_edit_view->additionalAnswerFormStepsRequired()
                     ? $from_edit_view->withIsFinalStep(false)
                     : $from_edit_view
             );
@@ -637,12 +643,12 @@ class Edit
         DefaultEnvironment $environment
     ): LegacySlate {
         return $this->ui_factory->mainControls()->slate()->legacy(
-            $this->lng->txt('mainbar_button_label_questionlist'),
+            $this->lng->txt('questionlist'),
             $this->ui_factory->symbol()->icon()->standard('', '')->withAbbreviation('QL'),
             $this->ui_factory->legacy()->content(
                 $this->ui_renderer->render(
                     $this->ui_factory->panel()->secondary()->listing(
-                        $this->lng->txt('mainbar_button_label_questionlist'),
+                        $this->lng->txt('questionlist'),
                         [
                             $this->buildItemGroupForQuestionListSlate($environment)
                         ]
@@ -685,7 +691,7 @@ class Edit
             $this->ctrl,
             $this->ui_renderer,
             $this->configuration_repository,
-            $this->capabilities_edit_view->getRequiredCapabilities()
+            $this->required_capabilities
         )->edit(
             $environment
         );
@@ -792,7 +798,7 @@ class Edit
             $this->uuid_factory,
             $this->layout_factory,
             $this->editability,
-            $this->capabilities_edit_view->getRequiredCapabilities(),
+            $this->required_capabilities,
             $this->owner_object_id,
             $base_uri
         );

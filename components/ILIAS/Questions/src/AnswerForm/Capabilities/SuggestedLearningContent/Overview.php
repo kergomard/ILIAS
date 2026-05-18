@@ -275,13 +275,8 @@ class Overview implements Viewable
     {
         return $this->environment->getUIFactory()->input()->field()->select(
             $this->environment->getLanguage()->txt('type'),
-            array_reduce(
-                Types::cases(),
-                function (array $c, Types $v): array {
-                    $c[$v->value] = $v->getTranslatedOptionName($this->environment->getLanguage());
-                    return $c;
-                },
-                []
+            Types::buildOptionsList(
+                $this->environment->getLanguage()
             )
         )->withAdditionalTransformation(
             $this->environment->getRefinery()->custom()->transformation(

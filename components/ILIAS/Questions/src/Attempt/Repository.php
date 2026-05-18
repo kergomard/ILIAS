@@ -66,7 +66,7 @@ class Repository
 
         $base_table_id_column = $this->table_definitions->getIdColumn(
             $this->table_names_builder,
-            TableTypes::AttemptData
+            TableTypes::Responses
         );
 
         $database_values = array_reduce(
@@ -85,8 +85,8 @@ class Repository
 
         return array_reduce(
             $questions,
-            fn(Attempt $c, Question $v): Attempt => $c->withAdditionalResponse(
-                $this->retriveResponseFromQuery(
+            fn(Attempt $c, Question $v): Attempt => $c->withResponse(
+                $this->retrieveCurrentResponseFromQuery(
                     $v,
                     $c->getId(),
                     $database_values
@@ -112,6 +112,42 @@ class Repository
             $attempt_id,
             new \DateTimeImmutable('@' . time())
         );
+    }
+
+    public function storeResponse(
+        Response $response
+    ): void {
+        $response->toStorage(
+            $this->persistence_factory,
+            $this->table_definitions,
+            $this->table_names_builder,
+            new Manipulate(
+                $this->db,
+                ManipulationType::Create,
+                QuestionRepository::COMPONENT_NAMESPACE
+            )
+        )->run();
+    }
+
+    public function deleteResponsesFor(
+        Uuid $attempt_id,
+        Question $question
+    ): void {
+        $manipulate = new Manipulate(
+            $this->db,
+            ManipulationType::Delete,
+            QuestionRepository::COMPONENT_NAMESPACE
+        );
+        foreach ($this->getAllResponsesFor($attempt_id, $question) as $response) {
+            $manipulate = $response->toDelete(
+                $this->persistence_factory,
+                $this->table_definitions,
+                $this->table_names_builder,
+                $manipulate
+            );
+        }
+
+        $manipulate->run();
     }
 
     private function storeAttempt(
@@ -162,6 +198,32 @@ class Repository
         );
     }
 
+    private function getAllResponsesFor(
+        Uuid $attempt_id,
+        Question $question
+    ): \Generator {
+        $base_table_id_column = $this->table_definitions->getIdColumn(
+            $this->table_names_builder,
+            TableTypes::Responses
+        );
+
+        $database_values = $question->completeResponseQuery(
+            $this->buildQuery($attempt_id),
+            $base_table_id_column
+        )->loadNextRecord()
+        ->current();
+
+        if ($database_values === null) {
+            throw new \InvalidArgumentException('No Attempt With Given Identifier');
+        }
+
+        return $this->retrieveAllResponsesFromQuery(
+            $question,
+            $attempt_id,
+            $database_values
+        );
+    }
+
     private function buildQuery(
         Uuid $attempt_id
     ): Query {
@@ -169,7 +231,7 @@ class Repository
             $this->table_names_builder,
             TableTypes::AttemptData
         );
-        return $this->table_definitions->completeLoadAttemptQuery(
+        return $this->table_definitions->completeAttemptQuery(
             new Query(
                 $this->db,
                 $this->refinery,
@@ -182,15 +244,14 @@ class Repository
             $attempt_data_id_column
         )->withAdditionalWhere(
             $this->persistence_factory->where(
-                $this->table_definitions->getIdColumn(
-                    $this->table_names_builder,
-                    TableTypes::AttemptData
-                ),
+                $attempt_data_id_column,
                 $this->persistence_factory->value(
                     FieldDefinition::T_TEXT,
                     $attempt_id->toString()
                 )
             )
+        )->withGroupBy(
+            $attempt_data_id_column
         );
     }
 
@@ -237,12 +298,12 @@ class Repository
         );
     }
 
-    private function retriveResponseFromQuery(
+    private function retrieveCurrentResponseFromQuery(
         Question $question,
         Uuid $attempt_id,
         Query $query
-    ): Attempt {
-        $query->retrieveCurrentRecord(
+    ): Response {
+        return $query->retrieveCurrentRecord(
             $this->persistence_factory->table(
                 $this->table_names_builder,
                 TableTypes::Responses
@@ -266,23 +327,62 @@ class Repository
                     $response_id = $this->uuid_factory
                         ->fromString($last_record['id']);
 
-                    $answer_form_responses = $question
-                        ->retrieveAnswerFormResponsesFromQuery(
-                            $response_id,
-                            $query
-                        );
-
                     return new Response(
                         $response_id,
                         $question->getId(),
                         $attempt_id,
                         new \DateTimeImmutable("@{$last_record['create_timestamp']}"),
-                        $last_record['reached_points'],
-                        $answer_form_responses
+                        $last_record['awarded_points'],
+                        $question->retrieveAnswerFormResponsesFromQuery(
+                            $response_id,
+                            $query
+                        )
                     );
                 }
             )
         );
+    }
 
+    private function retrieveAllResponsesFromQuery(
+        Question $question,
+        Uuid $attempt_id,
+        Query $query
+    ): \Generator {
+        return $query->retrieveCurrentRecord(
+            $this->persistence_factory->table(
+                $this->table_names_builder,
+                TableTypes::Responses
+            ),
+            $this->refinery->custom()->transformation(
+                function (
+                    array $vs
+                ) use (
+                    $question,
+                    $attempt_id,
+                    $query
+                ): \Generator {
+                    if ($vs === []) {
+                        return;
+                    }
+
+                    foreach ($vs as $v) {
+                        $response_id = $this->uuid_factory
+                            ->fromString($v['id']);
+
+                        yield new Response(
+                            $response_id,
+                            $question->getId(),
+                            $attempt_id,
+                            new \DateTimeImmutable("@{$v['create_timestamp']}"),
+                            $v['awarded_points'],
+                            $question->retrieveAnswerFormResponsesFromQuery(
+                                $response_id,
+                                $query
+                            )
+                        );
+                    }
+                }
+            )
+        );
     }
 }

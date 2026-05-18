@@ -21,14 +21,15 @@ declare(strict_types=1);
 namespace ILIAS\Questions\AnswerForm\Capabilities\Feedback;
 
 use ILIAS\Questions\AnswerForm\Capabilities\Capability as CapabilityInterface;
-use ILIAS\Questions\AnswerForm\Capabilities\ActionWithTab;
+use ILIAS\Questions\AnswerForm\Capabilities\Definitions\ActionWithTab;
+use ILIAS\Questions\AnswerForm\Capabilities\Definitions\AdditionalTabProvider;
 use ILIAS\Questions\AnswerForm\Properties;
 use ILIAS\Questions\Presentation\Definitions\Environment;
 use ILIAS\Questions\Presentation\Layout\Async;
 use ILIAS\Questions\Presentation\Layout\Viewable;
 use ILIAS\Data\Text\Factory as TextFactory;
 
-class Capability implements CapabilityInterface
+class Capability implements CapabilityInterface, AdditionalTabProvider
 {
     private const string SUB_ACTION_SAVE = 's';
     private const string SUB_ACTION_INSERT_LEGACY_TEXTS = 'ilt';
@@ -40,6 +41,13 @@ class Capability implements CapabilityInterface
     }
 
     #[\Override]
+    public static function getIdentifier(): string
+    {
+        return 'Feedback';
+    }
+
+
+    #[\Override]
     public function isAvailableFor(
         Properties $answer_form_properties
     ): bool {
@@ -47,14 +55,8 @@ class Capability implements CapabilityInterface
             ->getTypeGenericProperties()
             ->getDefinition()
             ->hasCapability(
-                Feedback::class
+                self::getIdentifier()
             );
-    }
-
-    #[\Override]
-    public function providesAnswerFormEditAdditionalTab(): bool
-    {
-        return true;
     }
 
     #[\Override]
@@ -68,18 +70,6 @@ class Capability implements CapabilityInterface
     }
 
     #[\Override]
-    public function providesAnswerFormEditAdditionalStep(): bool
-    {
-        return false;
-    }
-
-    #[\Override]
-    public function getAnswerFormEditAdditionalStep(): null
-    {
-        return null;
-    }
-
-    #[\Override]
     public function onAnswerFormUpdate(
         Properties $answer_form_properties
     ): void {
@@ -90,24 +80,11 @@ class Capability implements CapabilityInterface
                 $answer_form_properties
                     ->getTypeGenericProperties()
                     ->getDefinition()
-                    ->getCapability(Feedback::class)
+                    ->getCapability(self::getIdentifier())
             )->onAnswerFormUpdate(
                 $answer_form_properties
             )
         );
-    }
-
-    #[\Override]
-    public function providesRenderer(): bool
-    {
-        return false;
-    }
-
-    #[\Override]
-    public function getRenderer(
-        Properties $answer_form_properties
-    ): null {
-        return null;
     }
 
     private function buildDoEditActionClosure(): \Closure
@@ -118,10 +95,10 @@ class Capability implements CapabilityInterface
             $sub_action = $environment->getSubAction();
             return match ($sub_action) {
                 '' => $this->buildOverview($environment),
-                self::STEP_INSERT_LEGACY_TEXTS => $this->buildOverviewWithLegacyTexts(
+                self::SUB_ACTION_INSERT_LEGACY_TEXTS => $this->buildOverviewWithLegacyTexts(
                     $environment
                 ),
-                self::STEP_SAVE => $this->save($environment),
+                self::SUB_ACTION_SAVE => $this->save($environment),
                 default => $this->buildOverview($environment)->doAction(
                     $this->repository,
                     $sub_action
@@ -142,7 +119,7 @@ class Capability implements CapabilityInterface
                     ->getAnswerFormProperties()
                     ->getTypeGenericProperties()
                     ->getDefinition()
-                    ->getCapability(Feedback::class)
+                    ->getCapability(self::getIdentifier())
             ),
             $environment->withSubActionParameter(
                 self::SUB_ACTION_SAVE

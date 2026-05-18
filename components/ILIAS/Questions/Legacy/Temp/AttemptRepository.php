@@ -18,26 +18,28 @@
 
 declare(strict_types=1);
 
+namespace ILIAS\Questions\Temp;
+
 use ILIAS\Data\UUID\Factory as UuidFactory;
 use ILIAS\Data\UUID\Uuid;
 use ILIAS\Database\FieldDefinition;
 
-class QstsTempAttemptRepository
+class AttemptRepository
 {
     public const string TABLE_NAME = 'qsts_temp_attempt';
 
     public function __construct(
-        private readonly ilDBInterface $db,
+        private readonly \ilDBInterface $db,
         private readonly UuidFactory $uuid_factory
     ) {
     }
 
     public function get(
         int $user_id,
-    ): ?Uuid {
+    ): ?Attempt {
         $value = $this->db->fetchObject(
             $this->db->queryF(
-                'SELECT attempt_id from ' . self::TABLE_NAME . ' WHERE user_id = %s',
+                'SELECT attempt_id, solved_questions from ' . self::TABLE_NAME . ' WHERE user_id = %s',
                 [FieldDefinition::T_INTEGER],
                 [$user_id]
             )
@@ -47,10 +49,15 @@ class QstsTempAttemptRepository
             return null;
         }
 
-        return $this->uuid_factory->fromString($value->attempt_id);
+        return new Attempt(
+            $this->uuid_factory->fromString($value->attempt_id),
+            $value->solved_questions === ''
+                ? []
+                : explode(',', $value->solved_questions)
+        );
     }
 
-    public function store(
+    public function storeNew(
         int $user_id,
         Uuid $attempt_id
     ): void {
@@ -59,6 +66,20 @@ class QstsTempAttemptRepository
             [
                 'user_id' => [FieldDefinition::T_INTEGER, $user_id],
                 'attempt_id' => [FieldDefinition::T_TEXT, $attempt_id->toString()]
+            ]
+        );
+    }
+
+    public function storeSolved(
+        Attempt $attempt
+    ): void {
+        $this->db->update(
+            self::TABLE_NAME,
+            [
+                'solved_questions' => [FieldDefinition::T_TEXT, $attempt->getSolvedQuestionsForStorage()]
+            ],
+            [
+                'attempt_id' => [FieldDefinition::T_TEXT, $attempt->getAttemptId()->toString()]
             ]
         );
     }

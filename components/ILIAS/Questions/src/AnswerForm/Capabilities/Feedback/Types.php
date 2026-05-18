@@ -20,11 +20,13 @@ declare(strict_types=1);
 
 namespace ILIAS\Questions\AnswerForm\Capabilities\Feedback;
 
+use ILIAS\Language\Language;
+
 enum Types: string
 {
-    case MaxPoints = 'max_points';
-    case NotMaxPoints = 'not_max_points';
-    case NothingSelected = 'nothing_selected';
+    case BestResponse = 'best_response';
+    case OtherResponse = 'other_response';
+    case NoResponse = 'no_response';
 
     public function getTranslatedOptionName(
         Language $lng

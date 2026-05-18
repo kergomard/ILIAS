@@ -81,7 +81,7 @@ class OverviewTable implements DataRetrieval
                 $this->environment->getLanguage()->txt('title')
             )->withIsSortable(false),
             'type' => $f->text(
-                $this->environment->getLanguage()->txt('cloze_type')
+                $this->environment->getLanguage()->txt('gap_type')
             )->withIsSortable(false),
             'answers_options_awarding_points' => $f->text(
                 $this->environment->getLanguage()->txt('answer_options_awarding_points')

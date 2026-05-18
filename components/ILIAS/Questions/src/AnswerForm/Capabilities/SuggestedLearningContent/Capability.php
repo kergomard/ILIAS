@@ -21,14 +21,15 @@ declare(strict_types=1);
 namespace ILIAS\Questions\AnswerForm\Capabilities\SuggestedLearningContent;
 
 use ILIAS\Questions\AnswerForm\Capabilities\Capability as CapabilityInterface;
-use ILIAS\Questions\AnswerForm\Capabilities\ActionWithTab;
+use ILIAS\Questions\AnswerForm\Capabilities\Definitions\ActionWithTab;
+use ILIAS\Questions\AnswerForm\Capabilities\Definitions\AdditionalTabProvider;
 use ILIAS\Questions\AnswerForm\Properties;
 use ILIAS\Questions\Presentation\Definitions\Environment;
 use ILIAS\Questions\Presentation\Layout\Async;
 use ILIAS\Questions\Presentation\Layout\Viewable;
 use ILIAS\StaticURL\Services as StaticURLServices;
 
-class SuggestedLearningContent implements CapabilityInterface
+class Capability implements CapabilityInterface, AdditionalTabProvider
 {
     public function __construct(
         private readonly \ilCtrl $ctrl,
@@ -41,15 +42,16 @@ class SuggestedLearningContent implements CapabilityInterface
     }
 
     #[\Override]
+    public static function getIdentifier(): string
+    {
+        return 'SuggestedLearningContent';
+    }
+
+
+    #[\Override]
     public function isAvailableFor(
         Properties $answer_form_properties
     ): bool {
-        return true;
-    }
-
-    #[\Override]
-    public function providesAnswerFormEditAdditionalTab(): bool
-    {
         return true;
     }
 
@@ -61,31 +63,6 @@ class SuggestedLearningContent implements CapabilityInterface
             'suggested_learning_content',
             $this->buildDoEditActionClosure()
         );
-    }
-
-    #[\Override]
-    public function providesAnswerFormEditAdditionalStep(): bool
-    {
-        return false;
-    }
-
-    #[\Override]
-    public function getAnswerFormEditAdditionalStep(): null
-    {
-        return null;
-    }
-
-    #[\Override]
-    public function providesRenderer(): bool
-    {
-        return false;
-    }
-
-    #[\Override]
-    public function getRenderer(
-        Properties $answer_form_properties
-    ): null {
-        return null;
     }
 
     #[\Override]

@@ -18,21 +18,21 @@
 
 declare(strict_types=1);
 
-namespace ILIAS\Questions\AnswerForm\Capabilities\Marking;
+namespace ILIAS\Questions\AnswerFormTypes\Cloze\Capabilities;
 
-use ILIAS\Questions\Presentation\Layout\Tools\InputsBuilderSession;
-use ILIAS\Questions\Presentation\Definitions\Environment;
-use ILIAS\Questions\Response\Response;
+use ILIAS\Questions\AnswerForm\Capabilities\AsyncView\AsyncView as AsyncViewInterface;
+use ILIAS\Questions\AnswerFormTypes\Cloze\Views\Participant;
 
-interface Marking
+class AsyncView extends AsyncViewInterface
 {
-    public function getEditFormInputsBuilder(
-        Environment $environment,
-    ): InputsBuilderSession;
+    public function __construct(
+        private readonly Participant $participant_view
+    ) {
+    }
 
-    public function addAchievedPointsToResponse(
-        Response $response
-    ): Response;
-
-    public function getBestResponse(): Response;
+    #[\Override]
+    public function getParticipantView(): Participant
+    {
+        return $this->participant_view;
+    }
 }

@@ -18,14 +18,21 @@
 
 declare(strict_types=1);
 
-namespace ILIAS\Questions\AnswerForm\Capabilities\Async;
+namespace ILIAS\Questions\AnswerForm\Capabilities\AsyncView;
 
 use ILIAS\Questions\AnswerForm\Capabilities\Capability as CapabilityInterface;
+use ILIAS\Questions\AnswerForm\Capabilities\ParticipantViewProvider;
 use ILIAS\Questions\AnswerForm\Properties;
-use ILIAS\Questions\Presentation\Layout\Viewable;
+use ILIAS\Questions\AnswerForm\Views\Participant;
 
-class Capability implements CapabilityInterface
+class Capability implements CapabilityInterface, ParticipantViewProvider
 {
+    #[\Override]
+    public static function getIdentifier(): string
+    {
+        return 'AsyncView';
+    }
+
     #[\Override]
     public function isAvailableFor(
         Properties $answer_form_properties
@@ -33,48 +40,18 @@ class Capability implements CapabilityInterface
         return $answer_form_properties
             ->getDefinition()
             ->hasCapability(
-                Async::class
+                self::getIdentifier()
             );
     }
 
     #[\Override]
-    public function providesAnswerFormEditAdditionalTab(): bool
-    {
-        return false;
-    }
-
-    #[\Override]
-    public function getAnswerFormEditAdditionalTab(): null
-    {
-        return null;
-    }
-
-    #[\Override]
-    public function providesAnswerFormEditAdditionalStep(): bool
-    {
-        return false;
-    }
-
-    #[\Override]
-    public function getAnswerFormEditAdditionalStep(): null
-    {
-        return null;
-    }
-
-    #[\Override]
-    public function providesRenderer(): bool
-    {
-        return true;
-    }
-
-    #[\Override]
-    public function getRenderer(
+    public function getParticipantView(
         Properties $answer_form_properties
-    ): Viewable {
+    ): Participant {
         return $answer_form_properties
             ->getDefinition()
-            ->getCapability(Async::class)
-            ->getViewable($answer_form_properties);
+            ->getCapability(self::getIdentifier())
+            ->getParticipantView();
     }
 
     #[\Override]

@@ -26,6 +26,7 @@ use ILIAS\Data\Order;
 use ILIAS\Data\Range;
 use ILIAS\Refinery\Factory as Refinery;
 use ILIAS\Data\UUID\Factory as UuidFactory;
+use ILIAS\Language\Language;
 use ILIAS\UI\Component\Table\DataRetrieval;
 use ILIAS\UI\Component\Table\DataRow;
 use ILIAS\UI\Component\Table\DataRowBuilder;
@@ -40,8 +41,9 @@ class FeedbackOverviewDataRetrieval implements DataRetrieval
     private readonly array $feedback;
 
     public function __construct(
-        private readonly UuidFactory $uuid_factory,
+        private readonly Language $lng,
         private readonly Refinery $refinery,
+        private readonly UuidFactory $uuid_factory,
         private readonly Properties $answer_form_properties,
         Feedback $feedback
     ) {

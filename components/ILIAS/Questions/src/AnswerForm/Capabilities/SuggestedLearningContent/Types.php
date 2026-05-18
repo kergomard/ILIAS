@@ -31,7 +31,7 @@ use ILIAS\UI\Component\Link\Standard as StandardLink;
 
 enum Types: string
 {
-    case None = 'no_content';
+    case None = 'none';
     case LearningModule = 'lm';
     case LearningModuleChapter = 'st';
     case LearningModulePage = 'pg';
@@ -45,6 +45,22 @@ enum Types: string
             self::GlossaryTerm => $lng->txt('glossary_term'),
             default => $lng->txt($this->value)
         };
+    }
+
+    public static function getOptionsSelectArray(
+        Language $lng
+    ): array {
+        return array_reduce(
+            self::cases(),
+            function (array $c, Types $v) use ($lng): array {
+                if ($v === Types::None) {
+                    return $c;
+                }
+                $c[$v->value] = $v->getTranslatedOptionName($lng);
+                return $c;
+            },
+            []
+        );
     }
 
     public function present(

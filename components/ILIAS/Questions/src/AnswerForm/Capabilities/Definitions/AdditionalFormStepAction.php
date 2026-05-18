@@ -18,8 +18,9 @@
 
 declare(strict_types=1);
 
-namespace ILIAS\Questions\AnswerForm\Capabilities;
+namespace ILIAS\Questions\AnswerForm\Capabilities\Definitions;
 
+use ILIAS\Questions\AnswerForm\Capabilities\Capability;
 use ILIAS\Questions\AnswerForm\Properties;
 use ILIAS\Questions\AnswerForm\Views\Edit as AnswerFormEditView;
 use ILIAS\Questions\Presentation\Definitions\DefaultEnvironment;

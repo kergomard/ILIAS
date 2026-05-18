@@ -20,7 +20,9 @@ declare(strict_types=1);
 
 namespace ILIAS\Questions\AnswerForm\Capabilities\Feedback;
 
+use ILIAS\Questions\AnswerForm\Capabilities\TypeSpecification;
 use ILIAS\Questions\AnswerForm\Properties;
+use ILIAS\Questions\AnswerForm\Response;
 use ILIAS\Questions\Persistence\Delete;
 use ILIAS\Questions\Persistence\Factory as PersistenceFactory;
 use ILIAS\Questions\Persistence\Manipulate;
@@ -28,22 +30,26 @@ use ILIAS\Questions\Persistence\Replace;
 use ILIAS\Questions\Persistence\TableNameBuilder;
 use ILIAS\Questions\Persistence\Value;
 use ILIAS\Questions\Presentation\Definitions\Environment;
-use ILIAS\Questions\Question\Response;
 use ILIAS\Data\Text\Factory as TextFactory;
 use ILIAS\Data\Text\Markdown;
 use ILIAS\Data\UUID\Factory as UuidFactory;
 use ILIAS\Data\UUID\Uuid;
 use ILIAS\Database\FieldDefinition;
 use ILIAS\Language\Language;
+use ILIAS\Refinery\Factory as Refinery;
+use ILIAS\UI\Component\Component;
 use ILIAS\UI\Factory as UIFactory;
 
-abstract class Feedback
+abstract class Feedback implements TypeSpecification
 {
     private ?Markdown $feedback_best_response = null;
     private string $feedback_best_response_legacy = '';
     private ?Markdown $feedback_other_response = null;
     private string $feedback_other_response_legacy = '';
 
+    /**
+     * @var array<string, SpecificFeedback>
+     */
     private array $specific_feedbacks = [];
 
     abstract public function getAdditionalInputs(
@@ -56,16 +62,27 @@ abstract class Feedback
         Environment $environment
     ): ?OverviewTable;
 
-    abstract public function getSpecificFeedbackParticipantOutput(
-        Response $response,
-        string $answer_id
-    ): array;
-
     abstract public function specificFeedbackInputsHaveLegacyTexts(): bool;
 
     abstract public function onAnswerFormUpdate(
         Properties $answer_form_properties
     ): static;
+
+    /**
+     * @return list<Component>
+     */
+    abstract protected function getSpecificFeedbackParticipantOutput(
+        UIFactory $ui_factory,
+        Refinery $refinery,
+        Properties $properties,
+        Response $response
+    ): array;
+
+    #[\Override]
+    public static function getCapabilityIdentifier(): string
+    {
+        return Capability::getIdentifier();
+    }
 
     public function withGenericFeedbackFromDatabase(
         TextFactory $text_factory,
@@ -159,7 +176,7 @@ abstract class Feedback
     public function getSpecificFeedbackForId(
         Uuid $id
     ): ?SpecificFeedback {
-        return $this->specific_feedbacks[$id->toString()];
+        return $this->specific_feedbacks[$id->toString()] ?? null;
     }
 
     public function getSpecificFeedbackForConditionOrNew(
@@ -184,6 +201,9 @@ abstract class Feedback
             );
     }
 
+    /**
+     * @var array<string, SpecificFeedback>
+     */
     public function getSpecificFeedbacks(): array
     {
         return $this->specific_feedbacks;
@@ -205,10 +225,44 @@ abstract class Feedback
         return $clone;
     }
 
-    public function getGenericFeedbackParticipantOutput(
-        Response $response
+    /**
+     * @return list<Component>
+     */
+    public function getParticipantOutput(
+        Language $lng,
+        Refinery $refinery,
+        UIFactory $ui_factory,
+        Properties $properties,
+        ?Response $response,
+        bool $is_marking_required
     ): array {
+        if ($response === null) {
+            return [];
+        }
 
+        $generic_feedback = [];
+        if ($is_marking_required) {
+            $generic_feedback[] = $response->isBest()
+                ? $this->getRenderedFeedbackBestResponse(
+                    $lng,
+                    $refinery,
+                    $ui_factory
+                ) : $this->getRenderedFeedbackOtherResponse(
+                    $lng,
+                    $refinery,
+                    $ui_factory
+                );
+        }
+
+        return [
+            ...$generic_feedback,
+            ...$this->getSpecificFeedbackParticipantOutput(
+                $ui_factory,
+                $refinery,
+                $properties,
+                $response
+            )
+        ];
     }
 
     public function toStorage(
@@ -329,6 +383,54 @@ abstract class Feedback
                 ) : $c->withAdditionalValues(
                     $v->toStorage($persistence_factory)
                 )
+        );
+    }
+
+    private function getRenderedFeedbackBestResponse(
+        Language $lng,
+        Refinery $refinery,
+        UIFactory $ui_factory
+    ): Component {
+        if ($this->feedback_best_response === null) {
+            return $ui_factory->messageBox()->success(
+                $this->feedback_other_response_legacy === ''
+                    ? $lng->txt('best_response_given')
+                    : $this->feedback_best_response_legacy
+            );
+        }
+
+        $rendered_markdown = $refinery->string()->markdown()->toHTML(
+            $this->feedback_best_response
+        );
+
+        return $ui_factory->messageBox()->success(
+            $rendered_markdown === ''
+                ? $lng->txt('best_response_given')
+                : $rendered_markdown
+        );
+    }
+
+    private function getRenderedFeedbackOtherResponse(
+        Language $lng,
+        Refinery $refinery,
+        UIFactory $ui_factory
+    ): Component {
+        if ($this->feedback_other_response === null) {
+            return $ui_factory->messageBox()->info(
+                $this->feedback_other_response_legacy === ''
+                    ? $lng->txt('other_response_given')
+                    : $this->feedback_other_response_legacy
+            );
+        }
+
+        $rendered_markdown = $refinery->string()->markdown()->toHTML(
+            $this->feedback_other_response
+        );
+
+        return $ui_factory->messageBox()->info(
+            $rendered_markdown === ''
+                ? $lng->txt('orther_response_given')
+                : $rendered_markdown
         );
     }
 }

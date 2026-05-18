@@ -21,7 +21,11 @@ declare(strict_types=1);
 namespace ILIAS\Questions\AnswerForm\Capabilities;
 
 use ILIAS\Questions\AnswerForm\Capabilities\Capability;
-use ILIAS\Questions\AnswerForm\Capabilities\AdditionalFormStepAction;
+use ILIAS\Questions\AnswerForm\Capabilities\Definitions\ActionWithTab;
+use ILIAS\Questions\AnswerForm\Capabilities\Definitions\AdditionalFormStepAction;
+use ILIAS\Questions\AnswerForm\Capabilities\Definitions\Marking;
+use ILIAS\Questions\AnswerForm\Capabilities\Definitions\MarkingProvider;
+use ILIAS\Questions\AnswerForm\Capabilities\ParticipantViewProvider;
 use ILIAS\Questions\AnswerForm\Properties as AnswerFormProperties;
 use ILIAS\Questions\AnswerForm\Views\Edit as AnswerFormEditView;
 use ILIAS\Questions\Presentation\Definitions\DefaultEnvironment;
@@ -29,40 +33,74 @@ use ILIAS\Questions\Presentation\Layout\Async;
 use ILIAS\Questions\Presentation\Layout\EditForm;
 use ILIAS\Questions\Presentation\Layout\Viewable;
 
-class Edit
+class RequiredCapabilities
 {
-    private array $required_capabilites = [];
-    private array $required_actions_with_tab = [];
-    private array $required_form_step_actions = [];
-
+    /**
+     * @param array<class-string<Capability>, Capability> $capability_class_names
+     * @param array<string, ActionWithTab> $required_actions_with_tab
+     * @param array<string, AdditionalStepAction> $required_step_actions
+     */
     public function __construct(
-        private readonly Factory $factory
+        private readonly array $capabilities,
+        private ParticipantViewProvider $participant_view_provider,
+        private array $required_actions_with_tab,
+        private array $required_form_step_actions,
+        private ?MarkingProvider $marking_provider
     ) {
+
     }
 
-    public function getRequiredCapabilities(): array
+    /**
+     * @param list<AnswerFormProperties> $answer_form_properties
+     */
+    public function areAllCapabilitiesSupportedByAnswerForms(
+        array $answer_form_properties
+    ): bool {
+        foreach ($answer_form_properties as $property) {
+            foreach ($this->capabilities as $capability) {
+                if (!$capability->isAvailableFor($property)) {
+                    return false;
+                }
+            }
+        }
+
+        return true;
+    }
+
+    public function getParticipantViewProvider(): ParticipantViewProvider
     {
-        return $this->required_capabilites;
+        return $this->participant_view_provider;
     }
 
-    public function withRequiredCapabilities(
-        array $capability_class_names
-    ): self {
-        $clone = clone $this;
-        [
-            'required_capabilities' => $clone->required_capabilites,
-            'required_actions_with_tab' => $clone->required_actions_with_tab,
-            'required_form_step_actions' => $clone->required_form_step_actions
-        ] = $clone->buildRequiredCapabilitiesAndActions(
-            $capability_class_names
-        );
-        return $clone;
+    /**
+     * @return array<string, AdditionalStepAction>
+     */
+    public function getRequiredFormStepActions(): array
+    {
+        return $this->required_form_step_actions;
+    }
+
+    public function isMarkingRequired(): bool
+    {
+        return $this->marking_provider !== null;
+    }
+
+    public function getMarking(
+        AnswerFormProperties $answer_form_properties
+    ): ?Marking {
+        return $this->marking_provider?->getMarking($answer_form_properties);
+    }
+
+    public function isCapabilityRequired(
+        string $identifier
+    ): bool {
+        return array_key_exists($identifier, $this->capabilities);
     }
 
     public function onAnswerFormUpdate(
         AnswerFormProperties $properties
     ): void {
-        foreach ($this->required_capabilites as $capability) {
+        foreach ($this->capabilities as $capability) {
             $capability->onAnswerFormUpdate($properties);
         }
     }
@@ -77,32 +115,33 @@ class Edit
             $this->required_actions_with_tab
         );
 
-        $action = $this->required_actions_with_tab[$action_from_get] ?? null;
-        if ($action === null) {
-            return null;
-        }
+        $tab_action = $this->required_actions_with_tab[$action_from_get] ?? null;
+        if ($tab_action !== null) {
+            $tab_action->activateTab($tabs_gui);
 
-        if ($action !== null) {
-            $action->activateTab($tabs_gui);
-        } else {
-            $environment->setEditAnswerFormBackTarget();
-            $action = $this->retrieveNextFormStepFromActionIdentifier(
-                $edit_view,
-                $action_from_get
+            return $tab_action->do(
+                $environment->withActionParameter($action_from_get)
             );
         }
 
-        return $action->do(
+        $step_action = $this->retrieveNextFormStepFromActionIdentifier(
+            $edit_view,
+            $action_from_get
+        );
+
+        if ($step_action === null) {
+            return null;
+        }
+
+        $environment->setEditAnswerFormBackTarget();
+        return $step_action->do(
             $environment->withActionParameter($action_from_get)
         );
     }
 
-    public function providesAnswerFormEditAdditionalSteps(): bool
+    public function additionalAnswerFormStepsRequired(): bool
     {
-        return array_filter(
-            $this->required_capabilites,
-            fn(Capability $v): bool => $v->providesAnswerFormEditAdditionalStep()
-        ) !== [];
+        return $this->required_form_step_actions !== [];
     }
 
     public function doFirstFormStepAction(
@@ -150,44 +189,6 @@ class Edit
             $current_index > 0
                 ? $this->required_form_step_actions[$keys[$current_index - 1]]
                 : $edit_view
-        );
-    }
-
-    /**
-     * @param list<string> $capabilities
-     * @return list<\ILIAS\Questions\AnswerForm\Capabilities\Capability>
-     */
-    private function buildRequiredCapabilitiesAndActions(
-        array $capabilities
-    ): array {
-        return array_reduce(
-            $capabilities,
-            function (array $c, string $v): array {
-                $capability = $this->factory->get($v);
-                if ($capability === null) {
-                    throw new \InvalidArgumentException(
-                        "The capability {$v} does not exist."
-                    );
-                }
-                $c['required_capabilities'][$v] = $capability;
-
-                $action_with_tab = $capability->getAnswerFormEditAdditionalTab();
-                if ($action_with_tab !== null) {
-                    $c['required_actions_with_tab'][$action_with_tab->getIdentifier()] = $action_with_tab;
-                }
-
-                $form_step_action = $capability->getAnswerFormEditAdditionalStep();
-                if ($form_step_action !== null) {
-                    $c['required_form_step_actions'][$form_step_action->getIdentifier()] = $form_step_action;
-                }
-
-                return $c;
-            },
-            [
-                'required_capabilities' => [],
-                'required_actions_with_tab' => [],
-                'required_form_step_actions' => []
-            ]
         );
     }
 }

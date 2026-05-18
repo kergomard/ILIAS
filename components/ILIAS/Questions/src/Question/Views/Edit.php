@@ -20,6 +20,7 @@ declare(strict_types=1);
 
 namespace ILIAS\Questions\Question\Views;
 
+use ILIAS\Questions\AnswerForm\Capabilities\RequiredCapabilities;
 use ILIAS\Questions\Administration\ConfigurationRepository;
 use ILIAS\Questions\Presentation\Layout\EditForm;
 use ILIAS\Questions\Presentation\Definitions\DefaultEnvironment;
@@ -42,7 +43,7 @@ class Edit
         private readonly \ilCtrl $ctrl,
         private readonly UIRenderer $ui_renderer,
         private readonly ConfigurationRepository $configuration_repository,
-        private readonly array $required_capabilities,
+        private readonly RequiredCapabilities $required_capabilities,
         private readonly Question $question
     ) {
 
@@ -232,6 +233,8 @@ class Edit
             $environment->getUIFactory()->legacy()->content(
                 $this->ui_renderer->render(
                     $this->question->getParticipantView(
+                        $environment->getLanguage(),
+                        $environment->getRefinery(),
                         $environment->getUIFactory(),
                         $this->required_capabilities,
                         null

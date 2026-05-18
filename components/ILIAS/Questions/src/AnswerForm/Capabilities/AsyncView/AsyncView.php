@@ -18,20 +18,18 @@
 
 declare(strict_types=1);
 
-namespace ILIAS\Questions\AnswerForm\Capabilities;
+namespace ILIAS\Questions\AnswerForm\Capabilities\AsyncView;
 
-use ILIAS\Questions\AnswerForm\Migration\Migration as AnswerFormMigration;
-use ILIAS\Questions\AnswerForm\Migration\MigrationInsert;
-use ILIAS\Questions\Persistence\TableNameSpace;
-use ILIAS\Setup\Environment;
+use ILIAS\Questions\AnswerForm\Capabilities\TypeSpecification;
+use ILIAS\Questions\AnswerForm\Views\Participant;
 
-interface Migration
+abstract class AsyncView implements TypeSpecification
 {
-    public function getTableNameSpace(): TableNameSpace;
+    abstract public function getParticipantView(): Participant;
 
-    public function completeMigrationInsert(
-        Environment $environment,
-        AnswerFormMigration $answer_form_migration,
-        MigrationInsert $migration_insert
-    ): ?MigrationInsert;
+    #[\Override]
+    public static function getCapabilityIdentifier(): string
+    {
+        return Capability::getIdentifier();
+    }
 }

@@ -185,7 +185,7 @@ class MigrationCloze implements Migration
         }
 
         if ($answer === -1) {
-            return [Types::NothingSelected->value];
+            return [Types::NoResponse->value];
         }
 
         if ($gap['is_numeric']) {

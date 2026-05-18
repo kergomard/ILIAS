@@ -187,7 +187,7 @@ class OverarchingQuestionTables implements \ilDatabaseUpdateSteps
                     'length' => 8,
                     'notnull' => true
                 ],
-                'reached_points' => [
+                'awarded_points' => [
                     'type' => FieldDefinition::T_FLOAT,
                     'notnull' => false
                 ]

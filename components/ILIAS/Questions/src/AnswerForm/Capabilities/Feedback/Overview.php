@@ -151,7 +151,7 @@ class Overview implements Viewable
                 [
                     'max_points' => $if->field()->markdown(
                         new \ilUIMarkdownPreviewGUI(),
-                        $lng->txt('edit_feedback_max_points')
+                        Types::BestResponse->getTranslatedOptionName($lng)
                     )->withValue(
                         $this->set_legacy_texts_as_values
                             ? $this->feedback->getFeedbackBestResponseLegacy()
@@ -160,7 +160,7 @@ class Overview implements Viewable
                     ),
                     'not_max_points' => $if->field()->markdown(
                         new \ilUIMarkdownPreviewGUI(),
-                        $lng->txt('edit_feedback_not_max_points')
+                        Types::OtherResponse->getTranslatedOptionName($lng)
                     )->withValue(
                         $this->set_legacy_texts_as_values
                             ? $this->feedback->getFeedbackOtherResponseLegacy()
