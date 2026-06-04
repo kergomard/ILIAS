@@ -1,4 +1,5 @@
 <?php
+
 /**
  * This file is part of ILIAS, a powerful learning management system
  * published by ILIAS open source e-Learning e.V.
@@ -91,7 +92,7 @@ class ilCourseObjectiveQuestionAssignmentTableGUI extends ilTable2GUI
             if ($sub_data['qst_txt']) {
                 $txt = $sub_data['qst_txt'];
                 if ($sub_data['qst_points']) {
-                    $this->lng->loadLanguageModule('assessment');
+                    $this->lng->loadLanguageModule('qsts');
                     $txt .= (' (' . $sub_data['qst_points'] . ' ' . $this->lng->txt('points') . ')');
                 }
 

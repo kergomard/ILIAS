@@ -983,7 +983,7 @@ class ilObjQuestionPoolGUI extends ilObjectGUI implements ilCtrlBaseClassInterfa
             $this->ctrl->redirect($this, self::DEFAULT_CMD);
         }
 
-        $this->tpl->setOnScreenMessage('question', $this->lng->txt('qpl_confirm_delete_questions'));
+        $this->tpl->setOnScreenMessage('question', $this->lng->txt('confirm_delete_questions'));
         $deleteable_questions = $this->object->getDeleteableQuestionDetails($questionIdsToDelete);
         $table_gui = new ilQuestionBrowserTableGUI($this, self::DEFAULT_CMD, (($rbacsystem->checkAccess('write', $this->request_data_collector->getRefId()) ? true : false)), true);
         $table_gui->setShowRowsSelector(false);
@@ -1011,7 +1011,7 @@ class ilObjQuestionPoolGUI extends ilObjectGUI implements ilCtrlBaseClassInterfa
             $this->ctrl->redirect($this, self::DEFAULT_CMD);
         }
 
-        $this->tpl->setOnScreenMessage('question', $this->lng->txt('qpl_confirm_delete_questions'));
+        $this->tpl->setOnScreenMessage('question', $this->lng->txt('confirm_delete_questions'));
         $deleteable_questions = &$this->object->getDeleteableQuestionDetails($questionIdsToDelete);
         $table_gui = new ilQuestionBrowserTableGUI(
             $this,
@@ -1173,7 +1173,7 @@ class ilObjQuestionPoolGUI extends ilObjectGUI implements ilCtrlBaseClassInterfa
         $inputs['editing_type'] = $this->buildInputEditingType();
 
         $section = [
-            $this->ui_factory->input()->field()->section($inputs, $this->lng->txt('ass_create_question'))
+            $this->ui_factory->input()->field()->section($inputs, $this->lng->txt('create_question'))
         ];
 
         $form = $this->ui_factory->input()->container()->form()->standard(

@@ -49,7 +49,7 @@ class ilAssLongmenuCorrectionsInputGUI extends ilAnswerWizardInputGUI
         $inp->setDisabled(true);
         $message = $inp->render();
 
-        $page = $this->ui->factory()->modal()->lightboxTextPage($message, $this->lng->txt('answer_options'));
+        $page = $this->ui->factory()->modal()->lightboxTextPage($message, "{$this->lng->txt('answer_options')}");
         $modal = $this->ui->factory()->modal()->lightbox($page);
         $button = $this->ui->factory()->button()->standard($this->lng->txt('show'), $modal->getShowSignal());
 
@@ -59,7 +59,7 @@ class ilAssLongmenuCorrectionsInputGUI extends ilAnswerWizardInputGUI
         $tpl->setVariable('TAG_INPUT', $this->buildTagInput()->render());
         $tpl->setVariable('NUM_ANSWERS', $this->values['answers_all_count']);
         $tpl->setVariable('BTN_SHOW', $this->ui->renderer()->render($button));
-        $tpl->setVariable('TXT_ANSWERS', $this->lng->txt('answer_options'));
+        $tpl->setVariable('TXT_ANSWERS', "{$this->lng->txt('answer_options')}:");
         $tpl->setVariable('TXT_CORRECT_ANSWERS', $this->lng->txt('correct_answers') . ':');
 
         $tpl->setVariable('POSTVAR', $this->getPostVar());
