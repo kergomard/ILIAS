@@ -16,6 +16,9 @@
  *
  *********************************************************************/
 
+use ILIAS\UI\Factory as UIFactory;
+use ILIAS\UI\Renderer as UIRenderer;
+
 /**
  * Text question GUI representation
  *
@@ -33,6 +36,9 @@
 class assTextQuestionGUI extends assQuestionGUI implements ilGuiQuestionScoringAdjustable, ilGuiAnswerScoringAdjustable
 {
     protected bool $tiny_mce_enabled;
+    private UIFactory $ui_factory;
+    private UIRenderer $ui_renderer;
+
     /**
      * assTextQuestionGUI constructor
      *
@@ -49,6 +55,10 @@ class assTextQuestionGUI extends assQuestionGUI implements ilGuiQuestionScoringA
         if ($id >= 0) {
             $this->object->loadFromDb($id);
         }
+
+        global $DIC;
+        $this->ui_factory = $DIC['ui.factory'];
+        $this->ui_renderer = $DIC['ui.renderer'];
     }
 
     /**
@@ -67,46 +77,265 @@ class assTextQuestionGUI extends assQuestionGUI implements ilGuiQuestionScoringA
         return 1;
     }
 
+    /**
+    * Creates an output of the edit form for the question
+    *
+    * @access public
+    */
     public function editQuestion(
         bool $checkonly = false,
         ?bool $is_save_cmd = null
     ): bool {
-        $save = $is_save_cmd ?? $this->isSaveCommand();
+        /** @var ILIAS\DI\Container $DIC */
+        global $DIC;
+        $cmd = $DIC->http()->wrapper()->query()->retrieve(
+            'sub_cmd',
+            $DIC->refinery()->byTrying([
+                $this->refinery->kindlyTo()->string(),
+                $this->refinery->always(null)
+            ])
+        );
 
-        $form = new ilPropertyFormGUI();
-        $this->editForm = $form;
+        $is_edit = $DIC->http()->wrapper()->query()->retrieve(
+            'edit',
+            $DIC->refinery()->byTrying([
+                $this->refinery->kindlyTo()->bool(),
+                $this->refinery->always(false)
+            ])
+        );
 
-        $form->setFormAction($this->ctrl->getFormAction($this));
-        $form->setTitle($this->outQuestionType());
-        $form->setMultipart(true);
-        $form->setTableWidth("100%");
-        $form->setId("asstextquestion");
-
-        $this->addBasicQuestionFormProperties($form);
-        $this->populateQuestionSpecificFormPart($form);
-        $this->populateAnswerSpecificFormPart($form);
-
-
-        $this->populateTaxonomyFormSection($form);
-
-        $this->addQuestionFormCommandButtons($form);
-
-        $errors = false;
-
-        if ($save) {
-            $form->setValuesByPost();
-            $errors = !$form->checkInput();
-            $form->setValuesByPost(); // again, because checkInput now performs the whole stripSlashes handling and we need this if we don't want to have duplication of backslashes
-            if ($errors) {
-                $checkonly = false;
+        if ($cmd !== 'questionOverview') {
+            $this->tabs_gui->clearTargets();
+            if ($is_edit) {
+                $this->ctrl->setParameterByClass(
+                    self::class,
+                    'sub_cmd',
+                    $cmd === 'questionOverview'
+                );
             }
+            $this->tabs_gui->setBackTarget(
+                'Cancel',
+                $this->ctrl->getFormActionByClass(
+                    $is_edit ? self::class : ilAssQuestionPreviewGUI::class,
+                    $is_edit ? 'editQuestion' : 'show'
+                )
+            );
+            $this->ctrl->clearParameterByClass(self::class, 'sub_cmd');
         }
 
-        if (!$checkonly) {
-            $this->renderEditForm($form);
+        if ($cmd === null) {
+            $content = $this->buildBasicForm($is_edit);
+        } elseif ($cmd === 'answerOptions') {
+            $content = $this->buildAnswerOptionsForm();
+        } elseif ($cmd === 'questionOverview') {
+            $content = $this->buildQuestionOverview();
         }
-        return $errors;
+
+        $this->getQuestionTemplate();
+        $this->tpl->setVariable(
+            'QUESTION_DATA',
+            $this->ui_renderer->render($content)
+        );
+        return true;
     }
+
+    private function buildBasicForm(bool $is_edit)
+    {
+        /** @var \ILIAS\UI\Component\Input\Field\Factory $ff */
+        $ff = $this->ui_factory->input()->field();
+        $is_edit ? $this->ctrl->setParameterByClass(self::class, 'sub_cmd', 'questionOverview') : $this->ctrl->setParameterByClass(self::class, 'sub_cmd', 'answerOptions');
+        return $this->ui_factory->input()->container()->form()->standard(
+            $this->ctrl->getFormActionByClass(self::class, 'editQuestion'),
+            [
+                $ff->section(
+                    [
+                        'count_words' => $ff->checkbox('Count Words'),
+                        'max_chars' => $ff->numeric(
+                            'Maximum Number of Characters',
+                            'If nothing entered the maximum number of characters for this text answer is unlimited.'
+                        ),
+                        'scoring_mode' => $ff->switchableGroup(
+                            [
+                                'none' => $ff->group(
+                                    [
+                                        $ff->numeric('Points')->withStepSize(0.0001)->withRequired(true)
+                                    ],
+                                    'No Automatic Scoring',
+                                    'No points are granted unless the tutor\'s manual scoring.'
+                                ),
+                                'any' => $ff->group(
+                                    [
+                                        $ff->numeric('Number of Answer Options Awarding Points')
+                                            ->withValue(1)
+                                            ->withRequired(true)
+                                    ],
+                                    'Automatic Scoring with Keywords on Finding ANY',
+                                    'For any found keyword the corresponding points are granted automatically.'
+                                ),
+                                'all' => $ff->group(
+                                    [
+                                        $ff->numeric('Number of Answer Options Awarding Points')
+                                            ->withValue(1)
+                                            ->withRequired(true),
+                                        $ff->numeric('Points')->withStepSize(0.0001)->withRequired(true)
+                                    ],
+                                    'Automatic Scoring with Keywords on Finding ALL',
+                                    'The points are granted automatically, if all keywords are found.'
+                                ),
+                                'one' => $ff->group(
+                                    [
+                                        $ff->numeric('Number of Answer Options Awarding Points')
+                                            ->withValue(1)
+                                            ->withRequired(true),
+                                        $ff->numeric('Points')->withStepSize(0.0001)->withRequired(true)
+                                    ],
+                                    'Automatic Scoring with Keywords on Finding ONE',
+                                    'The points are granted automatically, if at least one keyword is found.'
+                                ),
+                            ],
+                            'Marking'
+                        )->withRequired(true)
+                    ],
+                    'Basic Answer Form Properties'
+                )
+            ]
+        )->withSubmitLabel($is_edit ? $this->lng->txt('save') : $this->lng->txt('next'));
+    }
+
+    private function buildAnswerOptionsForm()
+    {
+        $ff = $this->ui_factory->input()->field();
+        $this->ctrl->setParameterByClass(self::class, 'sub_cmd', 'questionOverview');
+        return $this->ui_factory->input()->container()->form()->standard(
+            $this->ctrl->getFormActionByClass(self::class, 'editQuestion'),
+            [
+                    $ff->section(
+                        [
+                            'option_1' => $ff->section(
+                                [
+                                    'text' => $ff->markdown(
+                                        new ilUIMarkdownPreviewGUI(),
+                                        'Answer Text'
+                                    ),
+                                    'image' => $ff->image(
+                                        new \ilUIDemoFileUploadHandlerGUI(),
+                                        ImagePurpose::USER_DEFINED,
+                                        'Answer Image'
+                                    ),
+                                    'correctness' => $ff->checkbox('Answer is correct.')
+                                ],
+                                'Options 1'
+                            ),
+                            'option_2' => $ff->section(
+                                [
+                                    'text' => $ff->markdown(
+                                        new ilUIMarkdownPreviewGUI(),
+                                        'Answer Text'
+                                    ),
+                                    'image' => $ff->image(
+                                        new \ilUIDemoFileUploadHandlerGUI(),
+                                        ImagePurpose::USER_DEFINED,
+                                        'Answer Image'
+                                    ),
+                                    'correctness' => $ff->checkbox('Answer is correct.')
+                                ],
+                                'Options 2'
+                            ),
+                            'option_3' => $ff->section(
+                                [
+                                    'text' => $ff->markdown(
+                                        new ilUIMarkdownPreviewGUI(),
+                                        'Answer Text'
+                                    ),
+                                    'image' => $ff->image(
+                                        new \ilUIDemoFileUploadHandlerGUI(),
+                                        ImagePurpose::USER_DEFINED,
+                                        'Answer Image'
+                                    ),
+                                    'correctness' => $ff->checkbox('Answer is correct.')
+                                ],
+                                'Options 3'
+                            ),
+                            'option_4' => $ff->section(
+                                [
+                                    'text' => $ff->markdown(
+                                        new ilUIMarkdownPreviewGUI(),
+                                        'Answer Text'
+                                    ),
+                                    'image' => $ff->image(
+                                        new \ilUIDemoFileUploadHandlerGUI(),
+                                        ImagePurpose::USER_DEFINED,
+                                        'Answer Image'
+                                    ),
+                                    'correctness' => $ff->checkbox('Answer is correct.')
+                                ],
+                                'Options 4'
+                            )
+                        ],
+                        'Define Answer Options'
+                    )
+                ]
+        )->withSubmitLabel('Finalise');
+    }
+
+    private function buildQuestionOverview()
+    {
+        /** @var ILIAS\DI\Container $DIC */
+        global $DIC;
+        [$url_builder, $token] = (new ILIAS\UI\URLBuilder(new ILIAS\Data\URI($DIC->http()->request()->getUri()->__toString())))
+            ->acquireParameter(['table'], 'test');
+        $this->ctrl->setParameterByClass(self::class, 'edit', '1');
+        return [
+            $this->ui_factory->panel()->standard(
+                'Basic Answer Form Properties',
+                [
+                    $this->ui_factory->listing()->descriptive([
+                        $this->lng->txt('cloze_text') => (new ilUIMarkdownPreviewGUI())->render(
+                            "# This is a text with a text GAP [GAP_0d43],\n"
+                            . " *a numeric gap [GAP_6bd5]*,\n"
+                            . " **a select gap [GAP_d9ba]**,\n"
+                            . " and a long menu gap [GAP_f545]"
+                        ),
+                        $this->lng->txt('text_rating') => $this->lng->txt('cloze_textgap_case_insensitive'),
+                        $this->lng->txt("cloze_fixed_textlength") => $this->lng->txt('unlimited'),
+                        'Minimal Characters for Suggestions' => '3',
+                        'Scoring of identical Responses' => 'Only Unique Responses are Scored'
+                    ]),
+                    $this->ui_factory->button()->standard(
+                        'Edit Basic Answer Form Properties',
+                        $this->ctrl->getFormActionByClass(self::class)
+                    )
+                ]
+            ),
+            $this->ui_factory->table()->data(
+                $this,
+                'Gaps',
+                [
+                    'gap' => $this->ui_factory->table()->column()->text('Gap'),
+                    'type' => $this->ui_factory->table()->column()->text('Type'),
+                    'options' => $this->ui_factory->table()->column()->text('Answer Options Awarding Points'),
+                    'points' => $this->ui_factory->table()->column()->text('Available Points'),
+                ]
+            )->withActions([
+                $this->ui_factory->table()->action()->standard(
+                    'Edit Gap(s)',
+                    $url_builder,
+                    $token
+                ),
+                $this->ui_factory->table()->action()->standard(
+                    'Edit Answer Options',
+                    $url_builder,
+                    $token
+                ),
+                $this->ui_factory->table()->action()->standard(
+                    'Edit Available Points',
+                    $url_builder,
+                    $token
+                )
+            ])->withRequest($DIC->http()->request())
+        ];
+    }
+
 
     private static function buildAnswerTextOnlyArray($answers): array
     {
