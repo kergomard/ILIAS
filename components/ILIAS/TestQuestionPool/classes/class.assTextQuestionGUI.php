@@ -33,7 +33,7 @@ use ILIAS\UI\Renderer as UIRenderer;
  * @ingroup components\ILIASTestQuestionPool
  * @ilCtrl_Calls assTextQuestionGUI: ilFormPropertyDispatchGUI
  */
-class assTextQuestionGUI extends assQuestionGUI implements ilGuiQuestionScoringAdjustable, ilGuiAnswerScoringAdjustable
+class assTextQuestionGUI extends assQuestionGUI implements ilGuiQuestionScoringAdjustable, ilGuiAnswerScoringAdjustable, \ILIAS\UI\Component\Table\DataRetrieval
 {
     protected bool $tiny_mce_enabled;
     private UIFactory $ui_factory;
@@ -123,6 +123,12 @@ class assTextQuestionGUI extends assQuestionGUI implements ilGuiQuestionScoringA
             $this->ctrl->clearParameterByClass(self::class, 'sub_cmd');
         }
 
+        $this->ctrl->setParameterByClass(
+            self::class,
+            'question_type',
+            $this->object->getQuestionType()
+        );
+
         if ($cmd === null) {
             $content = $this->buildBasicForm($is_edit);
         } elseif ($cmd === 'answerOptions') {
@@ -154,14 +160,26 @@ class assTextQuestionGUI extends assQuestionGUI implements ilGuiQuestionScoringA
                             'Maximum Number of Characters',
                             'If nothing entered the maximum number of characters for this text answer is unlimited.'
                         ),
+                        'text_matching_method' => $ff->select(
+                            $this->lng->txt('text_rating'),
+                            [
+                                "ci" => $this->lng->txt("cloze_textgap_case_insensitive"),
+                                "cs" => $this->lng->txt("cloze_textgap_case_sensitive"),
+                                "l1" => sprintf($this->lng->txt("cloze_textgap_levenshtein_of"), "1"),
+                                "l2" => sprintf($this->lng->txt("cloze_textgap_levenshtein_of"), "2"),
+                                "l3" => sprintf($this->lng->txt("cloze_textgap_levenshtein_of"), "3"),
+                                "l4" => sprintf($this->lng->txt("cloze_textgap_levenshtein_of"), "4"),
+                                "l5" => sprintf($this->lng->txt("cloze_textgap_levenshtein_of"), "5")
+                            ]
+                        )->withValue('ci')->withRequired(true),
                         'scoring_mode' => $ff->switchableGroup(
                             [
                                 'none' => $ff->group(
                                     [
                                         $ff->numeric('Points')->withStepSize(0.0001)->withRequired(true)
                                     ],
-                                    'No Automatic Scoring',
-                                    'No points are granted unless the tutor\'s manual scoring.'
+                                    'No Automatic Marking',
+                                    'No points are granted unless the response has been marked manually by a tutor.'
                                 ),
                                 'any' => $ff->group(
                                     [
@@ -169,7 +187,7 @@ class assTextQuestionGUI extends assQuestionGUI implements ilGuiQuestionScoringA
                                             ->withValue(1)
                                             ->withRequired(true)
                                     ],
-                                    'Automatic Scoring with Keywords on Finding ANY',
+                                    'Automatic Marking with Keywords on Finding ANY',
                                     'For any found keyword the corresponding points are granted automatically.'
                                 ),
                                 'all' => $ff->group(
@@ -179,7 +197,7 @@ class assTextQuestionGUI extends assQuestionGUI implements ilGuiQuestionScoringA
                                             ->withRequired(true),
                                         $ff->numeric('Points')->withStepSize(0.0001)->withRequired(true)
                                     ],
-                                    'Automatic Scoring with Keywords on Finding ALL',
+                                    'Automatic Marking with Keywords on Finding ALL',
                                     'The points are granted automatically, if all keywords are found.'
                                 ),
                                 'one' => $ff->group(
@@ -189,7 +207,7 @@ class assTextQuestionGUI extends assQuestionGUI implements ilGuiQuestionScoringA
                                             ->withRequired(true),
                                         $ff->numeric('Points')->withStepSize(0.0001)->withRequired(true)
                                     ],
-                                    'Automatic Scoring with Keywords on Finding ONE',
+                                    'Automatic Marking with Keywords on Finding ONE',
                                     'The points are granted automatically, if at least one keyword is found.'
                                 ),
                             ],
@@ -213,69 +231,24 @@ class assTextQuestionGUI extends assQuestionGUI implements ilGuiQuestionScoringA
                         [
                             'option_1' => $ff->section(
                                 [
-                                    'text' => $ff->markdown(
-                                        new ilUIMarkdownPreviewGUI(),
-                                        'Answer Text'
-                                    ),
-                                    'image' => $ff->image(
-                                        new \ilUIDemoFileUploadHandlerGUI(),
-                                        ImagePurpose::USER_DEFINED,
-                                        'Answer Image'
-                                    ),
-                                    'correctness' => $ff->checkbox('Answer is correct.')
+                                    'text' => $ff->text('Answer Text'),
+                                    'points' => $ff->numeric('Points')->withStepSize(0.0001)
                                 ],
-                                'Options 1'
+                                'Answer 1'
                             ),
                             'option_2' => $ff->section(
                                 [
-                                    'text' => $ff->markdown(
-                                        new ilUIMarkdownPreviewGUI(),
-                                        'Answer Text'
-                                    ),
-                                    'image' => $ff->image(
-                                        new \ilUIDemoFileUploadHandlerGUI(),
-                                        ImagePurpose::USER_DEFINED,
-                                        'Answer Image'
-                                    ),
-                                    'correctness' => $ff->checkbox('Answer is correct.')
+                                    'text' => $ff->text('Answer Text'),
+                                    'points' => $ff->numeric('Points')->withStepSize(0.0001)
                                 ],
-                                'Options 2'
-                            ),
-                            'option_3' => $ff->section(
-                                [
-                                    'text' => $ff->markdown(
-                                        new ilUIMarkdownPreviewGUI(),
-                                        'Answer Text'
-                                    ),
-                                    'image' => $ff->image(
-                                        new \ilUIDemoFileUploadHandlerGUI(),
-                                        ImagePurpose::USER_DEFINED,
-                                        'Answer Image'
-                                    ),
-                                    'correctness' => $ff->checkbox('Answer is correct.')
-                                ],
-                                'Options 3'
-                            ),
-                            'option_4' => $ff->section(
-                                [
-                                    'text' => $ff->markdown(
-                                        new ilUIMarkdownPreviewGUI(),
-                                        'Answer Text'
-                                    ),
-                                    'image' => $ff->image(
-                                        new \ilUIDemoFileUploadHandlerGUI(),
-                                        ImagePurpose::USER_DEFINED,
-                                        'Answer Image'
-                                    ),
-                                    'correctness' => $ff->checkbox('Answer is correct.')
-                                ],
-                                'Options 4'
+                                'Answer 2'
                             )
                         ],
-                        'Define Answer Options'
+                        'Define Answer Options Awarding Points'
                     )
                 ]
-        )->withSubmitLabel('Finalise');
+        )->withSubmitLabel('Finalise')
+        ->withAdditionalFormAction('back', 'Back');
     }
 
     private function buildQuestionOverview()
@@ -290,16 +263,10 @@ class assTextQuestionGUI extends assQuestionGUI implements ilGuiQuestionScoringA
                 'Basic Answer Form Properties',
                 [
                     $this->ui_factory->listing()->descriptive([
-                        $this->lng->txt('cloze_text') => (new ilUIMarkdownPreviewGUI())->render(
-                            "# This is a text with a text GAP [GAP_0d43],\n"
-                            . " *a numeric gap [GAP_6bd5]*,\n"
-                            . " **a select gap [GAP_d9ba]**,\n"
-                            . " and a long menu gap [GAP_f545]"
-                        ),
-                        $this->lng->txt('text_rating') => $this->lng->txt('cloze_textgap_case_insensitive'),
-                        $this->lng->txt("cloze_fixed_textlength") => $this->lng->txt('unlimited'),
-                        'Minimal Characters for Suggestions' => '3',
-                        'Scoring of identical Responses' => 'Only Unique Responses are Scored'
+                        'Count Words' => 'True',
+                        'Maximum Number of Characters' => 'None',
+                        $this->lng->txt('text_rating') => $this->lng->txt("cloze_textgap_case_insensitive"),
+                        'Marking' => 'Automatic Scoring with Keywords on Finding ANY'
                     ]),
                     $this->ui_factory->button()->standard(
                         'Edit Basic Answer Form Properties',
@@ -307,33 +274,73 @@ class assTextQuestionGUI extends assQuestionGUI implements ilGuiQuestionScoringA
                     )
                 ]
             ),
+            $this->ui_factory->button()->standard('Add Answer Option Awarding Points', 'action'),
             $this->ui_factory->table()->data(
                 $this,
-                'Gaps',
+                'Answer Options Awarding Points',
                 [
-                    'gap' => $this->ui_factory->table()->column()->text('Gap'),
-                    'type' => $this->ui_factory->table()->column()->text('Type'),
-                    'options' => $this->ui_factory->table()->column()->text('Answer Options Awarding Points'),
-                    'points' => $this->ui_factory->table()->column()->text('Available Points'),
+                    'text' => $this->ui_factory->table()->column()->text('Text'),
+                    'points' => $this->ui_factory->table()->column()->number('Points')->withDecimals(4)
                 ]
             )->withActions([
                 $this->ui_factory->table()->action()->standard(
-                    'Edit Gap(s)',
+                    'Edit',
                     $url_builder,
                     $token
                 ),
                 $this->ui_factory->table()->action()->standard(
-                    'Edit Answer Options',
-                    $url_builder,
-                    $token
-                ),
-                $this->ui_factory->table()->action()->standard(
-                    'Edit Available Points',
+                    'Delete',
                     $url_builder,
                     $token
                 )
             ])->withRequest($DIC->http()->request())
         ];
+    }
+
+    public function getRows(\ILIAS\UI\Component\Table\DataRowBuilder $row_builder, array $visible_column_ids, \ILIAS\Data\Range $range, \ILIAS\Data\Order $order, mixed $additional_viewcontrol_data, mixed $filter_data, mixed $additional_parameters): \Generator
+    {
+        global $DIC;
+        $cmd = $DIC->http()->wrapper()->query()->retrieve(
+            'sub_cmd',
+            $DIC->refinery()->byTrying([
+                $this->refinery->kindlyTo()->string(),
+                $this->refinery->always(null)
+            ])
+        );
+
+        yield from [
+            $row_builder->buildDataRow(
+                'text1',
+                [
+                    'text' => 'Essay Question',
+                    'points' => 2.3
+                ]
+            ),
+            $row_builder->buildDataRow(
+                'text2',
+                [
+                    'text' => 'Text Question',
+                    'points' => 2.3
+                ]
+            )
+        ];
+    }
+
+    public function getTotalRowCount(mixed $additional_viewcontrol_data, mixed $filter_data, mixed $additional_parameters): ?int
+    {
+        global $DIC;
+        $cmd = $DIC->http()->wrapper()->query()->retrieve(
+            'sub_cmd',
+            $DIC->refinery()->byTrying([
+                $this->refinery->kindlyTo()->string(),
+                $this->refinery->always(null)
+            ])
+        );
+
+        if ($cmd === 'questionOverview') {
+            return 4;
+        }
+        return 1;
     }
 
 
