@@ -16,6 +16,11 @@
  *
  *********************************************************************/
 
+use ILIAS\UI\Factory as UIFactory;
+use ILIAS\UI\Renderer as UIRenderer;
+use ILIAS\Data\ImagePurpose;
+use ILIAS\UI\Component\Table\OrderingRetrieval;
+
 /**
  * @author		Björn Heyser <bheyser@databay.de>
  * @version		$Id$
@@ -24,8 +29,11 @@
  *
  * @ilCtrl_Calls assKprimChoiceGUI: ilPropertyFormGUI, ilFormPropertyDispatchGUI
  */
-class assKprimChoiceGUI extends assQuestionGUI implements ilGuiQuestionScoringAdjustable, ilGuiAnswerScoringAdjustable
+class assKprimChoiceGUI extends assQuestionGUI implements OrderingRetrieval, ilGuiQuestionScoringAdjustable, ilGuiAnswerScoringAdjustable
 {
+    private UIFactory $ui_factory;
+    private UIRenderer $ui_renderer;
+
     private bool $rebuild_thumbnails = false;
     private ?ilPropertyFormGUI $edit_form = null;
 
@@ -37,6 +45,9 @@ class assKprimChoiceGUI extends assQuestionGUI implements ilGuiQuestionScoringAd
         parent::__construct();
 
         $this->object = new assKprimChoice();
+        global $DIC;
+        $this->ui_factory = $DIC['ui.factory'];
+        $this->ui_renderer = $DIC['ui.renderer'];
 
         if ($qId > 0) {
             $this->object->loadFromDb($qId);
@@ -56,17 +67,356 @@ class assKprimChoiceGUI extends assQuestionGUI implements ilGuiQuestionScoringAd
         return ['uploadImage', 'removeImage'];
     }
 
+    /**
+    * Creates an output of the edit form for the question
+    *
+    * @access public
+    */
     public function editQuestion(
         bool $checkonly = false,
         ?bool $is_save_cmd = null
     ): bool {
-        $form = $this->edit_form;
-        if ($form === null) {
-            $form = $this->buildEditForm();
+        /** @var ILIAS\DI\Container $DIC */
+        global $DIC;
+        $cmd = $DIC->http()->wrapper()->query()->retrieve(
+            'sub_cmd',
+            $DIC->refinery()->byTrying([
+                $this->refinery->kindlyTo()->string(),
+                $this->refinery->always(null)
+            ])
+        );
+
+        $is_edit = $DIC->http()->wrapper()->query()->retrieve(
+            'edit',
+            $DIC->refinery()->byTrying([
+                $this->refinery->kindlyTo()->bool(),
+                $this->refinery->always(false)
+            ])
+        );
+
+        if ($cmd !== 'questionOverview') {
+            $this->tabs_gui->clearTargets();
+            if ($is_edit) {
+                $this->ctrl->setParameterByClass(
+                    self::class,
+                    'sub_cmd',
+                    $cmd === 'questionOverview'
+                );
+            }
+            $this->tabs_gui->setBackTarget(
+                'Cancel',
+                $this->ctrl->getFormActionByClass(
+                    $is_edit ? self::class : ilAssQuestionPreviewGUI::class,
+                    $is_edit ? 'editQuestion' : 'show'
+                )
+            );
+            $this->ctrl->clearParameterByClass(self::class, 'sub_cmd');
         }
 
-        $this->renderEditForm($form);
-        return false;
+        $this->ctrl->setParameterByClass(
+            self::class,
+            'question_type',
+            $this->object->getQuestionType()
+        );
+
+        if ($cmd === null) {
+            $content = $this->buildBasicForm($is_edit);
+        } elseif ($cmd === 'answerOptions') {
+            $content = $this->buildAnswerOptionsForm();
+        } elseif ($cmd === 'questionOverview') {
+            $content = $this->buildQuestionOverview();
+        }
+
+        $this->getQuestionTemplate();
+        $this->tpl->setVariable(
+            'QUESTION_DATA',
+            $this->ui_renderer->render($content)
+        );
+        return true;
+    }
+
+    private function buildBasicForm(bool $is_edit)
+    {
+        $ff = $this->ui_factory->input()->field();
+        $is_edit ? $this->ctrl->setParameterByClass(self::class, 'sub_cmd', 'questionOverview') : $this->ctrl->setParameterByClass(self::class, 'sub_cmd', 'answerOptions');
+        return $this->ui_factory->input()->container()->form()->standard(
+            $this->ctrl->getFormActionByClass(self::class, 'editQuestion'),
+            [
+                $ff->section(
+                    [
+                        'marking' => $ff->section(
+                            [
+                                'points' => $ff->numeric('Points')->withStepSize('0.0001')->withRequired(true),
+                                'half_points_marking' => $ff->checkbox(
+                                    'Award Half Points',
+                                    'Usually the participant has to answer the question completely correctly to be awarded the configured points. This option enables awarding half of the configured points when at least three answer options are answered correctly.'
+                                )
+                            ],
+                            'Marking'
+                        ),
+                        'view' => $ff->section(
+                            [
+                                'labels' => $ff->switchableGroup(
+                                    [
+                                        $ff->group(
+                                            [],
+                                            'Right / Wrong'
+                                        ),
+                                        $ff->group(
+                                            [],
+                                            '+ / -'
+                                        ),
+                                        $ff->group(
+                                            [],
+                                            'Applicable / Not applicable'
+                                        ),
+                                        $ff->group(
+                                            [],
+                                            'Adequate / Not adequate'
+                                        ),
+                                        $ff->group(
+                                            [
+                                                $ff->text('Left side / positive value')->withRequired(true),
+                                                $ff->text('Right side / negative value')->withRequired(true)
+                                            ],
+                                            ' Userdefined Labels'
+                                        )
+                                    ],
+                                    'Option Labels',
+                                    'The configured phrases will be used as label for the options selectable by the participant.'
+                                )->withRequired(true),
+                                'shuffle' => $ff->checkbox('Shuffle Answer Options'),
+                                'image_size' => $ff->numeric(
+                                    'Image Size',
+                                    'Images will be reduced to this size preserving aspect ratio.'
+                                )->withValue(150)
+                                ->withRequired(true)
+                            ],
+                            'View'
+                        ),
+                    ],
+                    'Basic Answer Form Properties'
+                )
+            ]
+        )->withSubmitLabel($is_edit ? $this->lng->txt('save') : $this->lng->txt('next'));
+    }
+
+    private function buildAnswerOptionsForm()
+    {
+        $ff = $this->ui_factory->input()->field();
+        $this->ctrl->setParameterByClass(self::class, 'sub_cmd', 'questionOverview');
+        return $this->ui_factory->input()->container()->form()->standard(
+            $this->ctrl->getFormActionByClass(self::class, 'editQuestion'),
+            [
+                    $ff->section(
+                        [
+                            'option_1' => $ff->section(
+                                [
+                                    'text' => $ff->markdown(
+                                        new ilUIMarkdownPreviewGUI(),
+                                        'Answer Text'
+                                    ),
+                                    'image' => $ff->image(
+                                        new \ilUIDemoFileUploadHandlerGUI(),
+                                        ImagePurpose::USER_DEFINED,
+                                        'Answer Image'
+                                    ),
+                                    'correctness' => $ff->select(
+                                        'Option to be Selected',
+                                        [
+                                            'right' => 'Right',
+                                            'wrong' => 'Wrong'
+                                        ]
+                                    )->withRequired(true)
+                                ],
+                                'Options 1'
+                            ),
+                            'option_2' => $ff->section(
+                                [
+                                    'text' => $ff->markdown(
+                                        new ilUIMarkdownPreviewGUI(),
+                                        'Answer Text'
+                                    ),
+                                    'image' => $ff->image(
+                                        new \ilUIDemoFileUploadHandlerGUI(),
+                                        ImagePurpose::USER_DEFINED,
+                                        'Answer Image'
+                                    ),
+                                    'correctness' => $ff->select(
+                                        'Option to be Selected',
+                                        [
+                                            'right' => 'Right',
+                                            'wrong' => 'Wrong'
+                                        ]
+                                    )->withRequired(true)
+                                ],
+                                'Options 2'
+                            ),
+                            'option_3' => $ff->section(
+                                [
+                                    'text' => $ff->markdown(
+                                        new ilUIMarkdownPreviewGUI(),
+                                        'Answer Text'
+                                    ),
+                                    'image' => $ff->image(
+                                        new \ilUIDemoFileUploadHandlerGUI(),
+                                        ImagePurpose::USER_DEFINED,
+                                        'Answer Image'
+                                    ),
+                                    'correctness' => $ff->select(
+                                        'Option to be Selected',
+                                        [
+                                            'right' => 'Right',
+                                            'wrong' => 'Wrong'
+                                        ]
+                                    )->withRequired(true)
+                                ],
+                                'Options 3'
+                            ),
+                            'option_4' => $ff->section(
+                                [
+                                    'text' => $ff->markdown(
+                                        new ilUIMarkdownPreviewGUI(),
+                                        'Answer Text'
+                                    ),
+                                    'image' => $ff->image(
+                                        new \ilUIDemoFileUploadHandlerGUI(),
+                                        ImagePurpose::USER_DEFINED,
+                                        'Answer Image'
+                                    ),
+                                    'correctness' => $ff->select(
+                                        'Option to be Selected',
+                                        [
+                                            'right' => 'Right',
+                                            'wrong' => 'Wrong'
+                                        ]
+                                    )->withRequired(true)
+                                ],
+                                'Options 4'
+                            )
+                        ],
+                        'Define Answers'
+                    )
+                ]
+        )->withSubmitLabel('Save')
+        ->withAdditionalFormAction('back', 'Previous')
+        ->withAdditionalFormAction('sr', 'Save and New');
+    }
+
+    private function buildQuestionOverview()
+    {
+        /** @var ILIAS\DI\Container $DIC */
+        global $DIC;
+        [$url_builder, $token] = (new ILIAS\UI\URLBuilder(new ILIAS\Data\URI($DIC->http()->request()->getUri()->__toString())))
+            ->acquireParameter(['table'], 'test');
+        $this->ctrl->setParameterByClass(self::class, 'edit', '1');
+        return [
+            $this->ui_factory->panel()->standard(
+                'Basic Answer Form Properties',
+                [
+                    $this->ui_factory->listing()->descriptive([
+                        'Available Points' => '2.3',
+                        'Award Half Points' => 'False',
+                        'Option Labels' => 'Right / Wrong',
+                        'Shuffle' => 'True',
+                        'Image Size' => '150px'
+                    ]),
+                    $this->ui_factory->button()->standard(
+                        'Edit Basic Answer Form Properties',
+                        $this->ctrl->getFormActionByClass(self::class)
+                    )
+                ]
+            ),
+            $this->ui_factory->table()->ordering(
+                $this,
+                $url_builder->withParameter($token, 'save_order')->buildURI(),
+                'Answer Options',
+                [
+                    'option' => $this->ui_factory->table()->column()->text('Answer Option'),
+                    'right' => $this->ui_factory->table()->column()->boolean(
+                        'Right',
+                        $this->ui_factory->symbol()->icon()->custom(
+                            'assets/images/standard/icon_checked.svg',
+                            $this->lng->txt('yes'),
+                            'small'
+                        ),
+                        $this->ui_factory->symbol()->icon()->custom(
+                            'assets/images/standard/icon_unchecked.svg',
+                            $this->lng->txt('no'),
+                            'small'
+                        )
+                    ),
+                    'wrong' => $this->ui_factory->table()->column()->boolean(
+                        'Wrong',
+                        $this->ui_factory->symbol()->icon()->custom(
+                            'assets/images/standard/icon_checked.svg',
+                            $this->lng->txt('yes'),
+                            'small'
+                        ),
+                        $this->ui_factory->symbol()->icon()->custom(
+                            'assets/images/standard/icon_unchecked.svg',
+                            $this->lng->txt('no'),
+                            'small'
+                        )
+                    )
+                ]
+            )->withActions([
+                $this->ui_factory->table()->action()->standard(
+                    'Edit',
+                    $url_builder,
+                    $token
+                )
+            ])->withRequest($DIC->http()->request())
+        ];
+    }
+
+    public function getRows(
+        \ILIAS\UI\Component\Table\OrderingRowBuilder $row_builder,
+        array $visible_column_ids,
+    ): \Generator {
+        global $DIC;
+        $cmd = $DIC->http()->wrapper()->query()->retrieve(
+            'sub_cmd',
+            $DIC->refinery()->byTrying([
+                $this->refinery->kindlyTo()->string(),
+                $this->refinery->always(null)
+            ])
+        );
+
+        yield from [
+            $row_builder->buildOrderingRow(
+                'option_1',
+                [
+                    'option' => 'Happines is a Warm Gun',
+                    'right' => true,
+                    'wrong' => false
+                ]
+            ),
+            $row_builder->buildOrderingRow(
+                'option_2',
+                [
+                    'option' => 'Cherokee Louise',
+                    'right' => false,
+                    'wrong' => true
+                ]
+            ),
+            $row_builder->buildOrderingRow(
+                'option_3',
+                [
+                    'option' => 'The Needle and the Damage Done',
+                    'right' => false,
+                    'wrong' => true
+                ]
+            ),
+            $row_builder->buildOrderingRow(
+                'option_4',
+                [
+                    'option' => 'Five Miles Out',
+                    'right' => false,
+                    'wrong' => true
+                ]
+            )
+        ];
     }
 
     public function uploadImage(): void
