@@ -16,6 +16,9 @@
  *
  *********************************************************************/
 
+use ILIAS\UI\Factory as UIFactory;
+use ILIAS\UI\Renderer as UIRenderer;
+
 /**
  * The assErrorTextGUI class encapsulates the GUI representation for error text questions.
  *
@@ -30,16 +33,20 @@
  * @ilctrl_iscalledby assErrorTextGUI: ilObjQuestionPoolGUI
  * @ilCtrl_Calls assErrorTextGUI: ilFormPropertyDispatchGUI
  */
-class assErrorTextGUI extends assQuestionGUI implements ilGuiQuestionScoringAdjustable, ilGuiAnswerScoringAdjustable
+class assErrorTextGUI extends assQuestionGUI implements ilGuiQuestionScoringAdjustable, ilGuiAnswerScoringAdjustable, \ILIAS\UI\Component\Table\DataRetrieval
 {
     private const DEFAULT_POINTS_WRONG = -1;
 
     private ilTabsGUI $tabs;
+    private UIFactory $ui_factory;
+    private UIRenderer $ui_renderer;
 
     public function __construct($id = -1)
     {
         global $DIC;
         $this->tabs = $DIC->tabs();
+        $this->ui_factory = $DIC['ui.factory'];
+        $this->ui_renderer = $DIC['ui.renderer'];
 
         parent::__construct();
         $this->object = new assErrorText();
@@ -109,49 +116,203 @@ class assErrorTextGUI extends assQuestionGUI implements ilGuiQuestionScoringAdju
         }
     }
 
+    /**
+    * Creates an output of the edit form for the question
+    *
+    * @access public
+    */
     public function editQuestion(
         bool $checkonly = false,
         ?bool $is_save_cmd = null
     ): bool {
-        $save = $is_save_cmd ?? $this->isSaveCommand();
+        /** @var ILIAS\DI\Container $DIC */
+        global $DIC;
+        $cmd = $DIC->http()->wrapper()->query()->retrieve(
+            'sub_cmd',
+            $DIC->refinery()->byTrying([
+                $this->refinery->kindlyTo()->string(),
+                $this->refinery->always(null)
+            ])
+        );
 
-        $form = new ilPropertyFormGUI();
-        $this->editForm = $form;
+        $is_edit = $DIC->http()->wrapper()->query()->retrieve(
+            'edit',
+            $DIC->refinery()->byTrying([
+                $this->refinery->kindlyTo()->bool(),
+                $this->refinery->always(false)
+            ])
+        );
 
-        $form->setFormAction($this->ctrl->getFormAction($this));
-        $form->setTitle($this->outQuestionType());
-        $form->setMultipart(false);
-        $form->setTableWidth("100%");
-        $form->setId("orderinghorizontal");
-
-        $this->addBasicQuestionFormProperties($form);
-
-        $this->populateQuestionSpecificFormPart($form);
-
-        if (count($this->object->getErrorData()) || $checkonly) {
-            $this->populateAnswerSpecificFormPart($form);
-        }
-
-        $this->populateTaxonomyFormSection($form);
-
-        $form->addCommandButton("analyze", $this->lng->txt('analyze_errortext'));
-        $this->addQuestionFormCommandButtons($form);
-
-        $errors = false;
-
-        if ($save) {
-            $form->setValuesByPost();
-            $errors = !$form->checkInput();
-            $form->setValuesByPost(); // again, because checkInput now performs the whole stripSlashes handling and we need this if we don't want to have duplication of backslashes
-            if ($errors) {
-                $checkonly = false;
+        if ($cmd !== 'questionOverview') {
+            $this->tabs_gui->clearTargets();
+            if ($is_edit) {
+                $this->ctrl->setParameterByClass(
+                    self::class,
+                    'sub_cmd',
+                    $cmd === 'questionOverview'
+                );
             }
+            $this->tabs_gui->setBackTarget(
+                'Cancel',
+                $this->ctrl->getFormActionByClass(
+                    $is_edit ? self::class : ilAssQuestionPreviewGUI::class,
+                    $is_edit ? 'editQuestion' : 'show'
+                )
+            );
+            $this->ctrl->clearParameterByClass(self::class, 'sub_cmd');
         }
 
-        if (!$checkonly) {
-            $this->renderEditForm($form);
+        $this->ctrl->setParameterByClass(
+            self::class,
+            'question_type',
+            $this->object->getQuestionType()
+        );
+
+        if ($cmd === null) {
+            $content = $this->buildBasicForm($is_edit);
+        } elseif ($cmd === 'answers') {
+            $content = $this->buildAnswersForm();
+        } elseif ($cmd === 'questionOverview') {
+            $content = $this->buildQuestionOverview();
         }
-        return $errors;
+
+        $this->getQuestionTemplate();
+        $this->tpl->setVariable(
+            'QUESTION_DATA',
+            $this->ui_renderer->render($content)
+        );
+        return true;
+    }
+
+    private function buildBasicForm(bool $is_edit)
+    {
+        $ff = $this->ui_factory->input()->field();
+        $this->ctrl->setParameterByClass(self::class, 'sub_cmd', 'answers');
+        return $this->ui_factory->input()->container()->form()->standard(
+            $this->ctrl->getFormActionByClass(self::class, 'editQuestion'),
+            [
+                'error_text' => $ff->textarea($this->lng->txt('errortext'))
+                    ->withRequired(true),
+                'points_deduction' => $ff->numeric(
+                    'Points Subtracted for Wrong Selections',
+                    'Enter the points that will be subtracted for each selected word that is not in the list of marked errors.'
+                )->withStepSize(0.0001)
+                ->withRequired(true)
+                ->withValue(1)
+            ]
+        )->withSubmitLabel($is_edit ? $this->lng->txt('save') : $this->lng->txt('next'));
+    }
+
+    private function buildAnswersForm()
+    {
+        $ff = $this->ui_factory->input()->field();
+        $this->ctrl->setParameterByClass(self::class, 'sub_cmd', 'questionOverview');
+        return [
+            $this->ui_factory->panel()->standard(
+                $this->lng->txt('errortext'),
+                $this->ui_factory->legacy()->content(
+                    "I'm an example and ((me contains)) ((erors))."
+                )
+            ),
+            $this->ui_factory->input()->container()->form()->standard(
+                $this->ctrl->getFormActionByClass(self::class, 'editQuestion'),
+                [
+                    'contains' => $ff->section(
+                        [
+                            'correct_text' => $ff->text(
+                                'Correct Text'
+                            )->withRequired(true),
+                            'points' => $ff->numeric(
+                                'Points',
+                            )->withStepSize(0.0001)
+                            ->withRequired(true)
+                        ],
+                        'me contains'
+                    ),
+                    'erors' => $ff->section(
+                        [
+                            'correct_text' => $ff->text(
+                                'Correct Text'
+                            )->withRequired(true),
+                            'points' => $ff->numeric(
+                                'Points',
+                            )->withStepSize(0.0001)
+                            ->withRequired(true)
+                        ],
+                        'erors'
+                    )
+                ]
+            )->withAdditionalFormAction('', $this->lng->txt('previous'))
+            ->withSubmitLabel($this->lng->txt('save'))
+        ];
+    }
+
+    private function buildQuestionOverview()
+    {
+        /** @var ILIAS\DI\Container $DIC */
+        global $DIC;
+        [$url_builder, $token] = (new ILIAS\UI\URLBuilder(new ILIAS\Data\URI($DIC->http()->request()->getUri()->__toString())))
+            ->acquireParameter(['table'], 'test');
+        $this->ctrl->setParameterByClass(self::class, 'edit', '1');
+        return [
+            $this->ui_factory->panel()->standard(
+                'Basic Answer Form Properties',
+                [
+                    $this->ui_factory->listing()->descriptive([
+                        $this->lng->txt('errortext') => (new ilUIMarkdownPreviewGUI())->render(
+                            "I'm an example and ((me contains)) ((erors))."
+                        ),
+                         'Points Subtracted for Wrong Selections' => '1'
+                    ]),
+                    $this->ui_factory->button()->standard(
+                        'Edit Basic Answer Form Properties',
+                        $this->ctrl->getFormActionByClass(self::class)
+                    )
+                ]
+            ),
+            $this->ui_factory->table()->data(
+                $this,
+                'Errors',
+                [
+                    'text' => $this->ui_factory->table()->column()->text('Text'),
+                    'correct_text' => $this->ui_factory->table()->column()->text('Correct Text'),
+                    'points' => $this->ui_factory->table()->column()->text('Available Points'),
+                ]
+            )->withActions([
+                $this->ui_factory->table()->action()->standard(
+                    'Edit',
+                    $url_builder,
+                    $token
+                )
+            ])->withRequest($DIC->http()->request())
+        ];
+    }
+
+    public function getRows(\ILIAS\UI\Component\Table\DataRowBuilder $row_builder, array $visible_column_ids, \ILIAS\Data\Range $range, \ILIAS\Data\Order $order, mixed $additional_viewcontrol_data, mixed $filter_data, mixed $additional_parameters): \Generator
+    {
+        yield from [
+             $row_builder->buildDataRow(
+                 '6bd5c18f-653d-47e4-be95-1c9b6a2663e4',
+                 [
+                    'text' => 'me contains',
+                    'correct_text' => 'I contain',
+                    'points' => '2',
+                ]
+             ),
+            $row_builder->buildDataRow(
+                '0d439578-a36d-4eb2-8308-beb17ed381e3',
+                [
+                    'text' => 'erors',
+                    'correct_text' => 'errors',
+                    'points' => '1',
+                ]
+            )
+        ];
+    }
+
+    public function getTotalRowCount(mixed $additional_viewcontrol_data, mixed $filter_data, mixed $additional_parameters): ?int
+    {
+        return 2;
     }
 
     /**
