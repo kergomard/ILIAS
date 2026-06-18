@@ -16,6 +16,9 @@
  *
  *********************************************************************/
 
+use ILIAS\UI\Factory as UIFactory;
+use ILIAS\UI\Renderer as UIRenderer;
+
 /**
  * The assFileUploadGUI class encapsulates the GUI representation for file upload questions.
  *
@@ -38,6 +41,9 @@ class assFileUploadGUI extends assQuestionGUI implements ilGuiQuestionScoringAdj
     public const DELETE_FILES_ACTION = 'delete';
     private const HANDLE_FILE_UPLOAD = 'handleFileUpload';
 
+    private UIFactory $ui_factory;
+    private UIRenderer $ui_renderer;
+
     /**
      * assFileUploadGUI constructor
      *
@@ -48,6 +54,10 @@ class assFileUploadGUI extends assQuestionGUI implements ilGuiQuestionScoringAdj
      */
     public function __construct(int $id = -1)
     {
+        global $DIC;
+
+        $this->ui_factory = $DIC['ui.factory'];
+        $this->ui_renderer = $DIC['ui.renderer'];
         parent::__construct();
 
         $this->object = new assFileUpload();
@@ -82,43 +92,118 @@ class assFileUploadGUI extends assQuestionGUI implements ilGuiQuestionScoringAdj
         $this->object->setCompletionBySubmission($completion_by_submission === 1);
     }
 
+    /**
+    * Creates an output of the edit form for the question
+    *
+    * @access public
+    */
     public function editQuestion(
         bool $checkonly = false,
         ?bool $is_save_cmd = null
     ): bool {
-        $save = $is_save_cmd ?? $this->isSaveCommand();
+        /** @var ILIAS\DI\Container $DIC */
+        global $DIC;
+        $cmd = $DIC->http()->wrapper()->query()->retrieve(
+            'sub_cmd',
+            $DIC->refinery()->byTrying([
+                $this->refinery->kindlyTo()->string(),
+                $this->refinery->always(null)
+            ])
+        );
 
-        $form = new ilPropertyFormGUI();
-        $this->editForm = $form;
+        $is_edit = $DIC->http()->wrapper()->query()->retrieve(
+            'edit',
+            $DIC->refinery()->byTrying([
+                $this->refinery->kindlyTo()->bool(),
+                $this->refinery->always(false)
+            ])
+        );
 
-        $form->setFormAction($this->ctrl->getFormAction($this));
-        $form->setTitle($this->outQuestionType());
-        $form->setMultipart(false);
-        $form->setTableWidth("100%");
-        $form->setId("assfileupload");
-
-        $this->addBasicQuestionFormProperties($form);
-        $this->populateQuestionSpecificFormPart($form);
-
-        $this->populateTaxonomyFormSection($form);
-        $this->addQuestionFormCommandButtons($form);
-
-        $errors = false;
-
-        if ($save) {
-            $form->setValuesByPost();
-            $errors = !$form->checkInput();
-            $form->setValuesByPost(); // again, because checkInput now performs the whole stripSlashes handling and
-            // we need this if we don't want to have duplication of backslashes
-            if ($errors) {
-                $checkonly = false;
+        if ($cmd !== 'questionOverview') {
+            $this->tabs_gui->clearTargets();
+            if ($is_edit) {
+                $this->ctrl->setParameterByClass(
+                    self::class,
+                    'sub_cmd',
+                    $cmd === 'questionOverview'
+                );
             }
+            $this->tabs_gui->setBackTarget(
+                'Cancel',
+                $this->ctrl->getFormActionByClass(
+                    $is_edit ? self::class : ilAssQuestionPreviewGUI::class,
+                    $is_edit ? 'editQuestion' : 'show'
+                )
+            );
+            $this->ctrl->clearParameterByClass(self::class, 'sub_cmd');
         }
 
-        if (!$checkonly) {
-            $this->renderEditForm($form);
+        $this->ctrl->setParameterByClass(
+            self::class,
+            'question_type',
+            $this->object->getQuestionType()
+        );
+
+        if ($cmd === null) {
+            $content = $this->buildBasicForm($is_edit);
+        } elseif ($cmd === 'questionOverview') {
+            $content = $this->buildQuestionOverview();
         }
-        return $errors;
+
+        $this->getQuestionTemplate();
+        $this->tpl->setVariable(
+            'QUESTION_DATA',
+            $this->ui_renderer->render($content)
+        );
+        return true;
+    }
+
+    private function buildBasicForm(bool $is_edit)
+    {
+        $ff = $this->ui_factory->input()->field();
+        $this->ctrl->setParameterByClass(self::class, 'sub_cmd', 'questionOverview');
+        return $this->ui_factory->input()->container()->form()->standard(
+            $this->ctrl->getFormActionByClass(self::class, 'editQuestion'),
+            [
+                'max_file_size' => $ff->numeric("Maximum File Size"),
+                'allowed_file_extensions' => $ff->tag(
+                    'Allowed file Extensions',
+                    ['odt', 'docx', 'pdf', 'xlsx'],
+                    'Enter the allowed file extensions if you want to restrict the upload to a given set of file extensions.',
+                )->withUserCreatedTagsAllowed(false),
+                'points' => $ff->numeric('Points')->withStepSize('0.0001')->withRequired(true),
+                'completed by Submission' => $ff->checkbox(
+                    'Completed by Submission',
+                    'The submission of at least one file causes the completion of this question by granting the maximum score for this question. The score can be changed manually later.'
+                )
+            ]
+        )->withSubmitLabel($is_edit ? $this->lng->txt('save') : $this->lng->txt('next'));
+    }
+
+    private function buildQuestionOverview()
+    {
+        /** @var ILIAS\DI\Container $DIC */
+        global $DIC;
+        [$url_builder, $token] = (new ILIAS\UI\URLBuilder(new ILIAS\Data\URI($DIC->http()->request()->getUri()->__toString())))
+            ->acquireParameter(['table'], 'test');
+        $this->ctrl->setParameterByClass(self::class, 'edit', '1');
+        return [
+            $this->ui_factory->panel()->standard(
+                'Basic Answer Form Properties',
+                [
+                    $this->ui_factory->listing()->descriptive([
+                        'Max File Size' => 'System Default',
+                        'Allowed file Extensions' => 'pdf, odt',
+                        'Points' => '1.4',
+                        'Completed By Submission' => 'False'
+                    ]),
+                    $this->ui_factory->button()->standard(
+                        'Edit Basic Answer Form Properties',
+                        $this->ctrl->getFormActionByClass(self::class)
+                    )
+                ]
+            )
+        ];
     }
 
     public function populateQuestionSpecificFormPart(ilPropertyFormGUI $form): ilPropertyFormGUI
