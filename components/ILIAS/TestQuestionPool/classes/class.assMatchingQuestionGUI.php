@@ -19,6 +19,9 @@
 declare(strict_types=1);
 
 use ILIAS\Refinery\Transformation;
+use ILIAS\UI\Factory as UIFactory;
+use ILIAS\UI\Renderer as UIRenderer;
+use ILIAS\Data\ImagePurpose;
 
 /**
  * Matching question GUI representation
@@ -34,10 +37,19 @@ use ILIAS\Refinery\Transformation;
  * @ingroup components\ILIASTestQuestionPool
  * @ilCtrl_Calls assMatchingQuestionGUI: ilFormPropertyDispatchGUI
  */
-class assMatchingQuestionGUI extends assQuestionGUI implements ilGuiQuestionScoringAdjustable, ilGuiAnswerScoringAdjustable
+class assMatchingQuestionGUI extends assQuestionGUI implements ilGuiQuestionScoringAdjustable, ilGuiAnswerScoringAdjustable, \ILIAS\UI\Component\Table\DataRetrieval, ILIAS\UI\Component\Table\OrderingRetrieval
 {
+    private UIFactory $ui_factory;
+    private UIRenderer $ui_renderer;
+
+    private string $mode = 'Edit Combinations';
+
     public function __construct($id = -1)
     {
+        global $DIC;
+        $this->ui_factory = $DIC['ui.factory'];
+        $this->ui_renderer = $DIC['ui.renderer'];
+
         parent::__construct();
         $this->object = new assMatchingQuestion();
         $this->setErrorMessage($this->lng->txt('msg_form_save_error'));
@@ -251,47 +263,582 @@ class assMatchingQuestionGUI extends assQuestionGUI implements ilGuiQuestionScor
         $this->editQuestion();
     }
 
+    /**
+    * Creates an output of the edit form for the question
+    *
+    * @access public
+    */
     public function editQuestion(
         bool $checkonly = false,
         ?bool $is_save_cmd = null
     ): bool {
-        $save = $is_save_cmd ?? $this->isSaveCommand();
+        /** @var ILIAS\DI\Container $DIC */
+        global $DIC;
+        $cmd = $DIC->http()->wrapper()->query()->retrieve(
+            'sub_cmd',
+            $DIC->refinery()->byTrying([
+                $this->refinery->kindlyTo()->string(),
+                $this->refinery->always(null)
+            ])
+        );
 
-        $form = new ilPropertyFormGUI();
-        $this->editForm = $form;
+        $is_edit = $DIC->http()->wrapper()->query()->retrieve(
+            'edit',
+            $DIC->refinery()->byTrying([
+                $this->refinery->kindlyTo()->bool(),
+                $this->refinery->always(false)
+            ])
+        );
 
-        $form->setFormAction($this->ctrl->getFormAction($this));
-        $form->setTitle($this->outQuestionType());
-        $form->setMultipart(true);
-        $form->setTableWidth("100%");
-        $form->setId("matching");
-
-        $this->addBasicQuestionFormProperties($form);
-        $this->populateQuestionSpecificFormPart($form);
-        $this->populateAnswerSpecificFormPart($form);
-        $this->populateTaxonomyFormSection($form);
-        $this->addQuestionFormCommandButtons($form);
-
-        $errors = false;
-        if ($save) {
-            $form->setValuesByPost();
-            $errors = !$form->checkInput();
-            $form->setValuesByPost(); // again, because checkInput now performs the whole stripSlashes handling and we need this if we don't want to have duplication of backslashes
-            if (!$errors && !$this->isValidTermAndDefinitionAmount($form) && !$this->object->getSelfAssessmentEditingMode()) {
-                $errors = true;
-                $terms = $form->getItemByPostVar('terms');
-                $terms->setAlert($this->lng->txt("msg_number_of_terms_too_low"));
-                $this->tpl->setOnScreenMessage('failure', $this->lng->txt('form_input_not_valid'));
+        if ($cmd !== 'questionOverview') {
+            $this->tabs_gui->clearTargets();
+            if ($is_edit) {
+                $this->ctrl->setParameterByClass(
+                    self::class,
+                    'sub_cmd',
+                    $cmd === 'questionOverview'
+                );
             }
-            if ($errors) {
-                $checkonly = false;
-            }
+            $this->tabs_gui->setBackTarget(
+                'Cancel',
+                $this->ctrl->getFormActionByClass(
+                    $is_edit ? self::class : ilAssQuestionPreviewGUI::class,
+                    $is_edit ? 'editQuestion' : 'show'
+                )
+            );
+            $this->ctrl->clearParameterByClass(self::class, 'sub_cmd');
         }
 
-        if (!$checkonly) {
-            $this->renderEditForm($form);
+        $this->ctrl->setParameterByClass(
+            self::class,
+            'question_type',
+            $this->object->getQuestionType()
+        );
+
+        if ($cmd === null) {
+            $content = $this->buildBasicForm($is_edit);
+        } elseif ($cmd === 'terms') {
+            $content = $this->buildTermsForm();
+        } elseif ($cmd === 'definitions') {
+            $content = $this->buildDefinitionsForm();
+        } elseif ($cmd === 'combinations') {
+            $content = $this->buildCombinationsForm();
+        } elseif ($cmd === 'questionOverview') {
+            $content = $this->buildQuestionOverview();
+        } elseif ($cmd === 'editCombinations') {
+            $content = $this->buildQuestionOverview();
+        } elseif ($cmd === 'editTerms') {
+            $this->mode = 'Edit Terms';
+            $content = $this->buildQuestionOverview();
+        } elseif ($cmd === 'editDefinitions') {
+            $this->mode = 'Edit Definitions';
+            $content = $this->buildQuestionOverview();
+        } elseif ($cmd === 'addCombination') {
+            $this->addCombination();
         }
-        return $errors;
+
+        $this->getQuestionTemplate();
+        $this->tpl->setVariable(
+            'QUESTION_DATA',
+            $this->ui_renderer->render($content)
+        );
+        return true;
+    }
+
+    private function buildBasicForm(bool $is_edit)
+    {
+        $ff = $this->ui_factory->input()->field();
+        $is_edit ? $this->ctrl->setParameterByClass(self::class, 'sub_cmd', 'questionOverview') : $this->ctrl->setParameterByClass(self::class, 'sub_cmd', 'terms');
+        return $this->ui_factory->input()->container()->form()->standard(
+            $this->ctrl->getFormActionByClass(self::class, 'editQuestion'),
+            [
+                $ff->section(
+                    [
+                        'shuffle' => $ff->checkbox('Shuffle Terms and Defintions'),
+                        'image_size' => $ff->numeric(
+                            'Image Size',
+                            'Images will be reduced to this size preserving aspect ratio.'
+                        )->withValue(150)->withRequired(true),
+                        'mode' => $ff->select(
+                            'Matching Mode',
+                            [
+                                'One Term Matches One Definition (1:1)',
+                                'One or More Terms match One or More Definitions (n:n)'
+                            ]
+                        )->withValue(0)
+                        ->withRequired(true),
+                        'nr_of_terms' => $ff->numeric('Number of Terms')->withValue(4)->withRequired(true),
+                        'nr_of_definitions' => $ff->numeric('Number of Definitions')->withValue(4)->withRequired(true),
+                    ],
+                    'Basic Answer Form Properties'
+                )
+            ]
+        )->withSubmitLabel($is_edit ? $this->lng->txt('save') : $this->lng->txt('next'));
+    }
+
+    private function buildTermsForm()
+    {
+        $ff = $this->ui_factory->input()->field();
+        $this->ctrl->setParameterByClass(self::class, 'sub_cmd', 'definitions');
+        return $this->ui_factory->input()->container()->form()->standard(
+            $this->ctrl->getFormActionByClass(self::class, 'editQuestion'),
+            [
+                    $ff->section(
+                        [
+                            'term_1' => $ff->section(
+                                [
+                                    'text' => $ff->markdown(
+                                        new ilUIMarkdownPreviewGUI(),
+                                        'Text'
+                                    ),
+                                    'image' => $ff->image(
+                                        new \ilUIDemoFileUploadHandlerGUI(),
+                                        ImagePurpose::USER_DEFINED,
+                                        'Image'
+                                    )
+                                ],
+                                'Term 1'
+                            ),
+                            'term_2' => $ff->section(
+                                [
+                                    'text' => $ff->markdown(
+                                        new ilUIMarkdownPreviewGUI(),
+                                        'Text'
+                                    ),
+                                    'image' => $ff->image(
+                                        new \ilUIDemoFileUploadHandlerGUI(),
+                                        ImagePurpose::USER_DEFINED,
+                                        'Image'
+                                    )
+                                ],
+                                'Term 2'
+                            ),
+                            'term_3' => $ff->section(
+                                [
+                                    'text' => $ff->markdown(
+                                        new ilUIMarkdownPreviewGUI(),
+                                        'Text'
+                                    ),
+                                    'image' => $ff->image(
+                                        new \ilUIDemoFileUploadHandlerGUI(),
+                                        ImagePurpose::USER_DEFINED,
+                                        'Image'
+                                    )
+                                ],
+                                'Term 3'
+                            ),
+                            'term_4' => $ff->section(
+                                [
+                                    'text' => $ff->markdown(
+                                        new ilUIMarkdownPreviewGUI(),
+                                        'Text'
+                                    ),
+                                    'image' => $ff->image(
+                                        new \ilUIDemoFileUploadHandlerGUI(),
+                                        ImagePurpose::USER_DEFINED,
+                                        'Image'
+                                    )
+                                ],
+                                'Term 4'
+                            )
+                        ],
+                        'Terms'
+                    )
+                ]
+        )->withAdditionalFormAction(
+            '$action',
+            'Previous'
+        )->withSubmitLabel('Next');
+    }
+
+    private function buildDefinitionsForm()
+    {
+        $ff = $this->ui_factory->input()->field();
+        $this->ctrl->setParameterByClass(self::class, 'sub_cmd', 'combinations');
+        return $this->ui_factory->input()->container()->form()->standard(
+            $this->ctrl->getFormActionByClass(self::class, 'editQuestion'),
+            [
+                    $ff->section(
+                        [
+                            'definition_1' => $ff->section(
+                                [
+                                    'text' => $ff->markdown(
+                                        new ilUIMarkdownPreviewGUI(),
+                                        'Text'
+                                    ),
+                                    'image' => $ff->image(
+                                        new \ilUIDemoFileUploadHandlerGUI(),
+                                        ImagePurpose::USER_DEFINED,
+                                        'Image'
+                                    )
+                                ],
+                                'Definition 1'
+                            ),
+                            'definition_2' => $ff->section(
+                                [
+                                    'text' => $ff->markdown(
+                                        new ilUIMarkdownPreviewGUI(),
+                                        'Text'
+                                    ),
+                                    'image' => $ff->image(
+                                        new \ilUIDemoFileUploadHandlerGUI(),
+                                        ImagePurpose::USER_DEFINED,
+                                        'Image'
+                                    )
+                                ],
+                                'Definition 2'
+                            ),
+                            'definition_3' => $ff->section(
+                                [
+                                    'text' => $ff->markdown(
+                                        new ilUIMarkdownPreviewGUI(),
+                                        'Text'
+                                    ),
+                                    'image' => $ff->image(
+                                        new \ilUIDemoFileUploadHandlerGUI(),
+                                        ImagePurpose::USER_DEFINED,
+                                        'Image'
+                                    )
+                                ],
+                                'Definition 3'
+                            ),
+                            'definition_4' => $ff->section(
+                                [
+                                    'text' => $ff->markdown(
+                                        new ilUIMarkdownPreviewGUI(),
+                                        'Text'
+                                    ),
+                                    'image' => $ff->image(
+                                        new \ilUIDemoFileUploadHandlerGUI(),
+                                        ImagePurpose::USER_DEFINED,
+                                        'Image'
+                                    )
+                                ],
+                                'Definition 4'
+                            )
+                        ],
+                        'Definitions'
+                    )
+                ]
+        )->withAdditionalFormAction(
+            '$action',
+            'Previous'
+        )->withSubmitLabel('Next');
+    }
+
+    private function buildCombinationsForm()
+    {
+        $ff = $this->ui_factory->input()->field();
+        $this->ctrl->setParameterByClass(self::class, 'sub_cmd', 'questionOverview');
+        return $this->ui_factory->input()->container()->form()->standard(
+            $this->ctrl->getFormActionByClass(self::class, 'editQuestion'),
+            [
+                    $ff->section(
+                        [
+                            'term_1' => $ff->section(
+                                [
+                                    $ff->multiSelect(
+                                        'Assigned Definitions',
+                                        [
+                                            'My First Definition',
+                                            'My Second Definition',
+                                            'My Third Definition',
+                                            'My Forth Definition'
+                                        ]
+                                    ),
+                                    'points' => $ff->numeric('Points')->withStepSize(0.0001)
+                                ],
+                                'My First Term'
+                            ),
+                            'term_2' => $ff->section(
+                                [
+                                    $ff->multiSelect(
+                                        'Assigned Definitions',
+                                        [
+                                            'My First Definition',
+                                            'My Second Definition',
+                                            'My Third Definition',
+                                            'My Forth Definition'
+                                        ]
+                                    ),
+                                    'points' => $ff->numeric('Points')->withStepSize(0.0001)
+                                ],
+                                'My Second Term'
+                            ),
+                            'term_3' => $ff->section(
+                                [
+                                    $ff->multiSelect(
+                                        'Assigned Definitions',
+                                        [
+                                            'My First Definition',
+                                            'My Second Definition',
+                                            'My Third Definition',
+                                            'My Forth Definition'
+                                        ]
+                                    ),
+                                    'points' => $ff->numeric('Points')->withStepSize(0.0001)
+                                ],
+                                'My Third Term'
+                            ),
+                            'term_4' => $ff->section(
+                                [
+                                    $ff->multiSelect(
+                                        'Assigned Definitions',
+                                        [
+                                            'My First Definition',
+                                            'My Second Definition',
+                                            'My Third Definition',
+                                            'My Forth Definition'
+                                        ]
+                                    ),
+                                    'points' => $ff->numeric('Points')->withStepSize(0.0001)
+                                ],
+                                'My Fourth Term'
+                            )
+                        ],
+                        'Combinations'
+                    )
+                ]
+        )->withAdditionalFormAction(
+            '$action',
+            'Previous'
+        )->withSubmitLabel('Next');
+    }
+
+    private function buildQuestionOverview()
+    {
+        $this->ctrl->setParameterByClass(self::class, 'edit', '1');
+
+        $views = array_map(
+            function (string $v): string {
+                $this->ctrl->setParameterByClass(self::class, 'sub_cmd', $v);
+                return $this->ctrl->getFormActionByClass(self::class, 'editQuestion');
+            },
+            [
+                'Edit Combinations' => 'editCombinations',
+                'Edit Terms' => 'editTerms',
+                'Edit Definitions' => 'editDefinitions'
+            ]
+        );
+
+        $toolbar = new ilToolbarGUI();
+        $toolbar->addComponent(
+            $this->ui_factory->viewControl()->mode(
+                $views,
+                'Switch between editing modes'
+            )->withActive($this->mode)
+        );
+
+        $button_label = 'Add Combination';
+        if ($this->mode === 'Edit Terms') {
+            $button_label = 'Add Term';
+        } elseif ($this->mode === 'Edit Definitions') {
+            $button_label = 'Add Definition';
+        }
+
+        $this->ctrl->setParameterByClass(self::class, 'sub_cmd', 'addCombination');
+        $prompt = $this->ui_factory->prompt()->standard(
+            new ILIAS\Data\URI(ILIAS_HTTP_PATH . '/' . $this->ctrl->getFormActionByClass(self::class, 'editQuestion'))
+        );
+
+        $toolbar->addComponent(
+            $this->ui_factory->button()->standard($button_label, $prompt->getShowSignal())
+        );
+
+        return [
+            $this->ui_factory->panel()->standard(
+                'Basic Answer Form Properties',
+                [
+                    $this->ui_factory->listing()->descriptive([
+                        'Shuffle Terms and Definitions' => 'False',
+                        'Image Size' => '150px',
+                        'Matching Method' => 'One or More Terms match One or More Definitions (n:n)'
+                    ]),
+                    $this->ui_factory->button()->standard(
+                        'Edit Basic Answer Form Properties',
+                        $this->ctrl->getFormActionByClass(self::class)
+                    )
+                ]
+            ),
+            $this->ui_factory->legacy()->content($toolbar->getHTML()),
+            $this->buildOverviewTable(),
+            $prompt
+        ];
+    }
+
+    public function buildOverviewTable(): ILIAS\UI\Component\Table\Table
+    {
+        /** @var ILIAS\DI\Container $DIC */
+        global $DIC;
+        [$url_builder, $token] = (new ILIAS\UI\URLBuilder(new ILIAS\Data\URI($DIC->http()->request()->getUri()->__toString())))
+            ->acquireParameter(['table'], 'test');
+
+        if ($this->mode !== 'Edit Combinations') {
+            return $this->ui_factory->table()->ordering(
+                $this,
+                $url_builder->buildURI(),
+                $this->mode === 'Edit Terms'
+                    ? 'Terms'
+                    : 'Definitions',
+                [
+                    'text' => $this->ui_factory->table()->column()->text('Text'),
+                    'image' => $this->ui_factory->table()->column()->text('Image'),
+                ]
+            )->withActions([
+                $this->ui_factory->table()->action()->standard(
+                    'Edit',
+                    $url_builder,
+                    $token
+                ),
+                $this->ui_factory->table()->action()->standard(
+                    'Delete',
+                    $url_builder,
+                    $token
+                )
+            ])->withRequest($DIC->http()->request());
+        }
+
+        return $this->ui_factory->table()->data(
+            $this,
+            'Combinations',
+            [
+                'term' => $this->ui_factory->table()->column()->text('Terms'),
+                'definition' => $this->ui_factory->table()->column()->text('Definition'),
+                'points' => $this->ui_factory->table()->column()->text('Points'),
+            ]
+        )->withActions([
+            $this->ui_factory->table()->action()->standard(
+                'Edit',
+                $url_builder,
+                $token
+            ),
+            $this->ui_factory->table()->action()->standard(
+                'Delete',
+                $url_builder,
+                $token
+            )
+        ])->withRequest($DIC->http()->request());
+    }
+
+    public function addCombination(): void
+    {
+        echo $this->ui_renderer->render(
+            $this->ui_factory->prompt()->state()->show(
+                $this->ui_factory->input()->container()->form()->standard(
+                    '#',
+                    [
+                        $this->ui_factory->input()->field()->select(
+                            "Term",
+                            [
+                                'My First Term',
+                                'My Second Term',
+                                'My Third Term',
+                                'My Forth Term'
+                            ]
+                        )->withRequired(true),
+                        $this->ui_factory->input()->field()->multiSelect(
+                            "Definitions",
+                            [
+                                'My First Definition',
+                                'My Second Definition',
+                                'My Third Definition',
+                                'My Forth Definition'
+                            ]
+                        )->withRequired(true),
+                        $this->ui_factory->input()->field()->numeric('Points')->withRequired(true)
+                    ]
+                )
+            )->withTitle('Add Combination')
+        );
+        exit;
+    }
+
+    public function getRows(
+        \ILIAS\UI\Component\Table\DataRowBuilder|ILIAS\UI\Component\Table\OrderingRowBuilder $row_builder,
+        array $visible_column_ids,
+        ?\ILIAS\Data\Range $range = null,
+        ?\ILIAS\Data\Order $order = null,
+        mixed $additional_viewcontrol_data = null,
+        mixed $filter_data = null,
+        mixed $additional_parameters = null
+    ): \Generator {
+        if ($this->mode !== 'Edit Combinations') {
+            $text = $this->mode === 'Edit Terms'
+                ? 'Term'
+                : 'Definition';
+
+            yield from [
+                $row_builder->buildOrderingRow(
+                    '6bd5c18f-653d-47e4-be95-1c9b6a2663e4',
+                    [
+                       'text' => "My First {$text}",
+                       'image' => ''
+                   ]
+                ),
+               $row_builder->buildOrderingRow(
+                   '6bd5c18f-653d-47e4-be95-1c9b6a2663e1',
+                   [
+                      'text' => "My Second {$text}",
+                      'image' => ''
+                  ]
+               ),
+               $row_builder->buildOrderingRow(
+                   '6bd5c18f-653d-47e4-be95-1c9b6a2663e1',
+                   [
+                       'text' => "My Third {$text}",
+                       'image' => ''
+                   ]
+               ),
+               $row_builder->buildOrderingRow(
+                   '0d439578-a36d-4eb2-8308-beb17ed381e3',
+                   [
+                       'text' => "My Fourth {$text}",
+                       'image' => ''
+                   ]
+               )
+           ];
+            return;
+        }
+
+        yield from [
+             $row_builder->buildDataRow(
+                 '6bd5c18f-653d-47e4-be95-1c9b6a2663e4',
+                 [
+                    'term' => 'My First Term',
+                    'definition' => 'My Fourth Definition',
+                    'points' => '2',
+                ]
+             ),
+            $row_builder->buildDataRow(
+                '6bd5c18f-653d-47e4-be95-1c9b6a2663e1',
+                [
+                   'term' => 'My First Term',
+                   'definition' => 'My Second Definition',
+                   'points' => '1',
+               ]
+            ),
+            $row_builder->buildDataRow(
+                '6bd5c18f-653d-47e4-be95-1c9b6a2663e1',
+                [
+                    'term' => 'My Second Term',
+                    'definition' => 'My Second Definition',
+                    'points' => '1',
+                ]
+            ),
+            $row_builder->buildDataRow(
+                '0d439578-a36d-4eb2-8308-beb17ed381e3',
+                [
+                    'term' => 'My Fourth Term',
+                    'definition' => 'My First Definition',
+                    'points' => '1',
+                ]
+            )
+        ];
+    }
+
+    public function getTotalRowCount(mixed $additional_viewcontrol_data, mixed $filter_data, mixed $additional_parameters): ?int
+    {
+        return 4;
     }
 
     private function isDefImgUploadCommand(): bool
