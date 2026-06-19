@@ -910,8 +910,8 @@ class assOrderingQuestion extends assQuestion implements ilObjQuestionScoringAdj
      */
     public function initOrderingElementFormFieldLabels(ilFormPropertyGUI $formField): void
     {
-        $formField->setInfo($this->lng->txt('ordering_answer_sequence_info'));
-        $formField->setTitle($this->lng->txt('answers'));
+        $formField->setInfo('The order sequence you define here will be taken as the correct solution sequence.');
+        $formField->setTitle($this->lng->txt('order'));
     }
 
     /**

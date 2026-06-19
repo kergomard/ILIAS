@@ -530,6 +530,11 @@ class ilPropertyFormGUI extends ilFormGUI
                     if ($button["id"] != "") {
                         $this->tpl->setVariable("CMD2_ID", " id='" . $button["id"] . "_top'");
                     }
+
+                    if ($button["id"] === 'primary') {
+                        $this->tpl->setVariable("CLASS", ' btn-primary');
+                    }
+
                     $this->tpl->parseCurrentBlock();
                 }
                 $this->tpl->setCurrentBlock("commands2");
@@ -580,6 +585,10 @@ class ilPropertyFormGUI extends ilFormGUI
 
             if ($button["id"] != "") {
                 $this->tpl->setVariable("CMD_ID", " id='" . $button["id"] . "'");
+            }
+
+            if ($button["id"] === 'primary') {
+                $this->tpl->setVariable("CLASS", ' btn-primary');
             }
 
             $this->tpl->parseCurrentBlock();

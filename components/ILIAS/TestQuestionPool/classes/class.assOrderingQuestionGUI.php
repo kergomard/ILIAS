@@ -16,6 +16,10 @@
  *
  *********************************************************************/
 
+use ILIAS\UI\Factory as UIFactory;
+use ILIAS\UI\Renderer as UIRenderer;
+use ILIAS\Data\ImagePurpose;
+
 /**
  * Ordering question GUI representation
  *
@@ -31,7 +35,7 @@
  * @ingroup components\ILIASTestQuestionPool
  * @ilCtrl_Calls assOrderingQuestionGUI: ilFormPropertyDispatchGUI
  */
-class assOrderingQuestionGUI extends assQuestionGUI implements ilGuiQuestionScoringAdjustable, ilGuiAnswerScoringAdjustable
+class assOrderingQuestionGUI extends assQuestionGUI implements ilGuiQuestionScoringAdjustable, ilGuiAnswerScoringAdjustable, \ILIAS\UI\Component\Table\DataRetrieval
 {
     public const CMD_EDIT_NESTING = 'editNesting';
     public const CMD_SAVE_NESTING = 'saveNesting';
@@ -49,8 +53,13 @@ class assOrderingQuestionGUI extends assQuestionGUI implements ilGuiQuestionScor
 
     public assQuestion $object;
 
+    private UIFactory $ui_factory;
+    private UIRenderer $ui_renderer;
+
     public $old_ordering_depth = [];
     public $leveled_ordering = [];
+
+    private string $mode = 'Edit Elements';
 
     /**
      * assOrderingQuestionGUI constructor
@@ -61,6 +70,10 @@ class assOrderingQuestionGUI extends assQuestionGUI implements ilGuiQuestionScor
      */
     public function __construct($id = -1)
     {
+        global $DIC;
+        $this->ui_factory = $DIC['ui.factory'];
+        $this->ui_renderer = $DIC['ui.renderer'];
+
         parent::__construct();
         $this->object = new assOrderingQuestion();
         if ($id >= 0) {
@@ -348,19 +361,377 @@ class assOrderingQuestionGUI extends assQuestionGUI implements ilGuiQuestionScor
         $tabs->setSubTabActive($active);
     }
 
+    /**
+    * Creates an output of the edit form for the question
+    *
+    * @access public
+    */
     public function editQuestion(
         bool $checkonly = false,
         ?bool $is_save_cmd = null
     ): bool {
-        $this->renderEditForm($this->buildEditForm());
-        $this->addEditSubtabs(self::TAB_EDIT_QUESTION);
-        return false;
+        /** @var ILIAS\DI\Container $DIC */
+        global $DIC;
+        $cmd = $DIC->http()->wrapper()->query()->retrieve(
+            'sub_cmd',
+            $DIC->refinery()->byTrying([
+                $this->refinery->kindlyTo()->string(),
+                $this->refinery->always(null)
+            ])
+        );
+
+        $is_edit = $DIC->http()->wrapper()->query()->retrieve(
+            'edit',
+            $DIC->refinery()->byTrying([
+                $this->refinery->kindlyTo()->bool(),
+                $this->refinery->always(false)
+            ])
+        );
+
+        if ($cmd !== 'questionOverview') {
+            $this->tabs_gui->clearTargets();
+            if ($is_edit) {
+                $this->ctrl->setParameterByClass(
+                    self::class,
+                    'sub_cmd',
+                    $cmd === 'questionOverview'
+                );
+            }
+            $this->tabs_gui->setBackTarget(
+                'Cancel',
+                $this->ctrl->getFormActionByClass(
+                    $is_edit ? self::class : ilAssQuestionPreviewGUI::class,
+                    $is_edit ? 'editQuestion' : 'show'
+                )
+            );
+            $this->ctrl->clearParameterByClass(self::class, 'sub_cmd');
+        }
+
+        $this->ctrl->setParameterByClass(
+            self::class,
+            'question_type',
+            $this->object->getQuestionType()
+        );
+
+        if ($cmd === null) {
+            $content = $this->buildBasicForm($is_edit);
+        } elseif ($cmd === 'elements') {
+            $content = $this->buildElementsForm();
+        } elseif ($cmd === 'order') {
+            $content = $this->buildOrderingForm();
+        } elseif ($cmd === 'questionOverview') {
+            $content = $this->buildQuestionOverview();
+        } elseif ($cmd === 'editElements') {
+            $content = $this->buildQuestionOverview();
+        } elseif ($cmd === 'editOrder') {
+            $this->mode = 'Edit Order';
+            $content = $this->buildQuestionOverview();
+        }
+
+        $this->getQuestionTemplate();
+        $this->tpl->setVariable(
+            'QUESTION_DATA',
+            $this->ui_renderer->render($content)
+        );
+        return true;
+    }
+
+    private function buildBasicForm(bool $is_edit)
+    {
+        $ff = $this->ui_factory->input()->field();
+        $this->ctrl->setParameterByClass(self::class, 'sub_cmd', 'elements');
+        return $this->ui_factory->input()->container()->form()->standard(
+            $this->ctrl->getFormActionByClass(self::class, 'editQuestion'),
+            [
+                $ff->section(
+                    [
+                        'points' => $ff->numeric('Points')->withStepSize(0.0001)->withRequired(true),
+                        'view' => $ff->select(
+                            'View',
+                            [
+                                'Horizontal',
+                                'Vertical'
+                            ]
+                        )->withValue(0)
+                        ->withRequired(true),
+                        'nested' => $ff->checkbox('Enable Nesting', 'Elements can be nested inside each other creating hierarchies of elements'),
+                        'image_size' => $ff->numeric('Image Size')->withValue(150)->withRequired(true),
+                        'nr_of_elements' => $ff->numeric('Number of Elements')->withValue(4)->withRequired(true)
+                    ],
+                    'Basic Answer Form Properties'
+                )
+            ]
+        )->withSubmitLabel($this->lng->txt('next'));
+    }
+
+    private function buildElementsForm()
+    {
+        $ff = $this->ui_factory->input()->field();
+        $this->ctrl->setParameterByClass(self::class, 'sub_cmd', 'order');
+        return $this->ui_factory->input()->container()->form()->standard(
+            $this->ctrl->getFormActionByClass(self::class, 'editQuestion'),
+            [
+                    $ff->section(
+                        [
+                            'element_1' => $ff->section(
+                                [
+                                    'text' => $ff->markdown(
+                                        new ilUIMarkdownPreviewGUI(),
+                                        'Text'
+                                    ),
+                                    'image' => $ff->image(
+                                        new \ilUIDemoFileUploadHandlerGUI(),
+                                        ImagePurpose::USER_DEFINED,
+                                        'Image'
+                                    )
+                                ],
+                                'Element 1'
+                            ),
+                            'element_2' => $ff->section(
+                                [
+                                    'text' => $ff->markdown(
+                                        new ilUIMarkdownPreviewGUI(),
+                                        'Text'
+                                    ),
+                                    'image' => $ff->image(
+                                        new \ilUIDemoFileUploadHandlerGUI(),
+                                        ImagePurpose::USER_DEFINED,
+                                        'Image'
+                                    )
+                                ],
+                                'Element 2'
+                            ),
+                            'element_3' => $ff->section(
+                                [
+                                    'text' => $ff->markdown(
+                                        new ilUIMarkdownPreviewGUI(),
+                                        'Text'
+                                    ),
+                                    'image' => $ff->image(
+                                        new \ilUIDemoFileUploadHandlerGUI(),
+                                        ImagePurpose::USER_DEFINED,
+                                        'Image'
+                                    )
+                                ],
+                                'Element 3'
+                            ),
+                            'element_4' => $ff->section(
+                                [
+                                    'text' => $ff->markdown(
+                                        new ilUIMarkdownPreviewGUI(),
+                                        'Text'
+                                    ),
+                                    'image' => $ff->image(
+                                        new \ilUIDemoFileUploadHandlerGUI(),
+                                        ImagePurpose::USER_DEFINED,
+                                        'Image'
+                                    )
+                                ],
+                                'Element 4'
+                            ),
+                            'element_5' => $ff->section(
+                                [
+                                    'text' => $ff->markdown(
+                                        new ilUIMarkdownPreviewGUI(),
+                                        'Text'
+                                    ),
+                                    'image' => $ff->image(
+                                        new \ilUIDemoFileUploadHandlerGUI(),
+                                        ImagePurpose::USER_DEFINED,
+                                        'Image'
+                                    )
+                                ],
+                                'Element 5'
+                            ),
+                            'element_6' => $ff->section(
+                                [
+                                    'text' => $ff->markdown(
+                                        new ilUIMarkdownPreviewGUI(),
+                                        'Text'
+                                    ),
+                                    'image' => $ff->image(
+                                        new \ilUIDemoFileUploadHandlerGUI(),
+                                        ImagePurpose::USER_DEFINED,
+                                        'Image'
+                                    )
+                                ],
+                                'Element 6'
+                            )
+                        ],
+                        'Elements'
+                    )
+                ]
+        )->withAdditionalFormAction(
+            '$action',
+            'Previous'
+        )->withSubmitLabel('Next');
+    }
+
+    private function buildOrderingForm(bool $with_previous = true)
+    {
+        $nesting_form = $this->buildNestingForm();
+        $nesting_form->setForceTopButtons(true);
+        if ($with_previous) {
+            $nesting_form->addCommandButton('previous', 'Previous');
+        }
+        $nesting_form->addCommandButton('editQuestion', $this->lng->txt("save"), 'primary');
+
+        $this->tpl->addCss(ilObjStyleSheet::getContentStylePath(0));
+        $this->tpl->addCss(ilObjStyleSheet::getSyntaxStylePath());
+
+        return $this->ui_factory->legacy()->content(
+            $nesting_form->getHTML()
+        );
+    }
+
+    private function buildQuestionOverview()
+    {
+        $this->ctrl->setParameterByClass(self::class, 'edit', '1');
+
+        $views = array_map(
+            function (string $v): string {
+                $this->ctrl->setParameterByClass(self::class, 'sub_cmd', $v);
+                return $this->ctrl->getFormActionByClass(self::class, 'editQuestion');
+            },
+            [
+                'Edit Elements' => 'editElements',
+                'Edit Order' => 'editOrder'
+            ]
+        );
+
+        $toolbar = new ilToolbarGUI();
+        $toolbar->addComponent(
+            $this->ui_factory->viewControl()->mode(
+                $views,
+                'Switch between editing modes'
+            )->withActive($this->mode)
+        );
+
+        $this->ctrl->setParameterByClass(self::class, 'sub_cmd', 'addElement');
+        $prompt = $this->ui_factory->prompt()->standard(
+            new ILIAS\Data\URI(ILIAS_HTTP_PATH . '/' . $this->ctrl->getFormActionByClass(self::class, 'editQuestion'))
+        );
+
+        $toolbar->addComponent(
+            $this->ui_factory->button()->standard('Add Element', $prompt->getShowSignal())
+        );
+
+        return [
+            $this->ui_factory->panel()->standard(
+                'Basic Answer Form Properties',
+                [
+                    $this->ui_factory->listing()->descriptive([
+                        'Points' => '2.4',
+                        'View' => 'Vertical',
+                        'Enable Nesting' => 'True',
+                        'Image Size' => '150px'
+                    ]),
+                    $this->ui_factory->button()->standard(
+                        'Edit Basic Answer Form Properties',
+                        $this->ctrl->getFormActionByClass(self::class)
+                    )
+                ]
+            ),
+            $this->ui_factory->legacy()->content($toolbar->getHTML()),
+            $this->buildOverviewTable(),
+            $prompt
+        ];
+    }
+
+    public function buildOverviewTable(): ILIAS\UI\Component\Table\Table|ILIAS\UI\Component\Legacy\Content
+    {
+        if ($this->mode === 'Edit Order') {
+            return $this->buildOrderingForm(false);
+        }
+        /** @var ILIAS\DI\Container $DIC */
+        global $DIC;
+        [$url_builder, $token] = (new ILIAS\UI\URLBuilder(new ILIAS\Data\URI($DIC->http()->request()->getUri()->__toString())))
+            ->acquireParameter(['table'], 'test');
+
+        return $this->ui_factory->table()->data(
+            $this,
+            'Elements',
+            [
+                'text' => $this->ui_factory->table()->column()->text('Text'),
+                'image' => $this->ui_factory->table()->column()->text('Image')
+            ]
+        )->withActions([
+            $this->ui_factory->table()->action()->standard(
+                'Edit',
+                $url_builder,
+                $token
+            ),
+            $this->ui_factory->table()->action()->standard(
+                'Delete',
+                $url_builder,
+                $token
+            )
+        ])->withRequest($DIC->http()->request());
+    }
+
+    public function getRows(
+        \ILIAS\UI\Component\Table\DataRowBuilder|ILIAS\UI\Component\Table\OrderingRowBuilder $row_builder,
+        array $visible_column_ids,
+        ?\ILIAS\Data\Range $range = null,
+        ?\ILIAS\Data\Order $order = null,
+        mixed $additional_viewcontrol_data = null,
+        mixed $filter_data = null,
+        mixed $additional_parameters = null
+    ): \Generator {
+        yield from [
+             $row_builder->buildDataRow(
+                 '6bd5c18f-653d-47e4-be95-1c9b6a2663e4',
+                 [
+                    'text' => '1',
+                    'image' => ''
+                ]
+             ),
+            $row_builder->buildDataRow(
+                '6bd5c18f-653d-47e4-be95-1c9b6a2663e1',
+                [
+                    'text' => '1.1',
+                    'image' => ''
+                ]
+            ),
+            $row_builder->buildDataRow(
+                '6bd5c18f-653d-47e4-be95-1c9b6a2663e1',
+                [
+                    'text' => '1.2',
+                    'image' => ''
+                ]
+            ),
+            $row_builder->buildDataRow(
+                '0d439578-a36d-4eb2-8308-beb17ed381e3',
+                [
+                    'text' => '2',
+                    'image' => ''
+                ]
+            ),
+            $row_builder->buildDataRow(
+                '0d439578-a36d-4eb2-8308-beb17ed381e5',
+                [
+                    'text' => '3',
+                    'image' => ''
+                ]
+            ),
+            $row_builder->buildDataRow(
+                '0d439578-a36d-4eb2-8308-beb17ed381e6',
+                [
+                    'text' => '3.1',
+                    'image' => ''
+                ]
+            )
+        ];
+    }
+
+    public function getTotalRowCount(mixed $additional_viewcontrol_data, mixed $filter_data, mixed $additional_parameters): ?int
+    {
+        return 4;
     }
 
     public function editNesting()
     {
         $this->renderEditForm($this->buildNestingForm());
-        $this->addEditSubtabs(self::TAB_EDIT_NESTING);
         $this->tpl->addCss(ilObjStyleSheet::getContentStylePath(0));
         $this->tpl->addCss(ilObjStyleSheet::getSyntaxStylePath());
     }
@@ -388,29 +759,98 @@ class assOrderingQuestionGUI extends assQuestionGUI implements ilGuiQuestionScor
     protected function buildNestingForm()
     {
         $form = new ilAssOrderingQuestionAuthoringFormGUI();
-        $form->setFormAction($this->ctrl->getFormAction($this));
-        $form->setTitle($this->outQuestionType());
+        $this->ctrl->setParameterByClass(self::class, 'sub_cmd', 'questionOverview');
+        $form->setFormAction($this->ctrl->getFormActionByClass(self::class));
+        $form->setTitle('Order');
         $form->setTableWidth("100%");
-
-        $header = new ilFormSectionHeaderGUI();
-        $header->setTitle($this->lng->txt('oq_header_ordering_elements'));
-        $form->addItem($header);
 
         $orderingElementInput = $this->object->buildNestedOrderingElementInputGui();
         $orderingElementInput->setStylingDisabled($this->isRenderPurposePrintPdf());
 
-        $this->object->initOrderingElementAuthoringProperties($orderingElementInput);
-
-        $list = $this->object->getOrderingElementList();
-        foreach ($list->getElements() as $element) {
-            $element = $list->ensureValidIdentifiers($element);
-        }
-
-        $orderingElementInput->setElementList($list);
+        $orderingElementInput->setElementList(
+            new \ilAssOrderingElementList(
+                null,
+                array_map(
+                    fn(array $vs): ilAssOrderingElement => $this->buildOrderingElement(
+                        $vs['answer_id'],
+                        $vs['random_identifier'],
+                        $vs['solution_identifier'],
+                        $vs['position'],
+                        $vs['indentation'],
+                        $vs['content']
+                    ),
+                    [
+                        [
+                            'answer_id' => 1,
+                            'random_identifier' => 1,
+                            'solution_identifier' => 1,
+                            'position' => 0,
+                            'indentation' => 0,
+                            'content' => '1'
+                        ],
+                        [
+                            'answer_id' => 1,
+                            'random_identifier' => 2,
+                            'solution_identifier' => 2,
+                            'position' => 1,
+                            'indentation' => 0,
+                            'content' => '1.1'
+                        ],
+                        [
+                            'answer_id' => 1,
+                            'random_identifier' => 3,
+                            'solution_identifier' => 3,
+                            'position' => 2,
+                            'indentation' => 1,
+                            'content' => '1.2'
+                        ],
+                        [
+                            'answer_id' => 1,
+                            'random_identifier' => 4,
+                            'solution_identifier' => 4,
+                            'position' => 3,
+                            'indentation' => 0,
+                            'content' => '2'
+                        ],
+                        [
+                            'answer_id' => 1,
+                            'random_identifier' => 5,
+                            'solution_identifier' => 5,
+                            'position' => 4,
+                            'indentation' => 0,
+                            'content' => '3'
+                        ],
+                        [
+                            'answer_id' => 1,
+                            'random_identifier' => 6,
+                            'solution_identifier' => 7,
+                            'position' => 5,
+                            'indentation' => 0,
+                            'content' => '3.1'
+                        ]
+                    ]
+                )
+            )
+        );
 
         $form->addItem($orderingElementInput);
-        $form->addCommandButton(self::CMD_SAVE_NESTING, $this->lng->txt("save"));
         return $form;
+    }
+
+    private function buildOrderingElement(
+        int $answer_id,
+        int $random_identifier,
+        int $solution_identifier,
+        int $position,
+        int $indentation,
+        string $content
+    ): \ilAssOrderingElement {
+        return (new \ilAssOrderingElement($answer_id))
+            ->withRandomIdentifier($random_identifier)
+            ->withSolutionIdentifier($solution_identifier)
+            ->withPosition($position)
+            ->withIndentation($indentation)
+            ->withContent($content);
     }
 
     public function supportsIntermediateSolutionOutput()
