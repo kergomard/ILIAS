@@ -14186,6 +14186,7 @@ qsts#:#scoring_of_identical_responses#:#Scoring of Identical Responses
 qsts#:#select_answer_form_type#:#Select Type of Answer Form
 qsts#:#select_gap#:#Select Gap
 qsts#:#select_gaps_for_combination#:#Select Gap for Combination
+qsts#:#set_gap_types#:#Set Types for Gaps
 qsts#:#shuffle_answers#:#Shuffle Answers
 qsts#:#specific_feedback#:#Feedback Based On Answer Options
 qsts#:#step_size#:#Step Size
@@ -15304,7 +15305,7 @@ rep#:#rep_fav_intro1#:#You have not yet selected any favourites. To do so, there
 rep#:#rep_fav_intro2#:#Click on '%s' and select a learning object from those available, for example a learning module or a forum.
 rep#:#rep_fav_intro3#:#When you have found something that interests you, you can easily add it to your favourites. Select the desired item in the <i>Actions</i> menu and select "<i>Add to favourites</i>".
 rep#:#rep_favourites#:#Favourites
-rep#:#rep_favourites_info#:#Users can mark individual repository items as favourites. A 'Favourites' list can be activated for the dashboard and the main menu. 
+rep#:#rep_favourites_info#:#Users can mark individual repository items as favourites. A 'Favourites' list can be activated for the dashboard and the main menu.
 rep#:#rep_input_not_empty#:#This field must not be empty, please provide a value.
 rep#:#rep_intro#:#Welcome to the Repository!
 rep#:#rep_intro1#:#In this area you can create learning and working resources for all users. All resources are organised in categories. Categories can reflect the structure of your organisation (e.g. departments), a hierarchy of disciplines, or classes of a school.
