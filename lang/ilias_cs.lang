@@ -422,7 +422,6 @@ adve#:#adve_use_tiny_mce#:#Zapnout TinyMCE pro editaci WYSIWYG
 assessment#:#activate_logging#:#Aktivovat záznam Test a Hodnocení
 assessment#:#activate_manual_scoring#:#Enable Manual Scoring###28 10 2024 new variable
 assessment#:#activate_manual_scoring_desc#:#Enables manual Scoring for all question types.###28 10 2024 new variable
-assessment#:#addSuggestedSolution#:#Přidat doporučené řešení
 assessment#:#add_answers#:#Přidat odpovědi
 assessment#:#add_circle#:#Přidat kruhovou plochu
 assessment#:#add_gap#:#Přidat textovou mezeru
@@ -447,7 +446,6 @@ assessment#:#answer_is_not_correct_but_positive#:#Obdržel/a jste body za Vaše 
 assessment#:#answer_is_right#:#Vaše řešení je správné
 assessment#:#answer_is_wrong#:#Vaše řešení je chybné
 assessment#:#answer_of#:#Answer of###07 02 2020 new variable
-assessment#:#answer_options#:#Možnosti odpovědi:
 assessment#:#answer_question#:#Odpovědět na otázku
 assessment#:#answer_text#:#Text odpovědi
 assessment#:#answer_types#:#Typy odpovědi
@@ -501,7 +499,6 @@ assessment#:#ass_completion_by_submission#:#Splnit odevzdáním
 assessment#:#ass_completion_by_submission_info#:#Je-li zapnuto, odevzdání alespoň jednoho souboru způsobí splnění dané otázky s přidělením maximálního počtu bodů této otázky. Tento počet bodů může být později změněn manuálně. Změna tohoto nastavení nemá vliv na již odevzdaná řešení.
 assessment#:#ass_create_export_file_with_results#:#Vytvořit exportní soubor testu (vč. výsledků účastníků)
 assessment#:#ass_create_export_test_archive#:#Vytvořit archivní soubor testu
-assessment#:#ass_create_question#:#Vytvořit otázku
 assessment#:#ass_imap_hint#:#Nápověda zobrazena jako nápovědná bublina
 assessment#:#ass_imap_map_file_not_readable#:#Nahranou obrazovou mapu nelze načíst.
 assessment#:#ass_imap_no_map_found#:#V nahrané obrazové mapě nelze najít žádný formulář.
@@ -571,10 +568,6 @@ assessment#:#cloze_answer_text_info#:#Spaces preceding or following the answer t
 assessment#:#cloze_fixed_textlength#:#Délka textového pole
 assessment#:#cloze_fixed_textlength_description#:#Pokud vložíte hodnotu větší než 0, všechna textová pole textových i numerických mezer budou vytvářeny s pevnou délkou rovnou této hodnotě.
 assessment#:#cloze_gap_size_info#:#Pokud zadáte hodnotu větší než 0, bude toto textové pole mezery vytvořeno s pevnou délkou této hodnoty. Pokud nezadáte hodnotu, bude textové pole mezery vytvořeno s hodnotou globální pevné délky.
-assessment#:#cloze_text#:#Doplňovaný text
-assessment#:#cloze_textgap_case_insensitive#:#Nerozlišuje velká/malá písmena
-assessment#:#cloze_textgap_case_sensitive#:#Rozlišuje velká/malá písmena
-assessment#:#cloze_textgap_levenshtein_of#:#Vzdálenost Levenshtein %s
 assessment#:#code#:#Kód
 assessment#:#codebase#:#Databáze kódu
 assessment#:#concatenation#:#Sřetězení
@@ -757,9 +750,7 @@ assessment#:#fq_formula_desc#:#Můžete zadat předem definované proměnné ($v
 assessment#:#fq_no_restriction_info#:#Desetinná místa i zlomky jsou přijaty jako vstup.
 assessment#:#fq_precision_info#:#Zadejte počet požadovaných desetinných míst.
 assessment#:#fq_question_desc#:#Můžete určit proměnné vložením $v1, $v2 ... $vn, výsledky vložením $r1, $r2 .... $rn na požadované místo v textu otázky. Klepněte na tlačítko "Rozbor otázky" k vytvoření ediovaního formuláře pro proměnné a výsledky.
-assessment#:#gap#:#Mezera
 assessment#:#gap_combination#:#Kombinace mezer
-assessment#:#gaps#:#Gaps###29 10 2025 new variable
 assessment#:#glossary_term#:#Pojem glosáře
 assessment#:#goto_first_question#:#Show First Question###29 10 2025 new variable
 assessment#:#grading_mark_msg#:#Vaše výsledná známka je: &quot;[mark]&quot;
@@ -777,7 +768,6 @@ assessment#:#info_answer_type_change#:#Tato otázka již obsahuje obrázky. Nem�
 assessment#:#info_text_upload#:#Vyberte soubor odpovědí, který chcete nahrát
 assessment#:#insert_after#:#Vložit za
 assessment#:#insert_before#:#Vložit před
-assessment#:#insert_gap#:#Vložit rezervované místo
 assessment#:#interaction_type#:#Interaction Type###26 08 2024 new variable
 assessment#:#internal_links#:#Interní odkazy
 assessment#:#intprecision#:#Dělitelné
@@ -889,7 +879,6 @@ assessment#:#logs_wrong_test_password_provided#:#Účastník zadal nesprávné h
 assessment#:#longmenu#:#Dlouhé menu
 assessment#:#longmenu_answeroptions_differ#:#This question does not work correctly, as there are not the same amount of gaps in the text as in the correction options.###26 08 2024 new variable
 assessment#:#longmenu_text#:#Text dlouhého menu
-assessment#:#mainbar_button_label_questionlist#:#Questionlist###26 08 2024 new variable
 assessment#:#maintenance#:#Údržba
 assessment#:#manscoring#:#Manuální hodnocení
 assessment#:#manscoring_done#:#Vyhodnocení účastníci
@@ -916,7 +905,6 @@ assessment#:#maximum_nr_of_tries_reached#:#Dosáhl/a jste maximální počet pok
 assessment#:#maximum_points#:#Maxium dostupných bodů
 assessment#:#maxsize#:#Maximální velkost ukládaného souboru
 assessment#:#maxsize_info#:#Vložit maximální velikost v bytech, která je povolena pro ukládané soubory. Pokud necháte toto pole prázdné, bude namísto něj nastavena maximální velikost této instalace.
-assessment#:#min_auto_complete#:#Automatické dokončování
 assessment#:#min_ip_label#:#Lowest IP With Access###26 08 2024 new variable
 assessment#:#min_percentage_ne_0#:#Musíte definovat minimální procento od specifikace 0 procent! Schéma známkování nebylo uloženo.
 assessment#:#misc#:#Různé možnosti
@@ -925,7 +913,6 @@ assessment#:#mode_onebyone#:#One by One###29 10 2025 new variable
 assessment#:#mode_question#:#Question oriented###29 10 2025 new variable
 assessment#:#mode_user#:#Participant oriented###29 10 2025 new variable
 assessment#:#msg_circle_added#:#Kruh přidán
-assessment#:#msg_no_questions_selected#:#No questions were selected.###26 08 2024 new variable
 assessment#:#msg_number_of_terms_too_low#:#Počet výrazů musí být větší, nebo roven počtu definicí.
 assessment#:#msg_poly_added#:#Polygon přidán
 assessment#:#msg_questions_moved#:#Otázky přesunuty
@@ -984,7 +971,6 @@ assessment#:#order#:#Order###26 08 2024 new variable
 assessment#:#ordering_answer_sequence_info#:#Sekvence odpovědi Vámi zde definovaná bude považována za sekvenci správného řešení.
 assessment#:#ordertext#:#Řazení textu
 assessment#:#ordertext_info#:#Vložte prosím text, který má být řazen horizontálně. Řazený text bude oddělen pomocí značek mezer v textu. Pokud potřebujete jiné oddělení, můžete použít separátor %s k oddělení Vašich textových jednotek.
-assessment#:#out_of_range#:#Mimo rozsah
 assessment#:#output#:#Výstup
 assessment#:#output_mode#:#Výstupní mód
 assessment#:#parseQuestion#:#Rozbor otázky
@@ -1053,7 +1039,6 @@ assessment#:#qpl_bulk_save_add#:#Add###28 10 2024 new variable
 assessment#:#qpl_bulk_save_overwrite#:#Overwrite###28 10 2024 new variable
 assessment#:#qpl_bulkedit_success#:#Modifications saved.###28 10 2024 new variable
 assessment#:#qpl_cancel_skill_assigns_update#:#Zrušit
-assessment#:#qpl_confirm_delete_questions#:#Jste si jist/a, že chcete smazat následující otázky?
 assessment#:#qpl_copy_insert_clipboard#:#Vybrané otázky jsou zkopírovány do schránky
 assessment#:#qpl_copy_select_none#:#Označte alespoň jednu otázku ke zkopírování do schránky
 assessment#:#qpl_delete_rbac_error#:#Nemáte oprávnění smazat tuto otázku!
@@ -1106,7 +1091,6 @@ assessment#:#qpl_qst_skl_usg_skill_col#:#Způsobilost
 assessment#:#qpl_qst_skl_usg_sklpnt_col#:#Celkový součet bodů způsobilosti podle způsobilosti
 assessment#:#qpl_question_is_in_use#:#Otázka, kterou upravujete, existuje v %s testech. Pokud tuto otázku změníte, NEZMĚNÍTE otázku(y) v testu(ech), protože systém vytváří kopii otázky, která je vložena do testu!
 assessment#:#qpl_questions_deleted#:#Otázky smazány.
-assessment#:#qpl_reset_preview#:#Obnovit náhled
 assessment#:#qpl_save_skill_assigns_update#:#Uložit přiřazení způsobilosti
 assessment#:#qpl_settings_availability#:#Availability###26 08 2024 new variable
 assessment#:#qpl_settings_general_form_prop_show_tax_desc#:#Pokud je zapnuto, pro filtrování jsou zobrazeny možné vytvořené taxonomie.
@@ -1136,14 +1120,6 @@ assessment#:#qst_essay_chars_remaining#:#Remaining characters:###07 02 2020 new 
 assessment#:#qst_essay_wordcounter_enabled#:#Count Words###07 02 2020 new variable
 assessment#:#qst_essay_wordcounter_enabled_info#:#The entered words are counted. The number of written words is shown to the participants below the text input field.###07 02 2020 new variable
 assessment#:#qst_essay_written_words#:#Number of entered words:###07 02 2020 new variable
-assessment#:#qst_lifecycle#:#Lifecycle###07 02 2020 new variable
-assessment#:#qst_lifecycle_draft#:#Draft###07 02 2020 new variable
-assessment#:#qst_lifecycle_filter_all#:#All Lifecycles###07 02 2020 new variable
-assessment#:#qst_lifecycle_final#:#Final###07 02 2020 new variable
-assessment#:#qst_lifecycle_outdated#:#Outdated###07 02 2020 new variable
-assessment#:#qst_lifecycle_rejected#:#Rejected###07 02 2020 new variable
-assessment#:#qst_lifecycle_review#:#To be Reviewed###07 02 2020 new variable
-assessment#:#qst_lifecycle_sharable#:#Sharable###07 02 2020 new variable
 assessment#:#qst_nested_nested_answers_off#:#No indents, just order###29 07 2022 new variable
 assessment#:#qst_nested_nested_answers_on#:#Use indents in anwers###29 07 2022 new variable
 assessment#:#qst_nr_of_tries#:#Počet pokusů
@@ -1167,17 +1143,14 @@ assessment#:#question_title#:#Název otázky
 assessment#:#question_type#:#Typ otázky
 assessment#:#questionpool_not_entered#:#Vložte prosím název zásobníku otázek!
 assessment#:#questionpool_not_selected#:#Please select a question pool!###07 02 2020 new variable
-assessment#:#questions#:#Questions###26 08 2024 new variable
 assessment#:#questions_from#:#otázky z
 assessment#:#questions_per_page_view#:#Zobrazení stránky
 assessment#:#random_accept_sample#:#Akceptovat příklad
 assessment#:#random_another_sample#:#Vybrat jiný příklad
 assessment#:#random_selection#:#Náhodný výběr
 assessment#:#range#:#Rozmezí
-assessment#:#range_lower_limit#:#Spodní hranice
 assessment#:#range_max#:#Rozmezí (Maximum)
 assessment#:#range_min#:#Rozmezí (Minimum)
-assessment#:#range_upper_limit#:#Horní hranice
 assessment#:#rated_sign#:#Podpis
 assessment#:#rated_unit#:#Jednotka
 assessment#:#rated_value#:#Hodnota
@@ -1253,7 +1226,6 @@ assessment#:#search_roles#:#Vyhledat role
 assessment#:#search_term#:#Vyhledat termín
 assessment#:#select_at_least_one_feedback_type_and_trigger#:#Please Select at least one type of feedback and a trigger.###26 08 2024 new variable
 assessment#:#select_at_least_one_lock_answer_type#:#Please select at least one type of answer lock.###29 10 2025 new variable
-assessment#:#select_gap#:#Vybrat mezeru
 assessment#:#select_max_one_item#:#Vyberte prosím pouze jednu položku
 assessment#:#select_one_user#:#Vyberte prosím alespoň jednoho uživatele
 assessment#:#select_question#:#Select a Question###28 10 2024 new variable
@@ -1280,7 +1252,6 @@ assessment#:#show_old_introduction#:#Show old introduction###26 08 2024 new vari
 assessment#:#show_pass_overview#:#Zobrazit přehled označených průchodů
 assessment#:#show_results#:#Show Results###28 10 2024 new variable
 assessment#:#show_user_answers#:#Zobrazit označené odpovědi uživatelů
-assessment#:#shuffle_answers#:#Zamíchat odpovědi
 assessment#:#skip_question#:#Neodpovídat a Další
 assessment#:#solution#:#Solution###28 10 2024 new variable
 assessment#:#solutionText#:#Text
@@ -1401,7 +1372,7 @@ assessment#:#tst_answered_questions_of_total#:#%s z %s
 assessment#:#tst_answered_questions_test#:#Zodpovězené otázky v tomto testu
 assessment#:#tst_attached_xls_file#:#Výsledek testu tohoto účastníka najdete v přiloženém souboru aplikace Excel.
 assessment#:#tst_attempt#:#Pokus
-assessment#:#tst_attempt_limit_message#:#Your limit of test attempts is <b>%s</b>.###26 08 2024 new variable
+assessment#:#tst_attempt_limit_message#:#Celkový počet pokusů pro tento test: <b>%s</b>.
 assessment#:#tst_attempt_started#:#Test spuštěn
 assessment#:#tst_back_to_pass_details#:#Podrobnosti zpět na průchodu
 assessment#:#tst_back_to_question_list#:#Zpět na seznam otázek
@@ -1452,7 +1423,7 @@ assessment#:#tst_derive_new_pools#:#Odvodit nové zásobníky otázek
 assessment#:#tst_dont_show_msg_again_in_current_session#:#Znovu nezobrazovat tuto zprávu v mé aktuální relaci.
 assessment#:#tst_edit_competence_assign#:#Upravit vlastnosti přiřazení
 assessment#:#tst_edit_scoring#:#Upravit hodnocení
-assessment#:#tst_enable_questionlist#:#Show 'List of Questions’###26 08 2024 new variable
+assessment#:#tst_enable_questionlist#:#Zobrazit „Seznam otázek“
 assessment#:#tst_enable_questionlist_description#:#Participants can switch on a list of the test questions on the left of the actual question.###26 08 2024 new variable
 assessment#:#tst_ending_time#:#Čas ukončení
 assessment#:#tst_ending_time_before_starting_time#:#Please enter a date for the end of the test that is after the start date.###26 08 2024 new variable
@@ -1477,14 +1448,14 @@ assessment#:#tst_exam_conditions_not_checked_message#:#You need to accept the ex
 assessment#:#tst_exam_ending_time_message#:#The test cannot be started after %s.###26 08 2024 new variable
 assessment#:#tst_exam_modal_message_conditions#:#Please confirm the conditions to start the test.###26 08 2024 new variable
 assessment#:#tst_exam_modal_message_conditions_and_password#:#Please confirm the conditions and enter the password to start the test.###26 08 2024 new variable
-assessment#:#tst_exam_modal_message_password#:#Please enter the password to start the test.###26 08 2024 new variable
+assessment#:#tst_exam_modal_message_password#:#Zadejte heslo pro spuštění testu.
 assessment#:#tst_exam_not_assigned_participant_disclaimer#:#You cannot start this test, as you are not an assigned participant.###26 08 2024 new variable
-assessment#:#tst_exam_password#:#Test Password###26 08 2024 new variable
+assessment#:#tst_exam_password#:#Slovo pro průchod testem
 assessment#:#tst_exam_password_invalid_message#:#The given password is not valid!###26 08 2024 new variable
-assessment#:#tst_exam_password_label#:#Password###26 08 2024 new variable
+assessment#:#tst_exam_password_label#:#Heslo
 assessment#:#tst_exam_required_fields_not_filled_message#:#You need to fill out all required fields!###26 08 2024 new variable
-assessment#:#tst_exam_start#:#Start Test###26 08 2024 new variable
-assessment#:#tst_exam_use_previous_answers#:#Previous Answers###26 08 2024 new variable
+assessment#:#tst_exam_start#:#Spustit test
+assessment#:#tst_exam_use_previous_answers#:#Použít předchozí odpovědi
 assessment#:#tst_exam_use_previous_answers_label#:#If enabled answers from previous tests will be prefilled.###26 08 2024 new variable
 assessment#:#tst_extratime_added#:#Pracovní čas účastníka byl zvýšen o %s minut.
 assessment#:#tst_extratime_info#:#Pokud chcete pro stejného účastníka několikrát přidat pracovní čas, zadejte celkovou dobu, kterou chcete přidat.
@@ -1504,7 +1475,7 @@ assessment#:#tst_final_information#:#Dokončení testu: Informace před odeslán
 assessment#:#tst_finish_confirm_button#:#Ano, chci tento test ukončit
 assessment#:#tst_finish_confirm_cancel_button#:#Ne, jít zpět na předchozí otázku
 assessment#:#tst_finish_confirmation_question#:#Hodláte ukončit tento test a dosáhl(a) jste maximálního počtu povolených průchodů testem. Nebudete již moci do tohoto testu vstoupit znovu a změnit své odpovědi. Upravdu chcete tento test ukončit?
-assessment#:#tst_finish_confirmation_question_no_attempts_left#:#You are going to finish this test and reach the maximum number of allowed test attempts. You won’t be able to enter this test again to change your answers. Do you really want to finish the test?###26 08 2024 new variable
+assessment#:#tst_finish_confirmation_question_no_attempts_left#:#Dokončíte tento test a dosáhnete maximálního počtu povolených pokusů. Nebudete se moci k tomuto testu znovu přihlásit a změnit své odpovědi. Opravdu chcete test dokončit?
 assessment#:#tst_finished#:#Ukončeno
 assessment#:#tst_form_dynamic_question_set_config#:#Pokračuje výběr otázek
 assessment#:#tst_gap_analysis#:#Analýza mezer
@@ -1591,7 +1562,7 @@ assessment#:#tst_invited_selected_users#:#Vybraní účastníci byli přidáni j
 assessment#:#tst_launcher_button_label_passes_limit_reached#:#You have reached the limit of possible test passes###26 08 2024 new variable
 assessment#:#tst_launcher_status_message_conditions#:#You will be asked for your approval of the exam conditions when you start the test.###26 08 2024 new variable
 assessment#:#tst_launcher_status_message_conditions_and_password#:#You will be asked for the password and your approval of the exam conditions when you start the test.###26 08 2024 new variable
-assessment#:#tst_launcher_status_message_password#:#You will be asked for the password when you start the test.###26 08 2024 new variable
+assessment#:#tst_launcher_status_message_password#:#Při spuštění testu budete požádáni o heslo.
 assessment#:#tst_level#:#Úroveň způsobilosti
 assessment#:#tst_limit_nr_of_tries#:#Maximální počet průchodů testem
 assessment#:#tst_link_only_unassigned#:#Máte vybránu nejméně jednu otázku, která je již přiřazena k zásobníku otázek. Do zásobníku otázek lze přidávat pouze nepřiřazené otázky.
@@ -1696,7 +1667,7 @@ assessment#:#tst_objective_progress_header#:#Postup cíle učení
 assessment#:#tst_objectives_progress_header#:#Postup cílů učení
 assessment#:#tst_old_style_rnd_quest_set_broken#:#Tento náhodný test je v nenapravitelném stavu, protože byl smazán jeden připojený zásobník otázek nebo více zásobníků. Proto již účastníci nemohou absolvovat test.
 assessment#:#tst_optional_questions_confirmation_non_fixed_test#:#<b>Otázky týkající se již splněných cílů učení jsou volitelné.</b><br /><br />Chcete přejít na otázku, která se týká již splněného cíle učení.<br />Můžete si vybrat:<br /><br /> pokračujete, můžete pokračovat v práci na těchto otázkách. Nebyly převzaty vaše odpovědi z předchozích pokusů, protože pro tento pokus byly vybrány nové náhodné otázky. Při pokračování v práci na těchto otázkách můžete také zhoršit výsledek cíle učení.<br /><br />Pokud se rozhodnete nepokračovat v práci na těchto otázkách, můžete se vrátit zpět. V tomto případě nebudou tyto otázky zohledněny při hodnocení.
-assessment#:#tst_out_of_time_message#:#You have reached the maximum allowed processing time of the test!###26 08 2024 new variable
+assessment#:#tst_out_of_time_message#:#Čas vyhrazený pro vykonání tohoto testu vypršel.
 assessment#:#tst_participant#:#Účastník
 assessment#:#tst_participant_fullname_pattern#:#%2$s, %1$s
 assessment#:#tst_participant_status#:#Účastníkův status
@@ -1952,7 +1923,7 @@ assessment#:#tst_text_count_system#:#Systém hodnocení
 assessment#:#tst_threshold#:#Prahové hodnoty
 assessment#:#tst_time_already_spent#:#Test již máte spuštěn %s. Maximální doba práce je %s
 assessment#:#tst_time_already_spent_left#:#Zbývá vám %s.
-assessment#:#tst_time_limit_message#:#You will have <b>%s minutes</b> to answer all questions.###26 08 2024 new variable
+assessment#:#tst_time_limit_message#:#Na zodpovězení všech otázek budete mít <b>%s minut</b>.
 assessment#:#tst_title_output#:#Výstup názvu otázky
 assessment#:#tst_title_output_full#:#Zobrazit název otázek a dostupné body
 assessment#:#tst_title_output_hide_points#:#Zobrazit pouze název otázek
@@ -4660,7 +4631,7 @@ common#:#mm_communication#:#Communication###07 02 2020 new variable
 common#:#mm_contacts#:#Contacts###07 02 2020 new variable
 common#:#mm_dashboard#:#Dashboard###07 02 2020 new variable
 common#:#mm_enrolments#:#Enrolments###07 02 2020 new variable
-common#:#mm_favorites#:#Favourites###07 02 2020 new variable
+common#:#mm_favorites#:#Oblíbené
 common#:#mm_learning_history#:#Learning History###07 02 2020 new variable
 common#:#mm_learning_progress#:#Learning Progress###07 02 2020 new variable
 common#:#mm_mail#:#Mail###07 02 2020 new variable
@@ -4671,10 +4642,10 @@ common#:#mm_personal_and_shared_r#:#Personal and Shared Resources###07 02 2020 n
 common#:#mm_personal_workspace#:#Personal Workspace###07 02 2020 new variable
 common#:#mm_portfolio#:#Portfolio###07 02 2020 new variable
 common#:#mm_private_chats#:#Private Chats###29 07 2022 new variable
-common#:#mm_repo_tree_view#:#Tree View###07 02 2020 new variable
-common#:#mm_repo_tree_view_act#:#Activate Tree###07 02 2020 new variable
-common#:#mm_repo_tree_view_deact#:#Deactivate Tree###07 02 2020 new variable
-common#:#mm_repository#:#Repository###07 02 2020 new variable
+common#:#mm_repo_tree_view#:#Stromové zobrazení
+common#:#mm_repo_tree_view_act#:#Aktivovat stromové zobrazení
+common#:#mm_repo_tree_view_deact#:#Deaktivovat stromové zobrazení
+common#:#mm_repository#:#Úložiště
 common#:#mm_skills#:#Competences###07 02 2020 new variable
 common#:#mm_staff_list#:#Staff List###07 02 2020 new variable
 common#:#mm_tags#:#Tags###07 02 2020 new variable
@@ -4763,7 +4734,7 @@ common#:#msg_no_perm_paste#:#Nemáte oprávnění vložit následující objekty
 common#:#msg_no_perm_paste_object_in_folder#:#Nemáte oprávnění vkládat objekt %s do složky %s.
 common#:#msg_no_perm_perm#:#Nemáte oprávnění měnit nastavení přístupových práv
 common#:#msg_no_perm_read#:#Nemáte oprávnění přístupu k této položce.
-common#:#msg_no_perm_read_item#:#Nemáte oprávnění přístupu k položce '%s'.
+common#:#msg_no_perm_read_item#:#Nemáte oprávnění přístupu k položce.
 common#:#msg_no_perm_read_lm#:#Nemáte oprávnění číst tento výukový modul.
 common#:#msg_no_perm_view_roles_of_user#:#You have no permission to view the role assignment of this user###29 10 2025 new variable
 common#:#msg_no_perm_write#:#Nemáte oprávnění k zápisu
@@ -5057,7 +5028,7 @@ common#:#obj_rcat#:#ECS kategorie
 common#:#obj_rcrs#:#Odkazy kurzu
 common#:#obj_recf#:#Obnovené objekty
 common#:#obj_recf_desc#:#Obsahuje obnovené objekty z kontroly systému.
-common#:#obj_rep#:#Repository###07 02 2020 new variable
+common#:#obj_rep#:#Úložiště
 common#:#obj_reps#:#Úložiště
 common#:#obj_reps_desc#:#Obecná nastavení pro úložiště
 common#:#obj_rfil#:#Soubor ECS
@@ -7708,7 +7679,7 @@ crs#:#crs_members_map#:#Mapa členů kurzu
 crs#:#crs_members_print_title#:#Členové kurzu
 crs#:#crs_min_one_admin#:#K tomuto kurzu musí být přiřazen alespoň jeden správce.
 crs#:#crs_msg_no_self_registration_period_if_self_enrolment_disabled#:#The limited registration period can not be defined if the "No Self-enrolment" setting is active.###26 08 2024 new variable
-crs#:#crs_my_courses_groups_enabled#:#My Courses and Groups###26 08 2024 new variable
+crs#:#crs_my_courses_groups_enabled#:#Moje kurzy a skupiny
 crs#:#crs_my_courses_groups_enabled_info#:#If activated, the section 'My Courses and Groups' is visible.###26 08 2024 new variable
 crs#:#crs_new_status#:#Váš nový status je:
 crs#:#crs_new_subscription#:#Uživatel zařazen do kurzu "%s"
@@ -8090,15 +8061,15 @@ dash#:#dash_dashboard#:#Dashboard###07 02 2020 new variable
 dash#:#dash_default_presentation#:#Default Presentation###07 02 2020 new variable
 dash#:#dash_default_sortation#:#Default Sortation###07 02 2020 new variable
 dash#:#dash_enable_cal#:#Calendar###07 02 2020 new variable
-dash#:#dash_enable_favourites#:#Favourites###07 02 2020 new variable
+dash#:#dash_enable_favourites#:#Oblíbené
 dash#:#dash_enable_learning_sequences#:#Learning Sequences###26 08 2024 new variable
 dash#:#dash_enable_mail#:#Mail###07 02 2020 new variable
-dash#:#dash_enable_memberships#:#My Courses and Groups###07 02 2020 new variable
+dash#:#dash_enable_memberships#:#Moje kurzy a skupiny
 dash#:#dash_enable_news#:#News###07 02 2020 new variable
 dash#:#dash_enable_recommended_content#:#Recommended Content###26 08 2024 new variable
 dash#:#dash_enable_study_programmes#:#Study Programmes###26 08 2024 new variable
 dash#:#dash_enable_task#:#Tasks###07 02 2020 new variable
-dash#:#dash_favourites#:#Favourites###07 02 2020 new variable
+dash#:#dash_favourites#:#Oblíbené
 dash#:#dash_info_sure_remove_from_favs#:#Are you sure you want to remove the following objects from your Favourites?###07 02 2020 new variable
 dash#:#dash_item_removed#:#Recommendation has been removed from the list.###07 02 2020 new variable
 dash#:#dash_learning_sequences#:#My Learning Sequences###26 08 2024 new variable
@@ -8110,7 +8081,7 @@ dash#:#dash_manual_new_item_pos_bot#:#Bottom###29 10 2025 new variable
 dash#:#dash_manual_new_item_pos_top#:#Top###29 10 2025 new variable
 dash#:#dash_manual_sorting_title#:#Manual Sorting of Favorites###29 10 2025 new variable
 dash#:#dash_member_main_alt#:#Courses and groups can also be configured as a separate main menu entry.###07 02 2020 new variable
-dash#:#dash_memberships#:#My Courses and Groups###07 02 2020 new variable
+dash#:#dash_memberships#:#Moje kurzy a skupiny
 dash#:#dash_page_edit_info#:#The content of this page is displayed to all users on their dashboard. The contents of the various blocks of the dashboard are presented below.###28 10 2024 new variable
 dash#:#dash_presentation#:#Presentation###07 02 2020 new variable
 dash#:#dash_recommended_content#:#Recommended Content###26 08 2024 new variable
@@ -11189,6 +11160,10 @@ lti#:#conf_privacy_ident_il_uuid_ext_account#:#External User ID combined with a 
 lti#:#conf_privacy_ident_il_uuid_ext_account_info#:#This is identical to each call, but may allow a direct conclusion about the user.###26 08 2024 new variable
 lti#:#conf_privacy_ident_il_uuid_login#:#ILIAS Login combined with a unique ILIAS platform id formatted as an E-Mail address###26 08 2024 new variable
 lti#:#conf_privacy_ident_il_uuid_login_info#:#Sends the login name. This is identical to each call, but may allow a direct conclusion about the ILIAS user.###26 08 2024 new variable
+lti#:#conf_privacy_ident_il_uuid_random#:#Random ID combined with a unique ILIAS platform ID formatted as an E-Mail address###04 12 2025 new variable
+lti#:#conf_privacy_ident_il_uuid_random_info#:#For each ILIAS object and ILIAS user a random ID is generated which remains identical for each call. Conclusions about a user are very limited because it is practically impossible to create user profiles across objects.###04 12 2025 new variable
+lti#:#conf_privacy_ident_il_uuid_sha256url#:#Hash combined with the ILIAS Domain formatted as an E-Mail address.###04 12 2025 new variable
+lti#:#conf_privacy_ident_il_uuid_sha256url_info#:#This is identical to each call, with with a maximum of 80 characters significantly shorter than the variant with the ILIAS platform ID and allows only very limited conclusions about the ILIAS user.###04 12 2025 new variable
 lti#:#conf_privacy_ident_il_uuid_user_id#:#ILIAS user id combined with a unique ILIAS platform id formatted as an E-Mail address###26 08 2024 new variable
 lti#:#conf_privacy_ident_il_uuid_user_id_info#:#Sends the internal numeric user id. This is identical to each call, but may allow conclusions about the ILIAS user.###26 08 2024 new variable
 lti#:#conf_privacy_ident_info#:#Standard is frequently the email address. The unique ILIAS platform id is:###26 08 2024 new variable
@@ -11274,13 +11249,16 @@ lti#:#launched#:#Resource was already launched.###07 02 2020 new variable
 lti#:#learning_progress_options#:#Options for Learning Progress###07 02 2020 new variable
 lti#:#lm_only_one_download_per_type#:#Vezměte prosím na vědomí, že můžete zpřístupnit pouze jeden soubor na jeden typ (XML, HTML, SCORM).
 lti#:#lti13_hints#:#If the tool was created without dynamic registration, the following data must be entered for the tool to run.###26 08 2024 new variable
+lti#:#lti_13_authentication_url#:#Authentication Request URL###04 12 2025 new variable
 lti#:#lti_13_client_id#:#Client-ID###26 08 2024 new variable
 lti#:#lti_13_deployment_id#:#Deployment-ID###26 08 2024 new variable
+lti#:#lti_13_keyset_url#:#Public Keyset URL###04 12 2025 new variable
 lti#:#lti_13_platform_id#:#Platform-ID###26 08 2024 new variable
 lti#:#lti_13_step1#:#Step 1###26 08 2024 new variable
 lti#:#lti_13_step1_info#:#For the initiating platform (consumer), enter the following address for Launch URL, Initiate Login URL, Redirection URI, and Registration URL:###26 08 2024 new variable
 lti#:#lti_13_step2#:#Step 2###26 08 2024 new variable
 lti#:#lti_13_step2_info#:#You will receive information from the initiating platform (Consumer), which you must enter in the following fields. After saving, the LTI 1.3 functionalities are available.###26 08 2024 new variable
+lti#:#lti_13_token_url#:#Access Token URL###04 12 2025 new variable
 lti#:#lti_action_accept_provider_as_global#:#Accept Provider as Global Provider for all Users###07 02 2020 new variable
 lti#:#lti_action_accept_providers_as_global#:#Accept Providers as Global###07 02 2020 new variable
 lti#:#lti_action_delete_providers#:#Delete Providers###07 02 2020 new variable
@@ -11294,6 +11272,8 @@ lti#:#lti_at_least_one_prov_has_usages#:#At least one provider could not be dele
 lti#:#lti_auth_failed_invalid_key#:#Ověřování se nezdařilo, nebyl zadán žádný platný spotřebitelský klíč.
 lti#:#lti_con_content_item#:#Support for Deep Linking###26 08 2024 new variable
 lti#:#lti_con_content_item_url#:#Content URL###26 08 2024 new variable
+lti#:#lti_con_grade_synchronization#:#Assignment and Grade Services###04 12 2025 new variable
+lti#:#lti_con_grade_synchronization_info#:#The LTI tool must offer 'Assignment and Grade Services'.###04 12 2025 new variable
 lti#:#lti_con_initiate_login_url#:#Initiate Login URL###26 08 2024 new variable
 lti#:#lti_con_key_type#:#Public Key Type###26 08 2024 new variable
 lti#:#lti_con_key_type_jwk#:#URL (Json Web Token)###26 08 2024 new variable
@@ -11313,6 +11293,10 @@ lti#:#lti_con_prov_category_info#:#Category to filter entries when LTI Consumer 
 lti#:#lti_con_prov_custom_params#:#Custom Parameters for this specific Provider###07 02 2020 new variable
 lti#:#lti_con_prov_custom_params_info#:#Please enter them in the form param1=value1; param2=value2###07 02 2020 new variable
 lti#:#lti_con_prov_description#:#Description###07 02 2020 new variable
+lti#:#lti_con_prov_dyn_reg_params#:#Optional Parameters###04 12 2025 new variable
+lti#:#lti_con_prov_dyn_reg_params_info#:#Here, for example, references to target objects in the tool can be specified.###04 12 2025 new variable
+lti#:#lti_con_prov_dyn_reg_url#:#Registration URL of the Tool###04 12 2025 new variable
+lti#:#lti_con_prov_dyn_reg_url_info#:#Note: Not every tool supports dynamic registration.###04 12 2025 new variable
 lti#:#lti_con_prov_external_provider#:#External Provider###07 02 2020 new variable
 lti#:#lti_con_prov_external_provider_info#:#A hint will be shown to users when dealing with an external Provider. An external Provider is characterized by insufficient influence on the Provider by the operator of the ILIAS-installation. This is the case when there are no rights to delete.###07 02 2020 new variable
 lti#:#lti_con_prov_group_options#:#Options to group and filter Providers###07 02 2020 new variable
@@ -11378,13 +11362,16 @@ lti#:#lti_create_lti_user_role#:#Create recommended global role for LTI users###
 lti#:#lti_cron_title#:#Služba LTI Outcome Service
 lti#:#lti_cron_title_desc#:#Synchronizuje průběh učení uživatelů LTI se spotřebitelem LTI, pokud podporuje službu výstupu. Tato úloha cron je vyžadována pouze pro přenos aktualizací statusu po aktualizacích nastavení postupu výuky.
 lti#:#lti_custom_new#:#Create Own Provider Settings###07 02 2020 new variable
+lti#:#lti_deep_linking_not_available_for_admin_objects#:#Spotřebitelé vytvoření ve správě neumožňují výběr obsahu
 lti#:#lti_delete_consume_provider#:#Delete Provider###07 02 2020 new variable
 lti#:#lti_delete_consume_providers#:#Delete Providers###07 02 2020 new variable
 lti#:#lti_delete_provider#:#Delete Provider###07 02 2020 new variable
+lti#:#lti_dynamic_registration#:#Create Own Settings for Tool with Dynamic Registration (LTI 1.3)###04 12 2025
 lti#:#lti_edit_consumer#:#Upravit spotřebitele LTI
 lti#:#lti_exit#:#Ukončit relaci LTI
 lti#:#lti_exited#:#Relace LTI byla ukončena
 lti#:#lti_exited_info#:#Relace LTI byla úspěšně ukončena
+lti#:#lti_form_provider_content_selection#:#Výběr obsahu
 lti#:#lti_form_provider_create#:#Create Provider Settings###07 02 2020 new variable
 lti#:#lti_form_provider_edit#:#Edit Provider Settings###07 02 2020 new variable
 lti#:#lti_form_section_appearance#:#Options for launch###07 02 2020 new variable
@@ -11436,6 +11423,7 @@ lti#:#subtab_certificate#:#Certificate###07 02 2020 new variable
 lti#:#subtab_object_settings#:#Object Settings###07 02 2020 new variable
 lti#:#subtab_provider_settings#:#LTI Provider Settings###07 02 2020 new variable
 lti#:#tab_content#:#Content###07 02 2020 new variable
+lti#:#tab_grade_synchronization#:#Gradebook
 lti#:#tab_info#:#Info###07 02 2020 new variable
 lti#:#tab_scoring#:#Ranking###07 02 2020 new variable
 lti#:#tab_settings#:#Settings###07 02 2020 new variable
@@ -13971,6 +13959,35 @@ qpl#:#qpl_page_type_qfbg#:#General Feedback###29 07 2022 new variable
 qpl#:#qpl_page_type_qfbs#:#Special Feedback###29 07 2022 new variable
 qpl#:#qpl_page_type_qht#:#Hint###29 07 2022 new variable
 qpl#:#qpl_page_type_qpl#:#Question Page###29 07 2022 new variable
+qsts#:#answer_options#:#Možnosti odpovědi
+qsts#:#cloze_text#:#Doplňovaný text
+qsts#:#cloze_textgapcase_insensitive#:#Nerozlišuje velká/malá písmena
+qsts#:#cloze_textgapcase_sensitive#:#Rozlišuje velká/malá písmena
+qsts#:#cloze_textgaplevenshtein_of#:#Vzdálenost Levenshtein %s
+qsts#:#confirm_delete_questions#:#Jste si jist/a, že chcete smazat následující otázky?
+qsts#:#create_question#:#Vytvořit otázku
+qsts#:#gap#:#Mezera
+qsts#:#gaps#:#Gaps###29 10 2025 new variable
+qsts#:#insert_gap#:#Vložit rezervované místo
+qsts#:#min_auto_complete#:#Automatické dokončování
+qsts#:#msg_no_questions_selected#:#No questions were selected.###26 08 2024 new variable
+qsts#:#out_of_range#:#Mimo rozsah
+qsts#:#qst_lifecycle#:#Lifecycle###07 02 2020 new variable
+qsts#:#qst_lifecycle_draft#:#Draft###07 02 2020 new variable
+qsts#:#qst_lifecycle_filter_all#:#All Lifecycles###07 02 2020 new variable
+qsts#:#qst_lifecycle_final#:#Final###07 02 2020 new variable
+qsts#:#qst_lifecycle_outdated#:#Outdated###07 02 2020 new variable
+qsts#:#qst_lifecycle_rejected#:#Rejected###07 02 2020 new variable
+qsts#:#qst_lifecycle_review#:#To be Reviewed###07 02 2020 new variable
+qsts#:#qst_lifecycle_sharable#:#Sharable###07 02 2020 new variable
+qsts#:#questionlist#:#Seznam otázek
+qsts#:#questions#:#Otázky
+qsts#:#range_lower_limit#:#Spodní hranice
+qsts#:#range_upper_limit#:#Horní hranice
+qsts#:#reset_preview#:#Obnovit náhled
+qsts#:#select_gap#:#Vybrat mezeru
+qsts#:#shuffle_answers#:#Zamíchat odpovědi
+qsts#:#suggested_learning_content#:#Přidat doporučené řešení
 rating#:#rat_not_rated_yet#:#Dosud nehodnoceno
 rating#:#rat_nr_ratings#:#%s Hodnocení
 rating#:#rat_one_rating#:#Jedno hodnocení
@@ -15080,10 +15097,10 @@ rep#:#rep_export_limitation_info#:#Limits the number of objects for container ex
 rep#:#rep_export_limitation_limited#:#Limit Export###07 02 2020 new variable
 rep#:#rep_export_limitation_unlimited#:#Unlimited Export###26 08 2024 new variable
 rep#:#rep_failure_trashed_trash#:#You selected objects that cannot be restored to their original location, because their parent objects were deleted. Please uncheck the respective object in the table or select the Restore to New Location instead.###07 02 2020 new variable
-rep#:#rep_fav_intro1#:#Sie haben aktuell noch keine Favoriten ausgewählt. Um dies zu tun, müssen Sie zwei Schritte machen:###07 02 2020 new variable
-rep#:#rep_fav_intro2#:#Klicken Sie auf '%s' und wählen Sie aus dem verfügbaren Angebot ein Lernobjekt aus, z. B. ein Lernmodul oder ein Forum.###07 02 2020 new variable
-rep#:#rep_fav_intro3#:#Wenn Sie etwas gefunden haben, das Sie interessiert, können Sie es ganz einfach zu Ihren Favoriten hinzufügen. Wählen Sie beim gewünschten Objekt im <i>Aktionen</i>-Menü die Option "<i>Zu Favoriten hinzufügen</i>".###07 02 2020 new variable
-rep#:#rep_favourites#:#Favourites###29 07 2022 new variable
+rep#:#rep_fav_intro1#:#Zatím jste nevybrali žádné oblíbené položky. Chcete-li to provést, musíte provést dva kroky:
+rep#:#rep_fav_intro2#:#Klikněte na '%s' a vyberte si z dostupných možností studijní objekt, např. studijní modul nebo fórum.
+rep#:#rep_fav_intro3#:#Pokud najdete něco, co vás zajímá, můžete si to snadno přidat do oblíbených. U požadované položky vyberte v nabídce Akce možnost „Přidat do oblíbených“.
+rep#:#rep_favourites#:#Oblíbené
 rep#:#rep_favourites_info#:#Users can mark single repository items as favourites. Favourites lists can be activated and configured in the dashboard and menu settings.###29 07 2022 new variable
 rep#:#rep_input_not_empty#:#This field must not be empty, please provide a value.###29 10 2025 new variable
 rep#:#rep_intro#:#Vítejte v úložišti!
@@ -16620,7 +16637,6 @@ survey#:#questionblock#:#Blok otázek
 survey#:#questionblock_inserted#:#Blok otázek vložen
 survey#:#questionblocks#:#Bloky otázek
 survey#:#questionblocks_inserted#:#Bloky otázek vloženy
-survey#:#questions#:#Otázky
 survey#:#questions_inserted#:#Otázky vloženy
 survey#:#questions_removed#:#Otázky a/nebo bloky otázek odstraněny!
 survey#:#questiontype#:#Typ otázky
@@ -16921,6 +16937,7 @@ survey#:#svy_please_select_unused_codes#:#Please select at least one unused code
 survey#:#svy_print_hide_labels#:#Skrýt štítky
 survey#:#svy_print_show_labels#:#Zobrazit štítky
 survey#:#svy_privacy_info#:#Privacy###29 07 2022 new variable
+survey#:#svy_questions#:#Otázky
 survey#:#svy_rater#:#Rater###29 07 2022 new variable
 survey#:#svy_rater_see_app_info#:#The names of appraisees will be presented to raters to enable them evaluating the questions.###29 07 2022 new variable
 survey#:#svy_reminder_mail_template#:#Šablona pošty

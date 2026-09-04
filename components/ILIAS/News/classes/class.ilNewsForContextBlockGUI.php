@@ -70,6 +70,7 @@ class ilNewsForContextBlockGUI extends ilBlockGUI
         $this->help = $DIC["ilHelp"];
         $this->settings = $DIC->settings();
         $this->tabs = $DIC->tabs();
+        $this->logger = $DIC->logger()->news();
 
         $locator = $DIC->news()->internal();
         $this->std_request = $locator->gui()->standardRequest();

@@ -180,6 +180,14 @@ class ilContainerGUI extends ilObjectGUI implements ilDesktopItemHandling
         }
     }
 
+    protected function checkTrashAccess()
+    {
+        if (!in_array('ilAdministrationGUI', $this->ctrl->getCurrentClassPath())) {
+            $this->tpl->setOnScreenMessage('failure', $this->lng->txt('msg_no_perm_read'), true);
+            parent::_gotoRepositoryRoot();
+        }
+    }
+
     protected function getEditFormValues(): array
     {
         $values = parent::getEditFormValues();
@@ -1375,7 +1383,7 @@ class ilContainerGUI extends ilObjectGUI implements ilDesktopItemHandling
         }
 
         // log pasteObject call
-        $ilLog->write(__METHOD__ . ", cmd: " . $command);
+        $ilLog->info("cmd: " . $command);
 
         ////////////////////////////////////////////////////////
         // everything ok: now paste the objects to new location
@@ -1506,7 +1514,7 @@ class ilContainerGUI extends ilObjectGUI implements ilDesktopItemHandling
                     // END PATCH ChangeEvent: Record link event.
                 }
 
-                $ilLog->write(__METHOD__ . ', link finished');
+                $ilLog->info('link finished');
             }
 
             $links = [];
@@ -1710,7 +1718,7 @@ class ilContainerGUI extends ilObjectGUI implements ilDesktopItemHandling
         }
 
         // log pasteObject call
-        $ilLog->write("ilObjectGUI::pasteObject(), cmd: " . $this->clipboard->getCmd());
+        $ilLog->info("cmd: " . $this->clipboard->getCmd());
 
         ////////////////////////////////////////////////////////
         // everything ok: now paste the objects to new location
@@ -1735,7 +1743,7 @@ class ilContainerGUI extends ilObjectGUI implements ilDesktopItemHandling
             }
             $ilCtrl->redirectByClass("ilobjectcopygui", "saveTarget");
 
-            $ilLog->write("ilObjectGUI::pasteObject(), copy finished");
+            $ilLog->info("copy finished");
         }
         // END WebDAV: Support a Copy command in the repository
 
@@ -1801,7 +1809,7 @@ class ilContainerGUI extends ilObjectGUI implements ilDesktopItemHandling
                 // END PATCH ChangeEvent: Record link event.
             }
 
-            $ilLog->write("ilObjectGUI::pasteObject(), link finished");
+            $ilLog->info("link finished");
         } // END LINK
 
 
@@ -1836,8 +1844,7 @@ class ilContainerGUI extends ilObjectGUI implements ilDesktopItemHandling
 
         // function should not be called if clipboard is empty
         if (!$this->clipboard->hasEntries()) {
-            $message = sprintf('%s::clipboardObject(): Illegal access. Clipboard variable is empty!', get_class($this));
-            $ilLog->write($message, $ilLog->FATAL);
+            $ilLog->fatal('Illegal access. Clipboard variable is empty!');
             $ilErr->raiseError($this->lng->txt("permission_denied"), $ilErr->WARNING);
         }
 
@@ -2285,8 +2292,8 @@ class ilContainerGUI extends ilObjectGUI implements ilDesktopItemHandling
             $sort_inherit = new ilRadioOption();
             $sort_inherit->setTitle(
                 $this->lng->txt('sort_inherit_prefix') .
-                ' (' . ilContainerSortingSettings::sortModeToString(
-                    ilContainerSortingSettings::lookupSortModeFromParentContainer(
+                ' (' . $this->buildLabelForSortMode(
+                    ilContainerSortingSettings::lookupEffectiveSortMode(
                         $this->object->getId()
                     )
                 ) . ') '
@@ -2297,7 +2304,7 @@ class ilContainerGUI extends ilObjectGUI implements ilDesktopItemHandling
         }
         if (in_array(ilContainer::SORT_TITLE, $a_sorting_settings)) {
             $sort_title = new ilRadioOption(
-                $this->lng->txt('sorting_title_header'),
+                $this->buildLabelForSortMode(ilContainer::SORT_TITLE),
                 (string) ilContainer::SORT_TITLE
             );
             $sort_title->setInfo($this->lng->txt('sorting_info_title'));
@@ -2307,7 +2314,7 @@ class ilContainerGUI extends ilObjectGUI implements ilDesktopItemHandling
         }
         if (in_array(ilContainer::SORT_CREATION, $a_sorting_settings)) {
             $sort_activation = new ilRadioOption(
-                $this->lng->txt('sorting_creation_header'),
+                $this->buildLabelForSortMode(ilContainer::SORT_CREATION),
                 (string) ilContainer::SORT_CREATION
             );
             $sort_activation->setInfo($this->lng->txt('sorting_creation_info'));
@@ -2315,14 +2322,17 @@ class ilContainerGUI extends ilObjectGUI implements ilDesktopItemHandling
             $sort->addOption($sort_activation);
         }
         if (in_array(ilContainer::SORT_ACTIVATION, $a_sorting_settings)) {
-            $sort_activation = new ilRadioOption($this->lng->txt('crs_sort_activation'), (string) ilContainer::SORT_ACTIVATION);
+            $sort_activation = new ilRadioOption(
+                $this->buildLabelForSortMode(ilContainer::SORT_ACTIVATION),
+                (string) ilContainer::SORT_ACTIVATION
+            );
             $sort_activation->setInfo($this->lng->txt('crs_sort_timing_info'));
             $this->initSortingDirectionForm($settings, $sort_activation, 'activation');
             $sort->addOption($sort_activation);
         }
         if (in_array(ilContainer::SORT_MANUAL, $a_sorting_settings)) {
             $sort_manual = new ilRadioOption(
-                $this->lng->txt('sorting_manual_header'),
+                $this->buildLabelForSortMode(ilContainer::SORT_MANUAL),
                 (string) ilContainer::SORT_MANUAL
             );
             $sort_manual->setInfo($this->lng->txt('sorting_info_manual'));
@@ -2339,6 +2349,17 @@ class ilContainerGUI extends ilObjectGUI implements ilDesktopItemHandling
         $form->addItem($sort);
 
         return $form;
+    }
+
+    protected function buildLabelForSortMode(int $sort_mode): string
+    {
+        return match ($sort_mode) {
+            ilContainer::SORT_ACTIVATION => $this->lng->txt('crs_sort_activation'),
+            ilContainer::SORT_MANUAL => $this->lng->txt('sorting_manual_header'),
+            ilContainer::SORT_TITLE => $this->lng->txt('sorting_title_header'),
+            ilContainer::SORT_CREATION => $this->lng->txt('sorting_creation_header'),
+            default => '',
+        };
     }
 
     /**
@@ -2532,6 +2553,7 @@ class ilContainerGUI extends ilObjectGUI implements ilDesktopItemHandling
      */
     public function trashObject(): void
     {
+        $this->checkTrashAccess();
         $this->checkPermission("write");
         $tpl = $this->tpl;
 
@@ -2552,16 +2574,19 @@ class ilContainerGUI extends ilObjectGUI implements ilDesktopItemHandling
 
     public function trashApplyFilterObject(): void
     {
+        $this->checkTrashAccess();
         $this->trashHandleFilter(true, false);
     }
 
     public function trashResetFilterObject(): void
     {
+        $this->checkTrashAccess();
         $this->trashHandleFilter(false, true);
     }
 
     protected function trashHandleFilter(bool $action_apply, bool $action_reset): void
     {
+        $this->checkTrashAccess();
         $trash_table = new ilTrashTableGUI($this, 'trash', $this->object->getRefId());
         $trash_table->init();
         $trash_table->resetOffset();
@@ -2584,6 +2609,7 @@ class ilContainerGUI extends ilObjectGUI implements ilDesktopItemHandling
 
     protected function restoreToNewLocationObject(?ilPropertyFormGUI $form = null): void
     {
+        $this->checkTrashAccess();
         $this->tabs_gui->activateTab('trash');
 
         $ru = new ilRepositoryTrashGUI($this);
@@ -2595,6 +2621,7 @@ class ilContainerGUI extends ilObjectGUI implements ilDesktopItemHandling
      */
     public function undeleteObject(): void
     {
+        $this->checkTrashAccess();
         $ru = new ilRepositoryTrashGUI($this);
         $ru->restoreObjects(
             $this->requested_ref_id,
@@ -2605,6 +2632,7 @@ class ilContainerGUI extends ilObjectGUI implements ilDesktopItemHandling
 
     public function confirmRemoveFromSystemObject(): void
     {
+        $this->checkTrashAccess();
         $lng = $this->lng;
         $this->checkPermission("write");
         if (count($this->std_request->getTrashIds()) == 0) {

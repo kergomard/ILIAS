@@ -425,7 +425,6 @@ adve#:#adve_use_tiny_mce#:#Activar el editor TinyMCE para edición WYSIWYG
 assessment#:#activate_logging#:#Activar el registro de pruebas y evaluaciones
 assessment#:#activate_manual_scoring#:#Activar puntuación manual
 assessment#:#activate_manual_scoring_desc#:#Habilita la puntuación manual para todos los tipos de preguntas.
-assessment#:#addSuggestedSolution#:#Agregar contenido para recapitulación
 assessment#:#add_answers#:#Agregar respuestas
 assessment#:#add_circle#:#Agregar área circular
 assessment#:#add_gap#:#Agregar texto de hueco
@@ -450,7 +449,6 @@ assessment#:#answer_is_not_correct_but_positive#:#Has obtenido puntos por tu sol
 assessment#:#answer_is_right#:#Tu solución es correcta
 assessment#:#answer_is_wrong#:#Tu solución es incorrecta
 assessment#:#answer_of#:#Respuesta de
-assessment#:#answer_options#:#Opciones de respuesta:
 assessment#:#answer_question#:#Responder pregunta
 assessment#:#answer_text#:#Texto de la respuesta
 assessment#:#answer_types#:#Editor de respuestas
@@ -504,7 +502,6 @@ assessment#:#ass_completion_by_submission#:#Completado por envío
 assessment#:#ass_completion_by_submission_info#:#Si está habilitado, la entrega de al menos un archivo provoca la finalización de esta pregunta otorgando la puntuación máxima para esta pregunta. La puntuación puede modificarse manualmente más tarde. Cambiar esta configuración no afecta a las soluciones ya enviadas.
 assessment#:#ass_create_export_file_with_results#:#incl. Resultados de participantes
 assessment#:#ass_create_export_test_archive#:#como archivo comprimido
-assessment#:#ass_create_question#:#Crear pregunta
 assessment#:#ass_imap_hint#:#Sugerencia que se mostrará como información sobre herramientas
 assessment#:#ass_imap_map_file_not_readable#:#No se pudo leer el mapa de imagen subido.
 assessment#:#ass_imap_no_map_found#:#No se pudo encontrar ningún formulario en el mapa de imagen subido.
@@ -574,10 +571,6 @@ assessment#:#cloze_answer_text_info#:#Los espacios que precedan o sigan al texto
 assessment#:#cloze_fixed_textlength#:#Longitud del campo de texto
 assessment#:#cloze_fixed_textlength_description#:#Si introduce un valor, todos los campos de hueco de texto que no proporcionen una limitación propia de caracteres, así como todos los campos de hueco numéricos, se crearán con una longitud fija de este valor, por lo que no será posible introducir más caracteres de los permitidos. Tenga en cuenta que para los huecos numéricos el separador decimal se cuenta como un carácter normal.
 assessment#:#cloze_gap_size_info#:#Si introduce un valor mayor que 0, este campo de texto del hueco se creará con la longitud fija de ese valor. Si no introduce un valor, el campo de texto del hueco se creará con el valor de la longitud fija global.
-assessment#:#cloze_text#:#Texto Cloze
-assessment#:#cloze_textgap_case_insensitive#:#Sin distinción de mayúsculas/minúsculas
-assessment#:#cloze_textgap_case_sensitive#:#Con distinción de mayúsculas/minúsculas
-assessment#:#cloze_textgap_levenshtein_of#:#Distancia de Levenshtein de %s
 assessment#:#code#:#Código
 assessment#:#codebase#:#Base de código
 assessment#:#concatenation#:#Concatenación
@@ -761,9 +754,7 @@ assessment#:#fq_formula_desc#:#Puede introducir variables predefinidas ($v1 a $v
 assessment#:#fq_no_restriction_info#:#Se aceptan tanto decimales como fracciones.
 assessment#:#fq_precision_info#:#Introduzca el número de decimales deseados.
 assessment#:#fq_question_desc#:#Puede definir variables insertando $v1, $v2 ... $vn, resultados insertando $r1, $r2 ... $rn en la posición deseada del texto de la pregunta. Haga clic en el botón ‘Analizar pregunta’ para crear formularios de edición para variables y resultados.
-assessment#:#gap#:#Hueco
 assessment#:#gap_combination#:#Combinación de huecos
-assessment#:#gaps#:#Huecos
 assessment#:#glossary_term#:#Término del glosario
 assessment#:#goto_first_question#:#Mostrar la primera pregunta
 assessment#:#grading_mark_msg#:#Su calificación es: &quot;[mark]&quot;
@@ -781,7 +772,6 @@ assessment#:#info_answer_type_change#:#La pregunta ya contiene imágenes. No pue
 assessment#:#info_text_upload#:#Seleccione un archivo de texto de respuesta (UTF-8) para subir.
 assessment#:#insert_after#:#Insertar después
 assessment#:#insert_before#:#Insertar antes
-assessment#:#insert_gap#:#Insertar hueco
 assessment#:#interaction_type#:#Tipo de interacción
 assessment#:#internal_links#:#Enlaces internos
 assessment#:#intprecision#:#Divisible por
@@ -893,7 +883,6 @@ assessment#:#logs_wrong_test_password_provided#:#El participante introdujo una c
 assessment#:#longmenu#:#Menú largo
 assessment#:#longmenu_answeroptions_differ#:#Esta pregunta no funciona correctamente, ya que no hay la misma cantidad de huecos en el texto que en las opciones de corrección.
 assessment#:#longmenu_text#:#Texto del menú largo
-assessment#:#mainbar_button_label_questionlist#:#Lista de preguntas
 assessment#:#maintenance#:#Mantenimiento
 assessment#:#manscoring#:#Calificación manual
 assessment#:#manscoring_done#:#Participantes calificados
@@ -920,7 +909,6 @@ assessment#:#maximum_nr_of_tries_reached#:#Ha alcanzado el número máximo de in
 assessment#:#maximum_points#:#Puntos máximos disponibles
 assessment#:#maxsize#:#Tamaño máximo de archivo subido
 assessment#:#maxsize_info#:#Introduzca el tamaño máximo en bytes que se permitirá para las cargas de archivos. Si deja este campo vacío, se elegirá en su lugar el tamaño máximo de esta instalación.
-assessment#:#min_auto_complete#:#Autocompletar
 assessment#:#min_ip_label#:#IP más baja con acceso
 assessment#:#min_percentage_ne_0#:#Una de sus categorías de calificación debe comenzar en el nivel ‘Puntuación mínima requerida (en %)’ de 0%. Su sistema de calificaciones no se ha guardado.
 assessment#:#misc#:#Opciones varias
@@ -929,7 +917,6 @@ assessment#:#mode_onebyone#:#One by One
 assessment#:#mode_question#:#Question oriented
 assessment#:#mode_user#:#Participant oriented
 assessment#:#msg_circle_added#:#Círculo añadido
-assessment#:#msg_no_questions_selected#:#No se seleccionaron preguntas.
 assessment#:#msg_number_of_terms_too_low#:#El número de términos debe ser mayor o igual que el número de definiciones.
 assessment#:#msg_poly_added#:#Polígono añadido
 assessment#:#msg_questions_moved#:#Pregunta(s) movida(s)
@@ -988,7 +975,6 @@ assessment#:#order#:#Orden
 assessment#:#ordering_answer_sequence_info#:#La secuencia de respuestas que defina aquí se considerará la secuencia de solución correcta.
 assessment#:#ordertext#:#Texto para ordenar
 assessment#:#ordertext_info#:#Por favor, introduzca el texto que debe ordenarse horizontalmente. El texto para ordenar será separado por los espacios en blanco del texto. Si necesita una separación diferente, puede usar el separador %s para separar sus unidades de texto.
-assessment#:#out_of_range#:#Fuera de rango
 assessment#:#output#:#Salida
 assessment#:#output_mode#:#Modo de salida
 assessment#:#parseQuestion#:#Analizar pregunta
@@ -1057,7 +1043,6 @@ assessment#:#qpl_bulk_save_add#:#Agregar
 assessment#:#qpl_bulk_save_overwrite#:#Sobrescribir
 assessment#:#qpl_bulkedit_success#:#Modificaciones guardadas.
 assessment#:#qpl_cancel_skill_assigns_update#:#Cancelar
-assessment#:#qpl_confirm_delete_questions#:#¿Está seguro de que desea eliminar las siguientes preguntas?
 assessment#:#qpl_copy_insert_clipboard#:#La(s) pregunta(s) seleccionada(s) se han copiado al portapapeles
 assessment#:#qpl_copy_select_none#:#Por favor seleccione al menos una pregunta para copiarla al portapapeles
 assessment#:#qpl_delete_rbac_error#:#¡No tiene permisos para eliminar esta pregunta!
@@ -1110,7 +1095,6 @@ assessment#:#qpl_qst_skl_usg_skill_col#:#Competencia
 assessment#:#qpl_qst_skl_usg_sklpnt_col#:#Suma total de puntos de competencia por competencia
 assessment#:#qpl_question_is_in_use#:#La pregunta que está a punto de editar existe en %s prueba(s). Si cambia esta pregunta, NO cambiará la(s) pregunta(s) en la(s) prueba(s), ¡porque el sistema crea una copia de una pregunta cuando se inserta en una prueba!
 assessment#:#qpl_questions_deleted#:#Pregunta(s) eliminada(s).
-assessment#:#qpl_reset_preview#:#Restablecer vista previa
 assessment#:#qpl_save_skill_assigns_update#:#Guardar asignaciones de competencias
 assessment#:#qpl_settings_availability#:#Disponibilidad
 assessment#:#qpl_settings_general_form_prop_show_tax_desc#:#Las taxonomías existentes en este banco de preguntas se ofrecen para filtrar preguntas.
@@ -1140,14 +1124,6 @@ assessment#:#qst_essay_chars_remaining#:#Caracteres restantes:
 assessment#:#qst_essay_wordcounter_enabled#:#Contar palabras
 assessment#:#qst_essay_wordcounter_enabled_info#:#Se cuentan las palabras introducidas. El número de palabras escritas se muestra a los participantes debajo del campo de entrada de texto.
 assessment#:#qst_essay_written_words#:#Número de palabras introducidas:
-assessment#:#qst_lifecycle#:#Ciclo de vida
-assessment#:#qst_lifecycle_draft#:#Borrador
-assessment#:#qst_lifecycle_filter_all#:#Todos los ciclos de vida
-assessment#:#qst_lifecycle_final#:#Final
-assessment#:#qst_lifecycle_outdated#:#Obsoleto
-assessment#:#qst_lifecycle_rejected#:#Rechazado
-assessment#:#qst_lifecycle_review#:#Por revisar
-assessment#:#qst_lifecycle_sharable#:#Compartible
 assessment#:#qst_nested_nested_answers_off#:#Sin sangrías, solo orden
 assessment#:#qst_nested_nested_answers_on#:#Usar sangrías en las respuestas
 assessment#:#qst_nr_of_tries#:#Número de intentos
@@ -1172,17 +1148,14 @@ assessment#:#question_type#:#Tipo de pregunta
 assessment#:#questionlist_cannot_be_altered#:#La lista de preguntas no puede modificarse porque la prueba ya contiene conjuntos de datos de participantes.
 assessment#:#questionpool_not_entered#:#¡Por favor ingrese un nombre para el banco de preguntas!
 assessment#:#questionpool_not_selected#:#¡Por favor seleccione un banco de preguntas!
-assessment#:#questions#:#Preguntas
 assessment#:#questions_from#:#preguntas de
 assessment#:#questions_per_page_view#:#Vista de página
 assessment#:#random_accept_sample#:#Aceptar muestra
 assessment#:#random_another_sample#:#Obtener otra muestra
 assessment#:#random_selection#:#Selección aleatoria
 assessment#:#range#:#Rango
-assessment#:#range_lower_limit#:#Límite inferior
 assessment#:#range_max#:#Rango (máximo)
 assessment#:#range_min#:#Rango (mínimo)
-assessment#:#range_upper_limit#:#Límite superior
 assessment#:#rated_sign#:#Signo
 assessment#:#rated_unit#:#Unidad
 assessment#:#rated_value#:#Valor
@@ -1258,7 +1231,6 @@ assessment#:#search_roles#:#Buscar Roles
 assessment#:#search_term#:#Término de búsqueda
 assessment#:#select_at_least_one_feedback_type_and_trigger#:#Por favor, seleccione al menos un tipo de feedback y un desencadenador.
 assessment#:#select_at_least_one_lock_answer_type#:#Por favor, seleccione al menos un tipo de bloqueo de respuesta.
-assessment#:#select_gap#:#Seleccionar hueco
 assessment#:#select_max_one_item#:#Por favor, seleccione solo un elemento
 assessment#:#select_one_user#:#Por favor, seleccione al menos un usuario.
 assessment#:#select_question#:#Seleccionar una pregunta
@@ -1285,7 +1257,6 @@ assessment#:#show_old_introduction#:#Mostrar introducción antigua
 assessment#:#show_pass_overview#:#Mostrar resumen de pases marcados
 assessment#:#show_results#:#Mostrar resultados
 assessment#:#show_user_answers#:#Mostrar respuestas marcadas del usuario
-assessment#:#shuffle_answers#:#Barajar respuestas
 assessment#:#skip_question#:#No responder y pasar a la siguiente
 assessment#:#solution#:#Solución
 assessment#:#solutionText#:#Texto
@@ -1484,12 +1455,12 @@ assessment#:#tst_exam_modal_message_conditions#:#Por favor, confirme las condici
 assessment#:#tst_exam_modal_message_conditions_and_password#:#Por favor, confirme las condiciones e introduzca la contraseña para iniciar la prueba.
 assessment#:#tst_exam_modal_message_password#:#Por favor, introduzca la contraseña para iniciar la prueba.
 assessment#:#tst_exam_not_assigned_participant_disclaimer#:#No puede iniciar esta prueba, ya que no está asignado como participante.
-assessment#:#tst_exam_password#:#Contraseña del examen
+assessment#:#tst_exam_password#:#Contraseña de la prueba
 assessment#:#tst_exam_password_invalid_message#:#¡La contraseña proporcionada no es válida!
 assessment#:#tst_exam_password_label#:#Contraseña
 assessment#:#tst_exam_required_fields_not_filled_message#:#¡Debe completar todos los campos obligatorios!
 assessment#:#tst_exam_start#:#Iniciar prueba
-assessment#:#tst_exam_use_previous_answers#:#Respuestas anteriores
+assessment#:#tst_exam_use_previous_answers#:#Usar respuestas anteriores
 assessment#:#tst_exam_use_previous_answers_label#:#Si está habilitado, las respuestas de pruebas anteriores se rellenarán automáticamente.
 assessment#:#tst_extratime_added#:#El tiempo de trabajo del participante se ha incrementado en %s minutos.
 assessment#:#tst_extratime_info#:#Si desea añadir tiempo de trabajo varias veces para el mismo participante, por favor ingrese la cantidad total de tiempo que desea añadir.
@@ -1509,7 +1480,7 @@ assessment#:#tst_final_information#:#Finalizar la prueba
 assessment#:#tst_finish_confirm_button#:#Sí, quiero finalizar la prueba
 assessment#:#tst_finish_confirm_cancel_button#:#No, volver a la pregunta anterior
 assessment#:#tst_finish_confirmation_question#:#Va a finalizar esta prueba. No podrá volver a acceder a este intento de prueba para cambiar sus respuestas. ¿Realmente desea finalizar la prueba?
-assessment#:#tst_finish_confirmation_question_no_attempts_left#:#Va a finalizar esta prueba y alcanzará el número máximo de intentos permitidos. No podrá volver a entrar en esta prueba para cambiar sus respuestas. ¿Realmente desea finalizar la prueba?
+assessment#:#tst_finish_confirmation_question_no_attempts_left#:#Va a finalizar esta prueba y alcanzará el número máximo de intentos permitidos. No podrá volver a acceder a esta prueba para cambiar sus respuestas. ¿Realmente desea finalizarla?
 assessment#:#tst_finished#:#Finalizado
 assessment#:#tst_form_dynamic_question_set_config#:#Continuar selección de preguntas
 assessment#:#tst_gap_analysis#:#Análisis de brechas
@@ -1594,9 +1565,9 @@ assessment#:#tst_introduction_text#:#Mensaje introductorio
 assessment#:#tst_invited_nobody#:#No se han añadido usuarios, grupos ni roles como participantes fijos del test
 assessment#:#tst_invited_selected_users#:#Los usuarios seleccionados se han añadido como participantes fijos del test
 assessment#:#tst_launcher_button_label_passes_limit_reached#:#Has alcanzado el límite de intentos posibles del test
-assessment#:#tst_launcher_status_message_conditions#:#Se te pedirá que aceptes las condiciones del examen cuando inicies el test.
-assessment#:#tst_launcher_status_message_conditions_and_password#:#Se te pedirá la contraseña y que aceptes las condiciones del examen cuando inicies el test.
-assessment#:#tst_launcher_status_message_password#:#Se te pedirá la contraseña cuando inicies el test.
+assessment#:#tst_launcher_status_message_conditions#:#Se le pedirá que acepte las condiciones del examen cuando inicie la prueba.
+assessment#:#tst_launcher_status_message_conditions_and_password#:#Se le pedirá la contraseña y que acepte las condiciones del examen cuando inicie la prueba.
+assessment#:#tst_launcher_status_message_password#:#Se le pedirá la contraseña cuando inicie la prueba.
 assessment#:#tst_level#:#Nivel de competencia
 assessment#:#tst_limit_nr_of_tries#:#Limitar el número de intentos del test
 assessment#:#tst_link_only_unassigned#:#Has seleccionado al menos una pregunta que ya está vinculada a un banco de preguntas. Solo se pueden añadir preguntas no asignadas a un banco de preguntas.
@@ -2507,7 +2478,7 @@ blog#:#blog_no_keywords#:#Aún no se han introducido palabras clave.
 blog#:#blog_notification_activated#:#Notificaciones activadas
 blog#:#blog_notification_deactivated#:#Notificaciones desactivadas
 blog#:#blog_notification_toggle_off#:#Desactivar notificaciones
-blog#:#blog_notification_toggle_on#:#Activar notificación
+blog#:#blog_notification_toggle_on#:#Activar notificaciones
 blog#:#blog_number_users_notes_or_comments#:#Número de usuarios que han adjuntado notas o comentarios a esta entrada
 blog#:#blog_posting#:#Entrada de blog
 blog#:#blog_posting_deleted#:#Entrada eliminada con éxito.
@@ -3600,7 +3571,7 @@ common#:#auth_soap_namespace#:#Espacio de nombres (Namespace)
 common#:#auth_soap_namespace_desc#:#Tal como se define en WSDL. Debe especificarse si se utiliza el estilo SOAP de .NET.
 common#:#auth_soap_port_desc#:#Ej. 8080 si el URI completo del servidor SOAP es http://auth.tuservidor.com:8080/dir/server.php
 common#:#auth_soap_server_desc#:#Ej. auth.tuservidor.com si el URI completo del servidor SOAP es http://auth.tuservidor.com:8080/dir/server.php
-common#:#auth_soap_settings_saved#:#Ajustes de autenticación SOAP guardados
+common#:#auth_soap_settings_saved#:#Ajustes de autenticación SOAP guardados.
 common#:#auth_soap_uri_desc#:#URI local, ej. dir/server.php si el URI completo del servidor SOAP es http://auth.tuservidor.com:8080/dir/server.php
 common#:#auth_soap_use_dotnet#:#Usar estilo SOAP de .NET
 common#:#auth_soap_use_https#:#Usar HTTPS
@@ -4185,8 +4156,8 @@ common#:#forums_anonymized#:#Foro anonimizado
 common#:#forums_anonymous#:#anónimo
 common#:#forums_articles#:#Mensajes
 common#:#forums_closed#:#cerrado
-common#:#forums_disable_forum_notification#:#Desactivar notificación para este foro
-common#:#forums_enable_forum_notification#:#Activar notificación para este foro
+common#:#forums_disable_forum_notification#:#Desactivar notificaciones para este foro
+common#:#forums_enable_forum_notification#:#Activar notificaciones para este foro
 common#:#forums_forum_notification_enabled#:#Se le notificará sobre nuevos mensajes en este foro.
 common#:#forums_last_post#:#Último mensaje
 common#:#forums_last_posting_asc#:#Último mensaje ascendente
@@ -4774,7 +4745,7 @@ common#:#msg_no_perm_paste#:#No tiene permiso para pegar los siguientes objeto(s
 common#:#msg_no_perm_paste_object_in_folder#:#No tiene permiso para pegar el objeto %s en la carpeta %s.
 common#:#msg_no_perm_perm#:#No tiene permiso para cambiar los ajustes de permisos.
 common#:#msg_no_perm_read#:#No tiene permiso para acceder a este elemento.
-common#:#msg_no_perm_read_item#:#No tiene permiso para acceder al elemento '%s'.
+common#:#msg_no_perm_read_item#:#No tiene permiso para acceder al elemento.
 common#:#msg_no_perm_read_lm#:#No tiene permiso para leer este módulo de aprendizaje.
 common#:#msg_no_perm_view_roles_of_user#:#No tiene permiso para ver la asignación de roles de este usuario
 common#:#msg_no_perm_write#:#No tiene permiso para editar los ajustes.
@@ -5805,15 +5776,15 @@ common#:#trash#:#Papelera
 common#:#tree#:#Árbol
 common#:#tree_frame#:#Marco del árbol
 common#:#treeview#:#Mostrar barra lateral
-common#:#tst#:#Test
-common#:#tst_add#:#Añadir test
+common#:#tst#:#Prueba
+common#:#tst_add#:#Añadir prueba
 common#:#tst_edit_questions#:#Editar preguntas
 common#:#tst_history_read#:#Ver historial
-common#:#tst_new#:#Nuevo test
-common#:#tst_results#:#Resultados del examen
+common#:#tst_new#:#Nueva prueba
+common#:#tst_results#:#Resultados de la prueba
 common#:#tst_run#:#Ejecución
-common#:#tst_user_not_invited#:#No está autorizado para realizar este examen.
-common#:#tst_warning_test_not_complete#:#¡El examen no está completo!
+common#:#tst_user_not_invited#:#No está autorizado para realizar esta prueba.
+common#:#tst_warning_test_not_complete#:#¡La prueba no está completa!
 common#:#tutors#:#Tutores
 common#:#txt_registered#:#Se ha registrado correctamente en ILIAS. Por favor, haga clic en el botón de abajo para iniciar sesión con su cuenta de usuario.
 common#:#txt_registered_passw_gen#:#Se ha registrado correctamente en ILIAS. En breve recibirá un correo electrónico con su contraseña generada.
@@ -7856,7 +7827,7 @@ crs#:#crs_select_archive_language#:#Por favor, seleccione un idioma para el arch
 crs#:#crs_select_one_archive#:#Por favor, seleccione un archivo
 crs#:#crs_select_starter#:#Seleccionar objeto de inicio
 crs#:#crs_settings#:#Configuración del curso
-crs#:#crs_settings_saved#:#Configuración guardada
+crs#:#crs_settings_saved#:#Configuración guardada.
 crs#:#crs_shorten_breadcrumb#:#Ruta de navegación
 crs#:#crs_show_all_obj#:#Expandir todo
 crs#:#crs_show_member_export#:#Lista de participantes
@@ -8039,7 +8010,7 @@ crs#:#event_title#:#Título
 crs#:#event_tutor_data#:#Presentación por
 crs#:#event_unregister#:#Darse de baja
 crs#:#event_unregistered#:#Se ha cancelado su inscripción.
-crs#:#event_updated#:#Configuración guardada
+crs#:#event_updated#:#Configuración guardada.
 crs#:#event_user_selection#:#Selección de usuarios
 crs#:#event_user_selection_include_filter#:#Incluir "%1$s"
 crs#:#event_user_selection_include_requests#:#Incluir a todos los usuarios de la lista "Solicitudes de participación"
@@ -9843,7 +9814,7 @@ file#:#copyright_custom#:#Personalizado
 file#:#copyright_custom_info#:#Elija un copyright personalizado que se aplicará a todos los archivos descomprimidos de este archivo.
 file#:#copyright_inherited#:#Heredado
 file#:#copyright_inherited_info#:#Aplicar el copyright del archivo zip a sus archivos descomprimidos. <br \>Copyright del archivo zip: %s.
-file#:#could_not_create_file_objs#:#Se produjo un error al crear sus objetos de archivo. Por favor, póngase en contacto con los administradores de esta plataforma.
+file#:#could_not_create_file_objs#:#Se produjo un error al crear sus objetos de archivo. Póngase en contacto con el servicio de asistencia técnica de esta instalación.
 file#:#de_activate_icon#:#Activar / Desactivar
 file#:#download_ascii_filename#:#Permitir solo caracteres ASCII en nombres de archivos descargados
 file#:#download_ascii_filename_info#:#Los archivos descargados solo deben tener caracteres ASCII en su nombre de archivo. Desactivar para utilizar todos los caracteres.
@@ -11112,7 +11083,7 @@ log#:#log_level_off#:#Desactivado
 log#:#log_level_warning#:#ADVERTENCIA
 log#:#log_log_level#:#Nivel de registro
 log#:#log_memory#:#Registrar uso de memoria
-logging#:#error_settings_saved#:#Ajustes guardados
+logging#:#error_settings_saved#:#Configuración guardada.
 logging#:#frm_clear_older_then#:#Eliminar archivos anteriores a
 logging#:#frm_clear_older_then_info#:#Por favor, introduzca la duración en días.
 logging#:#log_error_file_cleanup_info#:#Elimina archivos de registro de errores antiguos o huérfanos.
@@ -11242,6 +11213,10 @@ lti#:#conf_privacy_ident_il_uuid_ext_account#:#ID de usuario externo combinado c
 lti#:#conf_privacy_ident_il_uuid_ext_account_info#:#Esto es idéntico para cada llamada, pero puede permitir una conclusión directa sobre el usuario.
 lti#:#conf_privacy_ident_il_uuid_login#:#Nombre de usuario de ILIAS combinado con un ID de plataforma ILIAS único con formato de dirección de correo electrónico
 lti#:#conf_privacy_ident_il_uuid_login_info#:#Envía el nombre de usuario. Esto es idéntico para cada llamada, pero puede permitir una conclusión directa sobre el usuario de ILIAS.
+lti#:#conf_privacy_ident_il_uuid_random#:#ID aleatorio combinado con un ID de plataforma ILIAS único con formato de dirección de correo electrónico
+lti#:#conf_privacy_ident_il_uuid_random_info#:#Para cada objeto ILIAS y usuario de ILIAS se genera un ID aleatorio que permanece idéntico para cada llamada. Las conclusiones sobre un usuario son muy limitadas porque es prácticamente imposible crear perfiles de usuario a través de los objetos.
+lti#:#conf_privacy_ident_il_uuid_sha256url#:#Hash combinado con el dominio de ILIAS con formato de dirección de correo electrónico.
+lti#:#conf_privacy_ident_il_uuid_sha256url_info#:#Esto es idéntico para cada llamada, con un máximo de 80 caracteres, significativamente más corto que la variante con el ID de la plataforma ILIAS y permite solo conclusiones muy limitadas sobre el usuario de ILIAS.
 lti#:#conf_privacy_ident_il_uuid_user_id#:#ID de usuario de ILIAS combinado con un ID de plataforma ILIAS único con formato de dirección de correo electrónico
 lti#:#conf_privacy_ident_il_uuid_user_id_info#:#Envía el ID de usuario numérico interno. Esto es idéntico para cada llamada, pero puede permitir conclusiones sobre el usuario de ILIAS.
 lti#:#conf_privacy_ident_info#:#El estándar es frecuentemente la dirección de correo electrónico. El ID único de la plataforma ILIAS es:
@@ -11327,13 +11302,16 @@ lti#:#launched#:#El recurso ya fue lanzado.
 lti#:#learning_progress_options#:#Opciones para el Progreso de Aprendizaje
 lti#:#lm_only_one_download_per_type#:#Solo se puede publicar un archivo por tipo (XML, HTML, SCORM).
 lti#:#lti13_hints#:#Si la herramienta se creó sin registro dinámico, se deben introducir los siguientes datos para que la herramienta funcione.
+lti#:#lti_13_authentication_url#:#URL de solicitud de autenticación
 lti#:#lti_13_client_id#:#ID de cliente (Client-ID)
 lti#:#lti_13_deployment_id#:#ID de despliegue (Deployment-ID)
+lti#:#lti_13_keyset_url#:#URL de conjunto de claves públicas
 lti#:#lti_13_platform_id#:#ID de plataforma (Platform-ID)
 lti#:#lti_13_step1#:#Paso 1
 lti#:#lti_13_step1_info#:#Para la plataforma iniciadora (consumidor), introduzca la siguiente dirección para la URL de lanzamiento, URL de inicio de sesión, URI de redirección y URL de registro:
 lti#:#lti_13_step2#:#Paso 2
 lti#:#lti_13_step2_info#:#Recibirá información de la plataforma iniciadora (Consumidor), que deberá introducir en los siguientes campos. Después de guardar, las funcionalidades de LTI 1.3 estarán disponibles.
+lti#:#lti_13_token_url#:#URL de token de acceso
 lti#:#lti_action_accept_provider_as_global#:#Aceptar proveedor como proveedor global para todos los usuarios
 lti#:#lti_action_accept_providers_as_global#:#Aceptar proveedores como globales
 lti#:#lti_action_delete_providers#:#Eliminar proveedores
@@ -11347,6 +11325,8 @@ lti#:#lti_at_least_one_prov_has_usages#:#Al menos un proveedor no pudo ser elimi
 lti#:#lti_auth_failed_invalid_key#:#Error de autenticación, no se proporcionó una clave de consumidor válida.
 lti#:#lti_con_content_item#:#Soporte para Deep Linking
 lti#:#lti_con_content_item_url#:#URL de Contenido
+lti#:#lti_con_grade_synchronization#:#Assignment and Grade Services
+lti#:#lti_con_grade_synchronization_info#:#La herramienta LTI debe ofrecer 'Assignment and Grade Services'.
 lti#:#lti_con_initiate_login_url#:#URL de Inicio de Sesión
 lti#:#lti_con_key_type#:#Tipo de Clave Pública
 lti#:#lti_con_key_type_jwk#:#URL (Json Web Token)
@@ -11366,6 +11346,10 @@ lti#:#lti_con_prov_category_info#:#Categoría para filtrar entradas al crear el 
 lti#:#lti_con_prov_custom_params#:#Parámetros Personalizados para este Proveedor específico
 lti#:#lti_con_prov_custom_params_info#:#Por favor, introdúzcalos en el formato param1=valor1; param2=valor2
 lti#:#lti_con_prov_description#:#Descripción
+lti#:#lti_con_prov_dyn_reg_params#:#Parámetros Opcionales
+lti#:#lti_con_prov_dyn_reg_params_info#:#Aquí se pueden especificar, por ejemplo, referencias a objetos de destino en la herramienta.
+lti#:#lti_con_prov_dyn_reg_url#:#URL de Registro de la Herramienta
+lti#:#lti_con_prov_dyn_reg_url_info#:#Nota: No todas las herramientas admiten el registro dinámico.
 lti#:#lti_con_prov_external_provider#:#Proveedor externo
 lti#:#lti_con_prov_external_provider_info#:#Se mostrará un aviso a los usuarios cuando se trate de un proveedor externo. Un proveedor externo se caracteriza por la insuficiente influencia sobre el proveedor por parte del operador de la instalación de ILIAS. Este es el caso cuando no existen derechos de eliminación.
 lti#:#lti_con_prov_group_options#:#Opciones para agrupar y filtrar proveedores
@@ -11431,13 +11415,16 @@ lti#:#lti_create_lti_user_role#:#Crear el rol global recomendado para usuarios L
 lti#:#lti_cron_title#:#Servicio de Resultados LTI (Outcome Service)
 lti#:#lti_cron_title_desc#:#Sincroniza el progreso de aprendizaje de los usuarios de LTI con el consumidor de LTI, si este es compatible con el servicio de resultados. Esta tarea programada (cron job) sólo es necesaria para transferir actualizaciones de estado tras la actualización de la configuración del progreso de aprendizaje.
 lti#:#lti_custom_new#:#Crear ajustes de proveedor propios
+lti#:#lti_deep_linking_not_available_for_admin_objects#:#Los Consumidores creados desde Administración no permiten la selección de contenido
 lti#:#lti_delete_consume_provider#:#Eliminar Proveedor
 lti#:#lti_delete_consume_providers#:#Eliminar Proveedores
 lti#:#lti_delete_provider#:#Eliminar Proveedor
+lti#:#lti_dynamic_registration#:#Crear ajustes propios para herramienta con registro dinámico (LTI 1.3)
 lti#:#lti_edit_consumer#:#Editar Consumidor LTI
 lti#:#lti_exit#:#Cerrar sesión LTI
 lti#:#lti_exited#:#Sesión LTI cerrada
 lti#:#lti_exited_info#:#Sesión LTI cerrada con éxito
+lti#:#lti_form_provider_content_selection#:#Selección de contenido
 lti#:#lti_form_provider_create#:#Crear configuración de proveedor
 lti#:#lti_form_provider_edit#:#Editar configuración de proveedor
 lti#:#lti_form_section_appearance#:#Opciones de lanzamiento
@@ -11489,6 +11476,7 @@ lti#:#subtab_certificate#:#Certificado
 lti#:#subtab_object_settings#:#Configuración del objeto
 lti#:#subtab_provider_settings#:#Configuración del proveedor LTI
 lti#:#tab_content#:#Contenido
+lti#:#tab_grade_synchronization#:#Gradebook
 lti#:#tab_info#:#Información
 lti#:#tab_scoring#:#Ranking
 lti#:#tab_settings#:#Configuración
@@ -14036,6 +14024,35 @@ qpl#:#qpl_page_type_qfbg#:#Feedback general
 qpl#:#qpl_page_type_qfbs#:#Feedback especial
 qpl#:#qpl_page_type_qht#:#Sugerencia
 qpl#:#qpl_page_type_qpl#:#Página de pregunta
+qsts#:#answer_options#:#Opciones de respuesta
+qsts#:#cloze_text#:#Texto Cloze
+qsts#:#cloze_textgapcase_insensitive#:#Sin distinción de mayúsculas/minúsculas
+qsts#:#cloze_textgapcase_sensitive#:#Con distinción de mayúsculas/minúsculas
+qsts#:#cloze_textgaplevenshtein_of#:#Distancia de Levenshtein de %s
+qsts#:#confirm_delete_questions#:#¿Está seguro de que desea eliminar las siguientes preguntas?
+qsts#:#create_question#:#Crear pregunta
+qsts#:#gap#:#Hueco
+qsts#:#gaps#:#Huecos
+qsts#:#insert_gap#:#Insertar hueco
+qsts#:#min_auto_complete#:#Autocompletar
+qsts#:#msg_no_questions_selected#:#No se seleccionaron preguntas.
+qsts#:#out_of_range#:#Fuera de rango
+qsts#:#qst_lifecycle#:#Ciclo de vida
+qsts#:#qst_lifecycle_draft#:#Borrador
+qsts#:#qst_lifecycle_filter_all#:#Todos los ciclos de vida
+qsts#:#qst_lifecycle_final#:#Final
+qsts#:#qst_lifecycle_outdated#:#Obsoleto
+qsts#:#qst_lifecycle_rejected#:#Rechazado
+qsts#:#qst_lifecycle_review#:#Por revisar
+qsts#:#qst_lifecycle_sharable#:#Compartible
+qsts#:#questionlist#:#Lista de preguntas
+qsts#:#questions#:#Preguntas
+qsts#:#range_lower_limit#:#Límite inferior
+qsts#:#range_upper_limit#:#Límite superior
+qsts#:#reset_preview#:#Restablecer vista previa
+qsts#:#select_gap#:#Seleccionar hueco
+qsts#:#shuffle_answers#:#Barajar respuestas
+qsts#:#suggested_learning_content#:#Agregar contenido para recapitulación
 rating#:#rat_not_rated_yet#:#Aún sin calificar
 rating#:#rat_nr_ratings#:#%s Calificaciones
 rating#:#rat_one_rating#:#Una calificación
@@ -15146,8 +15163,8 @@ rep#:#rep_export_limitation_limited#:#Limitar exportación
 rep#:#rep_export_limitation_unlimited#:#Exportación ilimitada
 rep#:#rep_failure_trashed_trash#:#Ha seleccionado objetos que no pueden restaurarse a su ubicación original porque sus objetos superiores fueron eliminados. Por favor, desmarque el objeto correspondiente en la tabla o seleccione Restaurar en una ubicación nueva en su lugar.
 rep#:#rep_fav_intro1#:#Aún no ha seleccionado ningún favorito. Para ello, debe seguir dos pasos:
-rep#:#rep_fav_intro2#:#Haga clic en '%s' y seleccione un objeto de aprendizaje de la oferta disponible, por ejemplo, un módulo de aprendizaje o un foro.
-rep#:#rep_fav_intro3#:#Cuando haya encontrado algo que le interese, puede añadirlo fácilmente a sus favoritos. Seleccione el elemento deseado en el menú <i>Acciones</i> y elija "<i>Añadir a favoritos</i>".
+rep#:#rep_fav_intro2#:#Haga clic en '%s' y seleccione un objeto de aprendizaje entre las opciones disponibles, por ejemplo, un módulo de aprendizaje o un foro.
+rep#:#rep_fav_intro3#:#Cuando encuentre algo que le interese, puede añadirlo fácilmente a sus favoritos. En el menú <i>Acciones</i> del elemento deseado, seleccione «<i>Añadir a favoritos</i>».
 rep#:#rep_favourites#:#Favoritos
 rep#:#rep_favourites_info#:#Los usuarios pueden marcar elementos individuales del repositorio como favoritos. Las listas de favoritos se pueden activar y configurar en los ajustes del tablero y del menú.
 rep#:#rep_input_not_empty#:#Este campo no puede estar vacío, por favor proporcione un valor.
@@ -16691,7 +16708,6 @@ survey#:#questionblock#:#Bloque de preguntas
 survey#:#questionblock_inserted#:#Bloque de preguntas insertado.
 survey#:#questionblocks#:#Bloques de preguntas
 survey#:#questionblocks_inserted#:#Bloques de preguntas insertados.
-survey#:#questions#:#Preguntas
 survey#:#questions_inserted#:#Pregunta(s) añadida(s).
 survey#:#questions_removed#:#La eliminación de preguntas y/o bloques de preguntas se ha realizado con éxito.
 survey#:#questiontype#:#Tipo de pregunta
@@ -16992,6 +17008,7 @@ survey#:#svy_please_select_unused_codes#:#Por favor, seleccione al menos un cód
 survey#:#svy_print_hide_labels#:#Ocultar etiquetas
 survey#:#svy_print_show_labels#:#Mostrar etiquetas
 survey#:#svy_privacy_info#:#Privacidad
+survey#:#svy_questions#:#Preguntas
 survey#:#svy_rater#:#Evaluador
 survey#:#svy_rater_see_app_info#:#A los evaluadores se les muestran los nombres de sus evaluados para que puedan responder de forma significativa a las preguntas relativas a esas personas.
 survey#:#svy_reminder_mail_template#:#Plantilla de correo
@@ -17237,7 +17254,7 @@ trac#:#trac_assigned#:#Asignado
 trac#:#trac_average#:#Promedio
 trac#:#trac_begin_at#:#Fecha de inicio
 trac#:#trac_closed_expire#:#Tiempo de espera agotado
-trac#:#trac_closed_login#:#De Anónimo a Inicio de sesión
+trac#:#trac_closed_login#:#Cambio de estado: de anónimo a usuario conectado
 trac#:#trac_closed_manual#:#Cierre de sesión
 trac#:#trac_closed_misc#:#Varios
 trac#:#trac_collection_assign#:#Seleccionar para determinar el progreso de aprendizaje
@@ -17426,9 +17443,9 @@ trac#:#trac_session_statistics_mode_week#:#Semana
 trac#:#trac_session_statistics_mode_year#:#Año
 trac#:#trac_session_statistics_no_data#:#No se han encontrado datos para esta estadística.
 trac#:#trac_sessions_closed#:#Salidas
-trac#:#trac_sessions_opened#:#Admisiones
+trac#:#trac_sessions_opened#:#Entradas
 trac#:#trac_settings#:#Configuración
-trac#:#trac_settings_saved#:#Configuración guardada
+trac#:#trac_settings_saved#:#Configuración guardada.
 trac#:#trac_short_system_load#:#Corto plazo
 trac#:#trac_show_graph#:#Mostrar gráfico
 trac#:#trac_show_progress_block#:#Show Personal Progress Chart in ‘Content’-Tab
@@ -17451,7 +17468,7 @@ trac#:#trac_title#:#Título
 trac#:#trac_title_description#:#Título / Descripción
 trac#:#trac_total_online#:#Tiempo total en línea
 trac#:#trac_trash#:#Movido a la papelera
-trac#:#trac_update_edit_user#:#Configuración guardada
+trac#:#trac_update_edit_user#:#Configuración guardada.
 trac#:#trac_updated_status#:#Estado de progreso de aprendizaje guardado.
 trac#:#trac_user_data#:#Datos de usuario
 trac#:#trac_valid_request#:#Tiempo máx. entre peticiones
