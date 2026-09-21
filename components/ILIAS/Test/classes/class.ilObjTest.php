@@ -193,7 +193,8 @@ class ilObjTest extends ilObject
 
         parent::__construct($id, $a_call_by_reference);
 
-        $this->lng->loadLanguageModule("assessment");
+        $this->lng->loadLanguageModule('assessment');
+        $this->lng->loadLanguageModule('qsts');
         $this->score_settings = null;
 
         $this->question_set_config_factory = new ilTestQuestionSetConfigFactory(
@@ -3817,7 +3818,12 @@ class ilObjTest extends ilObject
         $this->saveCompleteStatus($this->question_set_config_factory->getQuestionSetConfig());
 
         if ($this->participantDataExist()) {
-            $this->recalculateScores(true);
+            (new TestScoring(
+                $this,
+                $this->user,
+                $this->db,
+                $this->test_result_repository
+            ))->recalculateSolutions();
         }
     }
 
@@ -5579,7 +5585,7 @@ class ilObjTest extends ilObject
             $row = $ilDB->fetchAssoc($result);
             $row['feedback'] = ilRTE::_replaceMediaObjectImageSrc($row['feedback'] ?? '', 1);
         } elseif ($ilDB->numRows($result) > 1) {
-            $DIC->logger()->root()->warning(
+            $DIC->logger()->forComponent('tst')->warning(
                 "WARNING: Multiple feedback entries on tst_manual_fb for " .
                 "active_fi = $active_id , question_fi = $question_id and pass = $pass"
             );
@@ -6353,18 +6359,6 @@ class ilObjTest extends ilObject
         }
 
         return $this->participantDataExist;
-    }
-
-    public function recalculateScores($preserve_manscoring = false)
-    {
-        $scoring = new TestScoring(
-            $this,
-            $this->user,
-            $this->db,
-            $this->test_result_repository
-        );
-        $scoring->setPreserveManualScores($preserve_manscoring);
-        $scoring->recalculateSolutions();
     }
 
     public static function getTestObjIdsWithActiveForUserId($userId): array

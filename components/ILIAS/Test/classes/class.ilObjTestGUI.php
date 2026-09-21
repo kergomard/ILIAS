@@ -476,7 +476,7 @@ class ilObjTestGUI extends ilObjectGUI implements ilCtrlBaseClassInterface, ilDe
                     $this->ui_factory,
                     $this->ui_renderer,
                     $this->skills_service,
-                    $this->questionrepository,
+                    $this->content_style,
                     $this->toplist_repository,
                     $this->testrequest,
                     $this->http,
@@ -830,7 +830,7 @@ class ilObjTestGUI extends ilObjectGUI implements ilCtrlBaseClassInterface, ilDe
                     $this->lng,
                     $this->ctrl,
                     $this->tpl,
-                    $this->questionrepository,
+                    $this->content_style,
                     $this->testrequest
                 );
                 $forwarder->forward();
@@ -1184,6 +1184,7 @@ class ilObjTestGUI extends ilObjectGUI implements ilCtrlBaseClassInterface, ilDe
 
     private function executeAfterQuestionSaveTasks(assQuestionGUI $question_gui): void
     {
+        $this->addQuestionTitleToObjectTitle($question_gui->getObject()->getTitle());
         if ($this->getTestObject()->getTestLogger()->isLoggingEnabled()) {
             $this->getTestObject()->getTestLogger()->logQuestionAdministrationInteraction(
                 $question_gui->getObject()->toQuestionAdministrationInteraction(
@@ -1737,7 +1738,7 @@ class ilObjTestGUI extends ilObjectGUI implements ilCtrlBaseClassInterface, ilDe
         $inputs['pool_selection'] = $this->buildInputPoolSelection();
 
         $section = [
-            $this->ui_factory->input()->field()->section($inputs, $this->lng->txt('ass_create_question'))
+            $this->ui_factory->input()->field()->section($inputs, $this->lng->txt('create_question'))
         ];
 
         $form = $this->ui_factory->input()->container()->form()->standard(
@@ -1880,12 +1881,15 @@ class ilObjTestGUI extends ilObjectGUI implements ilCtrlBaseClassInterface, ilDe
         $this->tabs_manager->activateSubTab(TabsManager::SUBTAB_ID_QST_LIST_VIEW);
 
         $this->tpl->setCurrentBlock('adm_content');
-        $this->tpl->setVariable('ACTION_QUESTION_FORM', $this->ctrl->getFormAction($this));
+        $this->tpl->setVariable('TITLE', $this->lng->txt('list_of_questions'));
+
+        $table = $this->getTable();
         $this->tpl->setVariable(
             'QUESTIONBROWSER',
-            $this->ui_renderer->render(
-                $this->getTable()->getTableComponent()
-            )
+            $this->ui_renderer->render([
+                $table->getSummary(),
+                $table->getTableComponent()
+            ])
         );
         $this->tpl->parseCurrentBlock();
     }
@@ -1928,7 +1932,7 @@ class ilObjTestGUI extends ilObjectGUI implements ilCtrlBaseClassInterface, ilDe
             return;
         }
 
-        $this->toolbar->addButton($this->lng->txt('ass_create_question'), $this->ctrl->getLinkTarget($this, 'createQuestionForm'));
+        $this->toolbar->addButton($this->lng->txt('create_question'), $this->ctrl->getLinkTarget($this, 'createQuestionForm'));
         $this->toolbar->addSeparator();
         $this->populateQuestionBrowserToolbarButtons($this->toolbar);
     }
@@ -2768,7 +2772,8 @@ class ilObjTestGUI extends ilObjectGUI implements ilCtrlBaseClassInterface, ilDe
                 $this->getTestObject()->getGlobalSettings()->isAdjustingQuestionsWithResultsAllowed(),
                 $this->getTestObject()->evalTotalPersons() !== 0,
                 $this->getTestObject()->isRandomTest(),
-                $this->test_question_set_config_factory
+                $this->test_question_set_config_factory,
+                $this->response_handler
             );
         }
         return $this->table_actions;

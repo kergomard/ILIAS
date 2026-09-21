@@ -28,16 +28,23 @@ class ilBlogExporter extends ilXmlExporter
     protected ilBlogDataSet $ds;
     protected \ILIAS\Style\Content\DomainService $content_style_domain;
 
-    public function init(): void
+    public function __construct()
     {
         global $DIC;
+        parent::__construct();
+        $blog_service = $DIC->blog()->internal();
 
-        $this->ds = new ilBlogDataSet();
-        $this->ds->setDSPrefix("ds");
         $this->content_style_domain = $DIC
             ->contentStyle()
             ->domain();
-        $this->posting_manager = $DIC->blog()->internal()->domain()->posting();
+        $this->posting_manager = $blog_service->domain()->posting();
+    }
+
+
+    public function init(): void
+    {
+        $this->ds = new ilBlogDataSet();
+        $this->ds->setDSPrefix("ds");
     }
 
     public function getXmlExportTailDependencies(

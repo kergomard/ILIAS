@@ -37,8 +37,9 @@ class ilBlogDraftsDerivedTaskProvider implements ilDerivedTaskProvider
     ) {
         global $DIC;
 
-        $this->gui = $DIC->blog()->internal()->gui();
-        $this->domain = $DIC->blog()->internal()->domain();
+        $service = $DIC->blog()->internal();
+        $this->gui = $service->gui();
+        $this->domain = $service->domain();
         $this->taskService = $taskService;
         $this->accessHandler = $accessHandler;
         $this->lng = $lng;

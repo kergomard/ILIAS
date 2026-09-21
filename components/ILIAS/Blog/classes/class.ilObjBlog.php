@@ -44,8 +44,9 @@ class ilObjBlog extends ilObject2
     ) {
         global $DIC;
 
+        $service = $DIC->blog()->internal();
         $this->notes_service = $DIC->notes();
-        $this->settings_manager = $DIC->blog()->internal()->domain()->blogSettings();
+        $this->settings_manager = $service->domain()->blogSettings();
 
         parent::__construct($a_id, $a_reference);
         $this->rbac_review = $DIC->rbac()->review();
@@ -57,7 +58,7 @@ class ilObjBlog extends ilObject2
         if ($this->getId() > 0) {
             $this->blog_settings = $this->settings_manager->getByObjId($this->getId());
         }
-        $this->posting_manager = $DIC->blog()->internal()->domain()->posting();
+        $this->posting_manager = $service->domain()->posting();
     }
 
     protected function initType(): void
