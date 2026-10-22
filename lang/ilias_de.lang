@@ -14140,6 +14140,7 @@ qsts#:#gap#:#Lücke
 qsts#:#gap_combination_already_exists#:#Diese Kombination von Lücken existiert bereits.
 qsts#:#gap_combinations#:#Lückentext-Kombinationen
 qsts#:#gap_type#:#Art der Lücke
+qsts#:#gap_used_in_combination#:#Lücke in Kombination
 qsts#:#gaps#:#Lücken
 qsts#:#insert_gap#:#Lücke einfügen
 qsts#:#insert_legacy_texts#:#Texte aus Altdaten importieren

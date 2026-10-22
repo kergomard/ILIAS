@@ -14104,6 +14104,7 @@ qsts#:#gap#:#Gap
 qsts#:#gap_combination_already_exists#:#This combination of gaps already exists.
 qsts#:#gap_combinations#:#Combinations of Gaps
 qsts#:#gap_type#:#Type of Gap
+qsts#:#gap_used_in_combination#:#Gap used in combination
 qsts#:#gaps#:#Gaps
 qsts#:#insert_gap#:#Insert Gap
 qsts#:#insert_legacy_texts#:#Import Legacy Texts
