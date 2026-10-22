@@ -81,10 +81,6 @@ class ilPCQuestionGUI extends ilPageContentGUI
                     $cmd = $this->sub_command;
                 }
 
-                if ($cmd === 'create_pcqst') {
-                    return $this->create();
-                }
-
                 $ret = $this->$cmd();
         }
 
@@ -191,7 +187,7 @@ class ilPCQuestionGUI extends ilPageContentGUI
         if ($a_mode == "edit_empty") {
             $this->form_gui->addCommandButton("edit", $lng->txt("save"));
         } else {
-            $this->form_gui->addCommandButton("create_pcqst", $lng->txt("save"));
+            $this->form_gui->addCommandButton("create", $lng->txt("save"));
             $this->form_gui->addCommandButton("cancelCreate", $lng->txt("cancel"));
         }
 
@@ -206,7 +202,7 @@ class ilPCQuestionGUI extends ilPageContentGUI
     {
         global	$ilCtrl, $ilTabs;
 
-        $ilTabs->setTabActive('question');
+        $ilTabs->setTabActive('edit_question');
 
         $this->content_obj = new ilPCQuestion($this->getPage());
         $this->content_obj->create($this->pg_obj, $this->hier_id);
@@ -257,7 +253,7 @@ class ilPCQuestionGUI extends ilPageContentGUI
         $ilTabs = $this->tabs;
         $q_id = "";
 
-        $ilTabs->setTabActive('question');
+        $ilTabs->setTabActive('edit_question');
 
         if ($this->getSelfAssessmentMode()) {		// behaviour in content pages, e.g. scorm
             $q_ref = $this->content_obj->getQuestionReference();
@@ -384,7 +380,7 @@ class ilPCQuestionGUI extends ilPageContentGUI
         }
 
         $ilTabs->addTarget(
-            "question",
+            "edit_question",
             $ilCtrl->getLinkTarget($this, "edit"),
             array("editQuestion", "save", "cancel", "addSuggestedSolution",
                 "cancelExplorer", "linkChilds", "removeSuggestedSolution",

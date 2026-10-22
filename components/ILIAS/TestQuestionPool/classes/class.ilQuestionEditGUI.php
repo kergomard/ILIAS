@@ -85,6 +85,7 @@ class ilQuestionEditGUI
         $this->setQuestionId($this->request->getQuestionId());
         $this->setQuestionType($this->request->raw('q_type'));
         $this->lng->loadLanguageModule('assessment');
+        $this->lng->loadLanguageModule('qsts');
 
         $this->ctrl->saveParameter($this, ['qpool_ref_id', 'qpool_obj_id', 'q_id', 'q_type']);
 
@@ -158,15 +159,19 @@ class ilQuestionEditGUI
                     }
                 }
 
-                $this->tabs->activateTab('question');
                 if ($cmd !== 'save') {
                     return (string) $this->ctrl->forwardCommand($question_gui);
                 }
-                if ($question_gui->saveQuestion()) {
-                    $this->main_tpl->setOnScreenMessage('success', $this->lng->txt('msg_obj_modified'), true);
+
+                $result = $question_gui->saveQuestion();
+
+                if (!$result) {
+                    return '';
                 }
 
-                return (string) $question_gui->editQuestion();
+                $this->main_tpl->setOnScreenMessage('success', $this->lng->txt('msg_obj_modified'), true);
+                $question_gui->editQuestion();
+                return '';
         }
     }
 

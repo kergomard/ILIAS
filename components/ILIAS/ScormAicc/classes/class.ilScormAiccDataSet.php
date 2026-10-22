@@ -155,7 +155,7 @@ class ilScormAiccDataSet extends ilDataSet
                 }
             }
         } else {
-            $ilLog->write("no module properties for imported object");
+            $ilLog->info("no module properties for imported object");
         }
     }
 
@@ -175,7 +175,7 @@ class ilScormAiccDataSet extends ilDataSet
         global $DIC;
         $ilLog = ilLoggerFactory::getLogger('sahs');
 
-        $ilLog->write(json_encode($this->getTypes("sahs", "5.1.0"), JSON_PRETTY_PRINT));
+        $ilLog->info(json_encode($this->getTypes("sahs", "5.1.0"), JSON_PRETTY_PRINT));
 
         $this->dircnt = 1;
 
@@ -187,14 +187,12 @@ class ilScormAiccDataSet extends ilDataSet
             'scormFile' => "content.zip"
         ];
 
-        // build content zip file
+        // build content zip file (sources from the container for migrated modules)
         if (isset($this->_archive['files']['scormFile'])) {
-            $lmDir = './' . ILIAS_WEB_DIR . "/" . CLIENT_ID . "/lm_data/lm_" . $id;
+            $lm = new ilObjSAHSLearningModule($id, false);
             // Important: content zip should not contain a 'lm_x' directory
-            $DIC->legacyArchives()->zip(
-                $lmDir,
-                $exportArchiveDir . "/" . $this->_archive['files']['scormFile'],
-                false
+            $lm->writeContentZip(
+                $exportArchiveDir . "/" . $this->_archive['files']['scormFile']
             );
         }
 

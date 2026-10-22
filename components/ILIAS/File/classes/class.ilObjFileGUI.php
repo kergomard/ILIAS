@@ -39,6 +39,7 @@ use ILIAS\File\Capabilities\CapabilityBuilder;
 use ILIAS\File\Capabilities\CapabilityCollection;
 use ILIAS\File\Capabilities\Context;
 use ILIAS\ILIASObject\Properties\CoreProperties\TitleAndDescription;
+use ILIAS\Filesystem\Configuration\FilesystemConfig;
 
 /**
  * GUI class for file objects.
@@ -86,7 +87,7 @@ class ilObjFileGUI extends ilObject2GUI
     protected ilObjectService $obj_service;
     protected \ILIAS\Refinery\Factory $refinery;
     protected General $general_settings;
-    protected ilFileServicesSettings $file_service_settings;
+    protected FilesystemConfig $file_service_settings;
     protected IconDatabaseRepository $icon_repo;
     protected \ILIAS\UI\Component\Input\Factory $inputs;
     protected Renderer $renderer;
@@ -110,7 +111,7 @@ class ilObjFileGUI extends ilObject2GUI
         $this->storage = $DIC->resourceStorage();
         $this->upload_handler = new ilObjFileUploadHandlerGUI();
         $this->stakeholder = new ilObjFileStakeholder();
-        $this->general_settings = new General();
+        $this->general_settings = new General($DIC->database());
         parent::__construct($a_id, $a_id_type, $a_parent_node_id);
         $this->obj_service = $DIC->object();
         $this->lng->loadLanguageModule(ilObjFile::OBJECT_TYPE);
@@ -334,7 +335,10 @@ class ilObjFileGUI extends ilObject2GUI
                     $this->stakeholder,
                     new URI($goto_link),
                     $capability->getCapability() === Capabilities::VIEW_EXTERNAL,
-                    $this->lng->getLangKey()
+                    $this->lng->getLangKey(),
+                    // the permission of the user, not the mode of this session: the
+                    // content tab is a viewer even for someone who may edit the file
+                    $this->capabilities->get(Capabilities::EDIT_EXTERNAL)->isUnlocked()
                 );
 
                 $this->ctrl->forwardCommand(
@@ -487,6 +491,10 @@ class ilObjFileGUI extends ilObject2GUI
      */
     protected function uploadFiles(): void
     {
+        if (!$this->checkPermissionBool("create", "", $this->getType())) {
+            $this->error->raiseError($this->lng->txt("permission_denied"), $this->error->MESSAGE);
+        }
+
         $origin = ($this->request_wrapper->has(self::PARAM_UPLOAD_ORIGIN)) ?
             $this->request_wrapper->retrieve(
                 self::PARAM_UPLOAD_ORIGIN,
@@ -750,10 +758,6 @@ class ilObjFileGUI extends ilObject2GUI
             ? $this->request_wrapper->retrieve('hist_id', $this->refinery->kindlyTo()->int())
             : null;
         try {
-            if (ANONYMOUS_USER_ID === $this->user->getId() && $this->request_wrapper->has('transaction')) {
-                $this->object->sendFile($hist_entry_id);
-            }
-
             if ($this->capabilities->get(Capabilities::DOWNLOAD)->isUnlocked()) {
                 // Record read event and catchup with write events
                 $this->recordReadEvent();
@@ -997,7 +1001,13 @@ class ilObjFileGUI extends ilObject2GUI
             }
         }
 
-        $info->hideFurtherSections(false);
+        // only the kiosk mode is meant to be that lean: outside of it the sections added
+        // while rendering, e.g. the read statistics of ilInfoScreenGUI::addObjectSections(),
+        // would be hidden without any way to unfold them,
+        // see https://mantis.ilias.de/view.php?id=45051
+        if ($kiosk_mode) {
+            $info->hideFurtherSections(false);
+        }
 
         return $info;
     }

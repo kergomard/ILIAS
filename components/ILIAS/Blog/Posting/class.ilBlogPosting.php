@@ -28,6 +28,7 @@ use ILIAS\Blog\Posting\PostingManager;
  */
 class ilBlogPosting extends ilPageObject
 {
+    protected \ILIAS\Blog\Posting\Service\GUIService $posting_gui;
     protected string $title = "";
     protected ?ilDateTime $created = null;
     protected int $blog_node_id = 0;
@@ -45,6 +46,8 @@ class ilBlogPosting extends ilPageObject
         $this->internal_data = $DIC->blog()->internal()->data();
         $this->posting_manager = $DIC->blog()->internal()->domain()->posting();
         $this->blog_domain = $DIC->blog()->internal()->domain();
+        $this->posting_gui = $DIC->blog()->internal()->gui()->posting();
+
     }
 
     public function getParentType(): string
@@ -254,27 +257,6 @@ class ilBlogPosting extends ilPageObject
         );
     }
 
-    public static function lookupBlogId(
-        int $a_posting_id
-    ): ?int {
-        global $DIC;
-        return $DIC->blog()->internal()->domain()->posting()->lookupBlogId($a_posting_id);
-    }
-
-    /**
-     * Checks whether a posting exists
-     */
-    public static function exists(
-        int $a_blog_id,
-        int $a_posting_id
-    ): bool {
-        global $DIC;
-        return $DIC->blog()->internal()->domain()->posting()->exists(
-            $a_blog_id,
-            $a_posting_id
-        );
-    }
-
     /**
      * Set blog node id (needed for notification)
      */
@@ -288,7 +270,7 @@ class ilBlogPosting extends ilPageObject
 
     public function getNotificationAbstract(): string
     {
-        $snippet = ilBlogPostingGUI::getSnippet($this->getId(), true);
+        $snippet = $this->posting_gui->getSnippet($this->getId(), true);
 
         // making things more readable
         $snippet = str_replace(array('<br/>', '<br />', '</p>', '</div>'), "\n", $snippet);

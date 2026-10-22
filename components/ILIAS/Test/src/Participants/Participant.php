@@ -253,13 +253,20 @@ class Participant
             return $language->txt('anonymous');
         }
 
+        if ($this->login === '' && $this->firstname === '' && $this->lastname === '') {
+            return $language->txt('user_deleted');
+        }
+
         $display_name = '';
 
-        if ($this->firstname) {
-            $display_name .= $this->firstname . ' ';
-        }
-        if ($this->lastname) {
+        if ($this->lastname !== '') {
             $display_name .= $this->lastname;
+        }
+
+        if ($this->firstname !== '') {
+            $display_name .= $display_name === ''
+                ? $this->firstname
+                : ", {$this->firstname}";
         }
 
         return $display_name;

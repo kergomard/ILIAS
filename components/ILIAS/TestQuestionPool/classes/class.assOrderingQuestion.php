@@ -199,11 +199,11 @@ class assOrderingQuestion extends assQuestion implements ilObjQuestionScoringAdj
 
             if (!file_exists($image_source_path . $filename)
                 || !copy($image_source_path . $filename, $image_target_path . $filename)) {
-                $this->log->root()->warning('Image could not be cloned for object for question: ' . $target_question_id);
+                $this->log->forComponent('qpl')->warning('Image could not be cloned for object for question: ' . $target_question_id);
             }
             if (!file_exists($image_source_path . $this->getThumbPrefix() . $filename)
                 || !copy($image_source_path . $this->getThumbPrefix() . $filename, $image_target_path . $this->getThumbPrefix() . $filename)) {
-                $this->log->root()->warning('Image thumbnails could not be cloned for object for question: ' . $target_question_id);
+                $this->log->forComponent('qpl')->warning('Image thumbnails could not be cloned for object for question: ' . $target_question_id);
             }
         }
     }
@@ -572,8 +572,9 @@ class assOrderingQuestion extends assQuestion implements ilObjQuestionScoringAdj
             return false;
         }
 
-        $result = @unlink($this->getImagePath() . $imageFilename);
-        $result = $result && @unlink($this->getImagePath() . $this->getThumbPrefix() . $imageFilename);
+        $cleaned_image_file_name = basename($imageFilename);
+        $result = @unlink($this->getImagePath() . $cleaned_image_file_name);
+        $result = $result && @unlink($this->getImagePath() . $this->getThumbPrefix() . $cleaned_image_file_name);
 
         return $result;
     }

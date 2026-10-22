@@ -44,7 +44,7 @@ use ILIAS\ResourceStorage\Events\FlavourData;
  */
 class FlavourBuilder
 {
-    public const VARIANT_NAME_MAX_LENGTH = 768;
+    public const VARIANT_NAME_MAX_LENGTH = 638;
     private array $current_revision_cache = [];
     private array $resources_cache = [];
 
@@ -179,7 +179,6 @@ class FlavourBuilder
     private function populateFlavourWithExistingStreams(Flavour $flavour): Flavour
     {
         $handler = $this->getStorageHandler($flavour);
-        $identification = $flavour->getResourceId();
         $revision = $this->getCurrentRevision($flavour);
         foreach (
             $handler->getFlavourStreams(
@@ -247,7 +246,6 @@ class FlavourBuilder
         $revision = $this->getCurrentRevision($flavour);
 
         // Get Orignal Stream of Resource/Revision
-        $handler = $this->getStorageHandler($flavour);
         try {
             $stream = $this->resource_builder->extractStream($revision);
             $stream->rewind();

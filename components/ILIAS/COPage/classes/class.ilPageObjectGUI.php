@@ -913,7 +913,7 @@ class ilPageObjectGUI
                 break;
 
             case "ilquestioneditgui":
-                $this->setQEditTabs("question");
+                $this->setQEditTabs("edit_question");
                 $edit_gui = new ilQuestionEditGUI();
                 $edit_gui->setPageConfig($this->getPageConfig());
                 $edit_gui->setSelfAssessmentEditingMode(true);
@@ -930,6 +930,7 @@ class ilPageObjectGUI
 
                 // load required lang mods
                 $this->lng->loadLanguageModule("assessment");
+                $this->lng->loadLanguageModule('qsts');
 
                 // set context tabs
                 $questionGUI = assQuestionGUI::_getQuestionGUI(
@@ -991,7 +992,7 @@ class ilPageObjectGUI
 
         $this->ctrl->setParameterByClass("ilquestioneditgui", "q_id", $this->requested_q_id);
         $this->tabs_gui->addTab(
-            "question",
+            "edit_question",
             $this->lng->txt("question"),
             $this->ctrl->getLinkTargetByClass("ilquestioneditgui", "editQuestion")
         );
@@ -1253,19 +1254,6 @@ class ilPageObjectGUI
                 $this->getPageObject(),
                 $this->getPageObject()->getDomDoc()
             );
-            if (count($snippets) > 0) {
-                foreach ($snippets as $s) {
-                    $sn_arr[$s["id"]] = ilMediaPoolPage::lookupTitle($s["id"]);
-                }
-                $tpl->setCurrentBlock("med_link");
-                $tpl->setVariable("TXT_CONTENT_SNIPPETS_USED", $this->lng->txt("cont_snippets_used"));
-                $tpl->setVariable(
-                    "SEL_SNIPPETS",
-                    ilLegacyFormElementsUtil::formSelect(0, "ci_id", $sn_arr, false, true)
-                );
-                $tpl->setVariable("TXT_SHOW_INFO", $this->lng->txt("cont_show_info"));
-                $tpl->parseCurrentBlock();
-            }
 
             // scheduled activation?
             if (!$this->getPageObject()->getActive() &&
@@ -1371,15 +1359,9 @@ class ilPageObjectGUI
 
         // get title
         $pg_title = $this->getPresentationTitle();
-        $col_path = '';
-        $row_path = '';
-        $cell_path = '';
         $item_path = '';
         if ($this->getOutputMode() == "edit") {
-            $col_path = ilUtil::getImagePath("object/col.svg");
-            $row_path = ilUtil::getImagePath("object/row.svg");
             $item_path = ilUtil::getImagePath("page_editor/icon_peadl.svg");
-            $cell_path = ilUtil::getImagePath("object/cell.svg");
         }
 
         if ($this->getOutputMode() != "offline") {
@@ -1410,9 +1392,6 @@ class ilPageObjectGUI
         } else {
             $enable_split_next = "n";
         }
-
-        $img_path = ilUtil::getImagePath("", false, $this->getOutputMode(), $this->getOutputMode() == "offline");
-
 
         if ($this->getPageConfig()->getEnablePCType("Tabs")) {
             ilAccordionGUI::addJavaScript();
@@ -1447,12 +1426,10 @@ class ilPageObjectGUI
         // added UTF-8 encoding otherwise umlaute are converted too
         $params = array('mode' => $this->getOutputMode(), 'pg_title' => htmlentities($pg_title, ENT_QUOTES, "UTF-8"),
                          'enable_placeholder' => $cfg->getEnablePCType("PlaceHolder") ? "y" : "n",
-                         'pg_id' => $this->obj->getId(), 'pg_title_class' => $pg_title_class,
+                         'pg_id' => $this->obj->getId(), 'parent_type' => $this->obj->getParentType(),
+                         'pg_title_class' => $pg_title_class,
                          'webspace_path' => $wb_path, 'enlarge_path' => $enlarge_path,
-                         'img_col' => $col_path,
-                         'img_row' => $row_path,
-                         'img_cell' => $cell_path,
-                         'img_item' => $item_path,
+                          'img_item' => $item_path,
                          'acc_save_url' => "./ilias.php?baseClass=ilaccordionpropertiesstoragegui&cmd=setOpenedTab" .
                              "&user_id=" . $this->user->getId(),
                          'append_footnotes' => $append_footnotes,
@@ -1462,33 +1439,15 @@ class ilPageObjectGUI
                          'link_params' => $this->link_params,
                          'file_download_link' => $file_download_link,
                          'fullscreen_link' => $fullscreen_link,
-                         'img_path' => $img_path,
-                         'parent_id' => $this->obj->getParentId(),
-                         'download_script' => $this->sourcecode_download_script,
-                         'encoded_download_script' => urlencode($this->sourcecode_download_script),
-                         'enable_rep_objects' => $cfg->getEnablePCType("Resources") ? "y" : "n",
-                         'enable_login_page' => $cfg->getEnablePCType("LoginPageElement") ? "y" : "n",
-                         'enable_map' => ($cfg->getEnablePCType("Map") && ilMapUtil::isActivated()) ? "y" : "n",
-                         'enable_tabs' => $cfg->getEnablePCType("Tabs") ? "y" : "n",
-                         'enable_sa_qst' => $cfg->getEnableSelfAssessment() ? "y" : "n",
-                         'enable_file_list' => $cfg->getEnablePCType("FileList") ? "y" : "n",
-                         'enable_content_includes' => $cfg->getEnablePCType("ContentInclude") ? "y" : "n",
-                         'enable_content_templates' => (count($this->getPageObject()->getContentTemplates()) > 0) ? "y" : "n",
-                         'paste' => $paste ? "y" : "n",
+                          'download_script' => $this->sourcecode_download_script,
+                          'encoded_download_script' => urlencode($this->sourcecode_download_script),
+                          'enable_login_page' => $cfg->getEnablePCType("LoginPageElement") ? "y" : "n",
+                          'paste' => $paste ? "y" : "n",
                          'media_mode' => $media_mode,
                          'javascript' => $sel_js_mode,
                          'paragraph_plugins' => $paragraph_plugin_string,
                          'disable_auto_margins' => $disable_auto_margins,
                          'page_toc' => $cfg->getEnablePageToc() ? "y" : "n",
-                         'enable_profile' => $cfg->getEnablePCType("Profile") ? "y" : "n",
-                         'enable_verification' => $cfg->getEnablePCType("Verification") ? "y" : "n",
-                         'enable_blog' => $cfg->getEnablePCType("Blog") ? "y" : "n",
-                         'enable_skills' => $cfg->getEnablePCType("Skills") ? "y" : "n",
-                         'enable_learning_history' => $cfg->getEnablePCType("LearningHistory") ? "y" : "n",
-                         'enable_qover' => "n",
-                         'enable_consultation_hours' => $cfg->getEnablePCType("ConsultationHours") ? "y" : "n",
-                         'enable_my_courses' => $cfg->getEnablePCType("MyCourses") ? "y" : "n",
-                         'enable_amd_page_list' => $cfg->getEnablePCType("AMDPageList") ? "y" : "n",
                          'current_ts' => $current_ts,
                          'enable_html_mob' => ilObjMediaObject::isTypeAllowed("html") ? "y" : "n",
                          'page_perma_link' => $this->getPagePermaLink(),
@@ -1706,7 +1665,8 @@ class ilPageObjectGUI
     public function setDefaultLinkXml(): void
     {
         $this->page_linker->setProfileBackUrl($this->getProfileBackUrl());
-        $this->page_linker->setOffline($this->getOutputMode() == self::OFFLINE);
+        // prevent to run into ctrl issues in copy background process
+        $this->page_linker->setOffline($this->getOutputMode() == self::OFFLINE || !ilContext::supportsRedirects());
         $this->setLinkXml($this->page_linker->getLinkXML($this->getPageObject()->getInternalLinks()));
     }
 
@@ -1723,7 +1683,8 @@ class ilPageObjectGUI
             return $this->profile_back_url;
         }
         if ($this->getOutputMode() === self::OFFLINE ||
-            $this->getOutputMode() === self::PRINTING) {
+            $this->getOutputMode() === self::PRINTING ||
+            !ilContext::supportsRedirects()) {
             return "";
         }
         return $this->ctrl->getLinkTargetByClass(strtolower(get_class($this)), "preview");
@@ -2594,36 +2555,21 @@ class ilPageObjectGUI
         bool $a_enable_public_notes = false,
         bool $a_enable_notes_deletion = false,
         ?callable $a_callback = null,
-        bool $export = false
+        bool $export = false,
+        bool $a_repository_mode = true
     ): string {
         // scorm 2004 page gui
         if (!$a_content_object) {
             throw new ilException("No content object given.");
-            /*
-            $notes_gui = new ilNoteGUI(
-                $this->notes_parent_id,
-                $this->obj->getId(),
-                "pg"
-            );
-
-            $a_enable_private_notes = true;
-            $a_enable_public_notes = true;
-            $a_enable_notes_deletion = false;
-            $notes_gui->setUseObjectTitleHeader(false);*/
         }
         // wiki page gui, blog posting gui
         else {
-            /*
-            $notes_gui = new ilNoteGUI(
-                $a_content_object->getParentId(),
-                $a_content_object->getId(),
-                $a_content_object->getParentType()
-            );*/
             $comments_gui = $this->notes->gui()->getCommentsGUI(
                 $a_content_object->getParentId(),
                 $a_content_object->getId(),
                 $a_content_object->getParentType()
             );
+            $comments_gui->setRepositoryMode($a_repository_mode);
             $comments_gui->setUseObjectTitleHeader(false);
         }
 
