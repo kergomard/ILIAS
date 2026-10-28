@@ -179,7 +179,7 @@ class LanguageMock extends ilLanguage
     {
     }
 
-    public function txt($a_topic, $a_default_lang_fallback_mod = ""): string
+    public function txt($a_topic, ?int $n = null): string
     {
         $this->requested[] = $a_topic;
         return $a_topic;
@@ -471,6 +471,16 @@ trait BaseUITestTrait
                         $this->getUploadLimitResolver()
                     ),
                     new I\Menu\MenuRendererFactory(
+                        $ui_factory,
+                        $tpl_factory,
+                        $lng,
+                        $js_binding,
+                        $image_path_resolver,
+                        $data_factory,
+                        $help_text_retriever,
+                        $this->getUploadLimitResolver(),
+                    ),
+                    new I\Listing\ListingRendererFactory(
                         $ui_factory,
                         $tpl_factory,
                         $lng,

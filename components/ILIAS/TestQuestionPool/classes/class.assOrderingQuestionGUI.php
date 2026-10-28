@@ -301,6 +301,7 @@ class assOrderingQuestionGUI extends assQuestionGUI implements ilGuiQuestionScor
             ];
             $nested_answers->setOptions($nested_answers_options);
             $nested_answers->setValue($this->object->isOrderingTypeNested());
+            $nested_answers->setInfo($this->lng->txt('qst_use_nested_answers_info'));
             $form->addItem($nested_answers);
         }
 
@@ -343,7 +344,7 @@ class assOrderingQuestionGUI extends assQuestionGUI implements ilGuiQuestionScor
                 $this->ctrl->getLinkTarget($this, self::CMD_EDIT_NESTING)
             );
         }
-        $tabs->setTabActive('edit_question');
+        $tabs->setTabActive(self::TAB_EDIT_QUESTION);
         $tabs->setSubTabActive($active);
     }
 

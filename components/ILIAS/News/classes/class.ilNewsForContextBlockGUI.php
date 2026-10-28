@@ -59,6 +59,7 @@ class ilNewsForContextBlockGUI extends ilBlockGUI
     protected bool $prevent_initial_loading = false;
     protected NewsCollection $collection;
     protected ilLogger $logger;
+    protected ILIAS\Refinery\Factory $refinery;
 
     public function __construct()
     {
@@ -70,6 +71,8 @@ class ilNewsForContextBlockGUI extends ilBlockGUI
         $this->help = $DIC["ilHelp"];
         $this->settings = $DIC->settings();
         $this->tabs = $DIC->tabs();
+        $this->logger = $DIC->logger()->news();
+        $this->refinery = $DIC->refinery();
 
         $locator = $DIC->news()->internal();
         $this->std_request = $locator->gui()->standardRequest();
@@ -141,19 +144,19 @@ class ilNewsForContextBlockGUI extends ilBlockGUI
                 ->withDescription($this->lng->txt('news_sorry_not_accessible_anymore'));
         }
 
-
-        $props = [
-            $this->lng->txt('date') => $info['creation_date'] ?? ''
-        ];
-
         $item = $this->ui->factory()->item()->standard(
             $this->ui->factory()->link()->standard($info['news_title'] ?? '', $info['url'] ?? '')
-        )->withProperties($props);
+        );
+
+        $properties = [];
 
         if ($info['ref_id'] > 0) {
-            $item = $item->withDescription($info['type_txt'] . ': ' . $info['obj_title']);
+            $properties[$info['type_txt']] = $info['obj_title'];
         }
-        return $item;
+
+        $properties[$this->lng->txt('date')] = $info['creation_date'] ?? '';
+
+        return $item->withProperties($properties);
     }
 
     private function getNewsForId(int $news_id): array
@@ -624,7 +627,10 @@ class ilNewsForContextBlockGUI extends ilBlockGUI
                         $tpl->setCurrentBlock("context");
                     }
                     $tpl->setVariable("HREF_CONTEXT_TITLE", $url_target);
-                    $tpl->setVariable("CONTEXT_TITLE", $obj_title);
+                    $tpl->setVariable(
+                        "CONTEXT_TITLE",
+                        $this->refinery->encode()->htmlSpecialCharsAsEntities()->transform($obj_title)
+                    );
                     $tpl->setVariable(
                         "IMG_CONTEXT_TITLE",
                         ilObject::_getIcon($item->getContextObjId(), "big", $item->getContextObjType())
@@ -791,8 +797,7 @@ class ilNewsForContextBlockGUI extends ilBlockGUI
             0,
             (int) $this->block_id
         );
-
-        if (is_string($hide_news_date) && $hide_news_date !== '') {
+        if (is_string($hide_news_date) && $hide_news_date !== "") {
             $hide_news_date = explode(" ", $hide_news_date);
         }
 
@@ -813,7 +818,6 @@ class ilNewsForContextBlockGUI extends ilBlockGUI
                 $lng->txt("news_hide_news_per_date"),
                 "hide_news_per_date"
             );
-            $hnpd->setInfo($lng->txt("news_hide_news_per_date_info"));
             $hnpd->setChecked((bool) $hide_news_per_date);
 
             $dt_prop = new ilDateTimeInputGUI(
@@ -821,38 +825,13 @@ class ilNewsForContextBlockGUI extends ilBlockGUI
                 "hide_news_date"
             );
             $dt_prop->setRequired(true);
-            if (is_array($hide_news_date) && count($hide_news_date) === 2) {
-                $dt_prop->setDate(new ilDateTime($hide_news_date[0] . ' ' . $hide_news_date[1], IL_CAL_DATETIME));
+            if (isset($hide_news_date[0], $hide_news_date[1])) {
+                $dt_prop->setDate(new ilDateTime($hide_news_date[0] . " " . $hide_news_date[1], IL_CAL_DATETIME));
             }
             $dt_prop->setShowTime(true);
             $hnpd->addSubItem($dt_prop);
 
             $this->settings_form->addItem($hnpd);
-        }
-
-        // default visibility
-        if ($enable_internal_rss && $this->getProperty("default_visibility_option")) {
-            $default_visibility = ilBlockSetting::_lookup(
-                $this->getBlockType(),
-                "default_visibility",
-                0,
-                (int) $this->block_id
-            );
-            if ($default_visibility == "") {
-                $default_visibility =
-                    ilNewsItem::_getDefaultVisibilityForRefId($this->std_request->getRefId());
-            }
-
-            // Default Visibility
-            $radio_group = new ilRadioGroupInputGUI($lng->txt("news_default_visibility"), "default_visibility");
-            $radio_option = new ilRadioOption($lng->txt("news_visibility_users"), "users");
-            $radio_group->addOption($radio_option);
-            $radio_option = new ilRadioOption($lng->txt("news_visibility_public"), "public");
-            $radio_group->addOption($radio_option);
-            $radio_group->setInfo($lng->txt("news_news_item_visibility_info"));
-            $radio_group->setRequired(false);
-            $radio_group->setValue($default_visibility);
-            $this->settings_form->addItem($radio_group);
         }
 
         // public notifications
@@ -885,14 +864,11 @@ class ilNewsForContextBlockGUI extends ilBlockGUI
     /**
      * Add inputs to the container news settings form to configure also the contextBlock options.
      */
-    public static function addToSettingsForm(ilFormPropertyGUI $a_input): void
-    {
+    public static function addToSettingsForm(
+        ilFormPropertyGUI $a_input,
+        string $public_feed_info
+    ): void {
         global $DIC;
-
-        $std_request = $DIC->news()
-            ->internal()
-            ->gui()
-            ->standardRequest();
 
         $lng = $DIC->language();
         $block_id = $DIC->ctrl()->getContextObjId();
@@ -906,20 +882,6 @@ class ilNewsForContextBlockGUI extends ilBlockGUI
             0,
             $block_id
         );
-        $default_visibility = ilBlockSetting::_lookup(self::$block_type, "default_visibility", 0, $block_id);
-        if ($default_visibility == "") {
-            $default_visibility =
-                ilNewsItem::_getDefaultVisibilityForRefId($std_request->getRefId());
-        }
-        $radio_group = new ilRadioGroupInputGUI($lng->txt("news_default_visibility"), "default_visibility");
-        $radio_option = new ilRadioOption($lng->txt("news_visibility_users"), "users");
-        $radio_group->addOption($radio_option);
-        $radio_option = new ilRadioOption($lng->txt("news_visibility_public"), "public");
-        $radio_group->addOption($radio_option);
-        $radio_group->setInfo($lng->txt("news_news_item_visibility_info"));
-        $radio_group->setRequired(false);
-        $radio_group->setValue($default_visibility);
-        $a_input->addSubItem($radio_group);
 
         // extra rss feed
         if ($enable_internal_rss) {
@@ -927,7 +889,7 @@ class ilNewsForContextBlockGUI extends ilBlockGUI
                 $lng->txt("news_public_feed"),
                 "notifications_public_feed"
             );
-            $radio_rss->setInfo($lng->txt("news_public_feed_info"));
+            $radio_rss->setInfo($lng->txt($public_feed_info));
             $radio_rss->setChecked((bool) $public_feed);
             $a_input->addSubItem($radio_rss);
         }
@@ -972,13 +934,6 @@ class ilNewsForContextBlockGUI extends ilBlockGUI
                     $this->getBlockType(),
                     "public_feed",
                     $form->getInput("notifications_public_feed"),
-                    0,
-                    (int) $this->block_id
-                );
-                ilBlockSetting::_write(
-                    $this->getBlockType(),
-                    "default_visibility",
-                    $form->getInput("default_visibility"),
                     0,
                     (int) $this->block_id
                 );

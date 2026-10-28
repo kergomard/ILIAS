@@ -1259,7 +1259,7 @@ abstract class assQuestionGUI
             $formchange = new ilPropertyFormGUI();
             $formchange->setFormAction($this->ctrl->getFormAction($this));
 
-            $title = $solution ? $this->lng->txt('changeSuggestedSolution') : $this->lng->txt('addSuggestedSolution');
+            $title = $solution ? $this->lng->txt('changeSuggestedSolution') : $this->lng->txt('suggested_learning_content');
             $formchange->setTitle($title);
             $formchange->setMultipart(false);
             $formchange->setTableWidth('100%');
@@ -1669,7 +1669,7 @@ abstract class assQuestionGUI
         }
 
         try {
-            $lifecycle = ilAssQuestionLifecycle::getInstance(
+            $lifecycle = new ilAssQuestionLifecycle(
                 $this->request_data_collector->string('lifecycle')
             );
             $this->object->setLifecycle($lifecycle);
@@ -2065,6 +2065,14 @@ abstract class assQuestionGUI
             return $this->ctrl->getLinkTargetByClass(ilObjQuestionPoolGUI::class, 'downloadFile');
         }
         return $this->ctrl->getLinkTargetByClass(ilObjTestGUI::class, 'downloadFile');
+    }
+
+    public function supportsAdjustment(): bool
+    {
+        return ($this instanceof ilGuiQuestionScoringAdjustable
+                || $this instanceof ilGuiAnswerScoringAdjustable)
+            && ($this->getObject() instanceof ilObjQuestionScoringAdjustable
+                || $this->getObject() instanceof ilObjAnswerScoringAdjustable);
     }
 
     protected function resetSavedPreviewSession(): void

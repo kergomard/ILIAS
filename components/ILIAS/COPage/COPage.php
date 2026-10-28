@@ -20,8 +20,16 @@ declare(strict_types=1);
 
 namespace ILIAS;
 
+use ILIAS\Language\ComponentTranslation\LanguageFileDirectory;
+use ILIAS\Language\ComponentTranslation\ComponentLanguageFileDirectory;
+
 class COPage implements Component\Component
 {
+    public static function getEditorAssetVersion(): string
+    {
+        return \ILIAS\COPage\Setup\EditorAssetVersionObjective::getVersion();
+    }
+
     public function init(
         array | \ArrayAccess &$define,
         array | \ArrayAccess &$implement,
@@ -47,7 +55,8 @@ class COPage implements Component\Component
             }
             public function getTarget(): string
             {
-                return "components/ILIAS/COPage/PC/InteractiveImage/js";
+                $asset_version = \ILIAS\COPage\Setup\EditorAssetVersionObjective::getVersionFromSource();
+                return "components/ILIAS/COPage/" . $asset_version . "/PC/InteractiveImage/js";
             }
         };
         $contribute[Component\Resource\PublicAsset::class] = static fn() => new class () implements Component\Resource\PublicAsset {
@@ -67,7 +76,8 @@ class COPage implements Component\Component
             }
             public function getTarget(): string
             {
-                return "components/ILIAS/COPage/Editor/js";
+                $asset_version = \ILIAS\COPage\Setup\EditorAssetVersionObjective::getVersionFromSource();
+                return "components/ILIAS/COPage/" . $asset_version . "/Editor/js";
             }
         };
         $contribute[Component\Resource\PublicAsset::class] = static fn() => new class () implements Component\Resource\PublicAsset {
@@ -123,5 +133,21 @@ class COPage implements Component\Component
             }
         };
 
+        $contribute[LanguageFileDirectory::class] = fn() => new ComponentLanguageFileDirectory(
+            $this,
+            'adve'
+        );
+        $contribute[LanguageFileDirectory::class] = fn() => new ComponentLanguageFileDirectory(
+            $this,
+            'link'
+        );
+        $contribute[LanguageFileDirectory::class] = fn() => new ComponentLanguageFileDirectory(
+            $this,
+            'copg'
+        );
+        $contribute[LanguageFileDirectory::class] = fn() => new ComponentLanguageFileDirectory(
+            $this,
+            'content'
+        );
     }
 }

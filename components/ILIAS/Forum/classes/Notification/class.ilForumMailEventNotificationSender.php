@@ -18,6 +18,8 @@
 
 declare(strict_types=1);
 
+use ILIAS\Mail\Attachments\MailAttachments;
+
 /**
  * @author  Niels Theen <ntheen@databay.de>
  */
@@ -360,7 +362,7 @@ class ilForumMailEventNotificationSender extends ilMailNotification
             '',
             ilStr::strLen($subjectText) > 255 ? ilStr::substr($subjectText, 0, 255) : $subjectText,
             $bodyText,
-            $this->provider->getAttachments(),
+            $this->provider->getMailAttachments(),
             false,
             false
         );
@@ -393,7 +395,7 @@ class ilForumMailEventNotificationSender extends ilMailNotification
             '',
             ilStr::strLen($subjectText) > 255 ? ilStr::substr($subjectText, 0, 255) : $subjectText,
             $bodyText,
-            [],
+            MailAttachments::empty(),
             false,
             false
         );
@@ -423,7 +425,8 @@ class ilForumMailEventNotificationSender extends ilMailNotification
         }
         $body .= $this->getLanguageText('thread') . ": " . $this->provider->getThreadTitle();
         $body .= "\n\n";
-        $body .= $this->getLanguageText($action) . ": \n------------------------------------------------------------\n";
+        $body .= $this->getLanguageText($action) . ":\n";
+        $body .= $this->getBlockBorder() . "\n";
 
         $body .= $this->getLanguageText('author') . ": " . $this->provider->getPostUserName($this->getLanguage());
         $body .= "\n";
@@ -442,7 +445,7 @@ class ilForumMailEventNotificationSender extends ilMailNotification
 
         $body .= $message . "\n";
 
-        return $body . "------------------------------------------------------------\n";
+        return $body . $this->getBlockBorder() . "\n";
     }
 
     private function createAttachmentText(): string
@@ -453,7 +456,7 @@ class ilForumMailEventNotificationSender extends ilMailNotification
             foreach ($this->provider->getAttachments() as $attachment) {
                 $attachmentText .= $this->getLanguageText('attachment') . ": " . $attachment . "\n";
             }
-            $attachmentText .= "\n------------------------------------------------------------\n";
+            $attachmentText .= $this->getBlockBorder() . "\n";
         }
 
         return $attachmentText;

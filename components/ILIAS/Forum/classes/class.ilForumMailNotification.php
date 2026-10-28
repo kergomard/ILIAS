@@ -76,8 +76,8 @@ class ilForumMailNotification extends ilMailNotification
             foreach ($this->provider->getAttachments() as $attachment) {
                 $this->appendBody($this->getLanguageText('attachment') . ': ' . $attachment . "\n");
             }
-            $this->appendBody("\n------------------------------------------------------------\n");
-            $this->setAttachments($this->provider->getAttachments());
+            $this->appendBody($this->getBlockBorder() . "\n");
+            $this->setAttachments($this->provider->getMailAttachments());
         }
     }
 
@@ -356,9 +356,8 @@ class ilForumMailNotification extends ilMailNotification
         }
         $this->appendBody($this->getLanguageText('thread') . ': ' . $this->provider->getThreadTitle());
         $this->appendBody("\n\n");
-        $this->appendBody(
-            $this->getLanguageText($action) . ": \n------------------------------------------------------------\n"
-        );
+        $this->appendBody($this->getLanguageText($action) . ":\n");
+        $this->appendBody($this->getBlockBorder() . "\n");
 
         $this->appendBody(
             $this->getLanguageText('author') . ': ' . $this->provider->getPostUserName($this->getLanguage())
@@ -380,7 +379,7 @@ class ilForumMailNotification extends ilMailNotification
         }
 
         $this->appendBody($message . "\n");
-        $this->appendBody("------------------------------------------------------------\n");
+        $this->appendBody($this->getBlockBorder() . "\n");
     }
 
     private function addMailSubject(string $subject): void

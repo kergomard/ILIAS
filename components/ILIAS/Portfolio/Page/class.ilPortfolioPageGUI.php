@@ -441,7 +441,7 @@ class ilPortfolioPageGUI extends ilPageObjectGUI
     {
         $id = $this->port_request->getVerificationId();
         if ($id) {
-            $verification = new ilObjLTIConsumerVerificationGUI($id, ilObject2GUI::WORKSPACE_OBJECT_ID);
+            $verification = new ilObjLTIToolVerificationGUI($id, ilObject2GUI::WORKSPACE_OBJECT_ID);
             $verification->downloadFromPortfolioPage($this->getPortfolioPage());
         }
     }
@@ -1134,7 +1134,7 @@ class ilPortfolioPageGUI extends ilPageObjectGUI
     public function getPagePermaLink(): string
     {
         $pid = ilPortfolioPage::findPortfolioForPage($this->getId());
-        return ilLink::_getStaticLink($pid, "prtf", true, "_" . $this->getId());
+        return ilLink::_getStaticLink($pid, "prtf", true, (string) $this->getId());
     }
 
     private function createPersistentCertificateUrl(

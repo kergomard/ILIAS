@@ -20,6 +20,9 @@ declare(strict_types=1);
 
 namespace ILIAS;
 
+use ILIAS\Language\ComponentTranslation\LanguageFileDirectory;
+use ILIAS\Language\ComponentTranslation\ComponentLanguageFileDirectory;
+
 class TestQuestionPool implements Component\Component
 {
     public function init(
@@ -84,6 +87,8 @@ class TestQuestionPool implements Component\Component
         $contribute[Component\Resource\PublicAsset::class] = fn() =>
             new Component\Resource\ComponentJS($this, 'js/dist/question_handling.js');
         $contribute[Component\Resource\PublicAsset::class] = fn() =>
+            new Component\Resource\ComponentJS($this, 'js/dist/questionpage.js');
+        $contribute[Component\Resource\PublicAsset::class] = fn() =>
             new Component\Resource\ComponentJS($this, 'js/dist/bootstrap-tagsinput_2015_25_03.js');
         $contribute[Component\Resource\PublicAsset::class] = fn() =>
             new Component\Resource\ComponentJS($this, 'js/dist/typeahead_0.11.1.js');
@@ -91,5 +96,9 @@ class TestQuestionPool implements Component\Component
         new Component\Resource\ComponentCSS($this, 'css/lac_legend.css');
         $contribute[Component\Resource\PublicAsset::class] = fn() =>
         new Component\Resource\ComponentCSS($this, 'css/bootstrap-tagsinput_2015_25_03.css');
+        $contribute[LanguageFileDirectory::class] = fn() => new ComponentLanguageFileDirectory(
+            $this,
+            'qpl'
+        );
     }
 }

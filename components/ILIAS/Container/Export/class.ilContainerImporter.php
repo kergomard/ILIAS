@@ -18,6 +18,8 @@
 
 use ILIAS\ILIASObject\Properties\Translations\CachedRepository as TranslationsRepository;
 use ILIAS\ILIASObject\Properties\Translations\Translations as Translations;
+use ILIAS\Container\Sorting\Export\DataSet as SortingDataSet;
+use ILIAS\COPage\Page\PageManagerInterface;
 
 /**
  * container xml importer
@@ -29,11 +31,20 @@ class ilContainerImporter extends ilXmlImporter
     private string $structure_xml;
     protected ilLogger $cont_log;
     protected \ILIAS\Skill\Service\SkillProfileService $skill_profile_service;
+    protected PageManagerInterface $page_manager;
 
     # Patch Start: Fix multilingualism replaces course title
     protected string $import_id;
     protected TranslationsRepository $translations_repository;
     # Patch End: Fix multilingualism replaces course title
+    protected SortingDataSet $sorting_data_set;
+
+    public function __construct()
+    {
+        parent::__construct();
+        global $DIC;
+        $this->page_manager = $DIC->copage()->internal()->domain()->page();
+    }
 
     public function init(): void
     {
@@ -42,6 +53,8 @@ class ilContainerImporter extends ilXmlImporter
         $this->translations_repository = new TranslationsRepository($DIC->database());
         $this->cont_log = ilLoggerFactory::getLogger('cont');
         $this->skill_profile_service = $DIC->skills()->profile();
+        $this->sorting_data_set = $DIC->container()->internal()->domain()->sorting()->dataSet();
+        $this->sorting_data_set->setDSPrefix("ds");
     }
 
     /**
@@ -51,16 +64,27 @@ class ilContainerImporter extends ilXmlImporter
      */
     public function importXmlRepresentation(string $a_entity, string $a_id, string $a_xml, ilImportMapping $a_mapping): void
     {
-        $this->structure_xml = $a_xml;
-        $this->cont_log->debug('Import xml: ' . $a_xml);
-        $this->cont_log->debug('Using id: ' . $a_id);
+        if ($a_entity === 'struct') {
+            $this->structure_xml = $a_xml;
+            $this->cont_log->debug('Import xml: ' . $a_xml);
+            $this->cont_log->debug('Using id: ' . $a_id);
 
-        $parser = new ilContainerXmlParser($a_mapping, trim($a_xml));
-        $parser->parse($a_id);
+            $parser = new ilContainerXmlParser($a_mapping, trim($a_xml));
+            $parser->parse($a_id);
 
-        # Patch Start: Fix multilingualism replaces course title
-        $this->import_id = $a_id;
-        # Patch End: Fix multilingualism replaces course title
+            # Patch Start: Fix multilingualism replaces course title
+            $this->import_id = $a_id;
+            # Patch End: Fix multilingualism replaces course title
+        } elseif ($a_entity === 'sorting_settings' || $a_entity === 'sorting') {
+            $this->sorting_data_set->setImportDirectory($this->getImportDirectory());
+            $parser = new ilDataSetImportParser(
+                $a_entity,
+                $this->getSchemaVersion(),
+                $a_xml,
+                $this->sorting_data_set,
+                $a_mapping
+            );
+        }
     }
 
     /**
@@ -68,6 +92,9 @@ class ilContainerImporter extends ilXmlImporter
      */
     public function finalProcessing(ilImportMapping $a_mapping): void
     {
+        if (!isset($this->structure_xml)) {
+            return;
+        }
         $this->handleOfflineStatus($this->structure_xml, $a_mapping);
         // pages
         $page_map = $a_mapping->getMappingsOfEntity('components/ILIAS/COPage', 'pg');
@@ -80,7 +107,11 @@ class ilContainerImporter extends ilXmlImporter
             $new_obj_id = $a_mapping->getMapping('components/ILIAS/Container', 'objs', $old_obj_id);
             // see bug #22718, this missed a check for the pg type
             if ($new_obj_id > 0 && in_array($pg_type, ["crs", "grp", "fold", "cont"], true)) {
-                ilPageObject::_writeParentId($pg_type, (int) $new_pg_id, (int) $new_obj_id);
+                $this->page_manager->writeParentId(
+                    $pg_type,
+                    (int) $new_pg_id,
+                    (int) $new_obj_id
+                );
                 $this->cont_log->debug('write parent id, type: ' . $pg_type . ", page id: " . $new_pg_id . ", parent id: " . $new_obj_id);
             }
         }

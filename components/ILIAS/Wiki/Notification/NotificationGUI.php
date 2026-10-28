@@ -22,6 +22,7 @@ namespace ILIAS\Wiki\Notification;
 
 use ILIAS\Wiki\InternalGUIService;
 use ILIAS\Wiki\InternalDomainService;
+use ILIAS\Mail\Attachments\MailAttachments;
 
 /**
  * This class is only in GUI layer, since it
@@ -29,6 +30,8 @@ use ILIAS\Wiki\InternalDomainService;
  */
 class NotificationGUI
 {
+    private const string MAIL_BLOCK_BORDER = "\n---\n";
+
     protected \ilLogger $log;
     protected InternalGUIService $gui;
     protected InternalDomainService $domain;
@@ -56,6 +59,11 @@ class NotificationGUI
             return;
         }
 
+        // 1st update will be converted to new - see below
+        if ($a_action === "new") {
+            return;
+        }
+
         if ($lang === "") {
             $lang = "-";
         }
@@ -80,11 +88,6 @@ class NotificationGUI
 
         // #11138
         $ignore_threshold = ($a_action === "comment");
-
-        // 1st update will be converted to new - see below
-        if ($a_action === "new") {
-            return;
-        }
 
         $log->debug("-- get notifications");
         if ($a_type === \ilNotification::TYPE_WIKI_PAGE) {
@@ -174,9 +177,9 @@ class NotificationGUI
 
                         if ($snippet) {
                             $message .= "\n" . $ulng->txt('content') . "\n" .
-                                "----------------------------------------\n" .
+                                self::MAIL_BLOCK_BORDER . "\n" .
                                 $snippet . "\n" .
-                                "----------------------------------------\n";
+                                self::MAIL_BLOCK_BORDER . "\n";
                         }
 
                         // include comment/note text
@@ -194,9 +197,9 @@ class NotificationGUI
 
                         if ($snippet) {
                             $message .= $ulng->txt('content') . "\n" .
-                                "----------------------------------------\n" .
+                                self::MAIL_BLOCK_BORDER . "\n" .
                                 $snippet . "\n" .
-                                "----------------------------------------\n\n";
+                                self::MAIL_BLOCK_BORDER . "\n\n";
                         }
 
                         $message .= $ulng->txt('wiki_change_notification_link') . ": " . $link;
@@ -223,7 +226,7 @@ class NotificationGUI
                     '',
                     $subject,
                     $message,
-                    [],
+                    MailAttachments::empty(),
                     false,
                     false
                 );

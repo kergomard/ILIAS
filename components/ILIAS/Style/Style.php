@@ -20,6 +20,9 @@ declare(strict_types=1);
 
 namespace ILIAS;
 
+use ILIAS\Language\ComponentTranslation\LanguageFileDirectory;
+use ILIAS\Language\ComponentTranslation\ComponentLanguageFileDirectory;
+
 class Style implements Component\Component
 {
     public function init(
@@ -47,5 +50,11 @@ class Style implements Component\Component
 
         $contribute[User\Settings\UserSettings::class] = fn() =>
             new Style\System\UserSettings\Settings();
+        $contribute[\ILIAS\StaticURL\Handler\Handler::class] = static fn() =>
+            new \ilKSDocumentationGotoLink();
+        $contribute[LanguageFileDirectory::class] = fn() => new ComponentLanguageFileDirectory(
+            $this,
+            'style'
+        );
     }
 }

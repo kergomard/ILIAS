@@ -26,7 +26,7 @@ use DateTimeImmutable;
 use DateTimeZone;
 use ILIAS\Data\Order;
 use ilUserSearchOptions;
-use ILIAS\ResourceStorage\Identification\ResourceCollectionIdentification;
+use ILIAS\Mail\Attachments\MailAttachments;
 
 class MailBoxQuery
 {
@@ -50,6 +50,7 @@ class MailBoxQuery
     private int $offset = 0;
     private MailBoxOrderColumn $order_column = self::DEFAULT_ORDER_COLUMN;
     private string $order_direction = self::DEFAULT_ORDER_DIRECTION;
+    private ?bool $scheduled_only = null;
 
     public function __construct(
         private readonly int $user_id,
@@ -189,6 +190,14 @@ class MailBoxQuery
         return $clone;
     }
 
+    public function withScheduledOnly(?bool $scheduled_only): MailBoxQuery
+    {
+        $clone = clone $this;
+        $clone->scheduled_only = $scheduled_only;
+
+        return $clone;
+    }
+
     /**
      * Count the number of unread mails with applied filter
      */
@@ -278,11 +287,8 @@ class MailBoxQuery
 
         $set = [];
         while ($row = $this->db->fetchAssoc($res)) {
-            if (isset($row['attachments']) && \is_string($row['attachments']) && str_contains($row['attachments'], '{')) {
-                $unserialized_attachments = unserialize($row['attachments'], ['allowed_classes' => false]);
-                $row['attachments'] = \is_array($unserialized_attachments) ? $unserialized_attachments : null;
-            } elseif (isset($row['attachments']) && \is_string($row['attachments']) && $row['attachments'] !== '') {
-                $row['attachments'] = new ResourceCollectionIdentification($row['attachments']);
+            if (isset($row['attachments']) && is_string($row['attachments'])) {
+                $row['attachments'] = MailAttachments::fromDb($row['attachments']);
             } else {
                 $row['attachments'] = null;
             }
@@ -405,6 +411,10 @@ class MailBoxQuery
                     ->format('Y-m-d H:i:s'),
                 ilDBConstants::T_TIMESTAMP
             );
+        }
+
+        if ($this->scheduled_only === true) {
+            $parts[] = 'm.schedule_datetime IS NOT NULL';
         }
 
         if (!empty($this->filtered_ids)) {

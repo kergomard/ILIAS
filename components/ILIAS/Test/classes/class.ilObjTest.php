@@ -193,7 +193,8 @@ class ilObjTest extends ilObject
 
         parent::__construct($id, $a_call_by_reference);
 
-        $this->lng->loadLanguageModule("assessment");
+        $this->lng->loadLanguageModule('assessment');
+        $this->lng->loadLanguageModule('qsts');
         $this->score_settings = null;
 
         $this->question_set_config_factory = new ilTestQuestionSetConfigFactory(
@@ -405,36 +406,6 @@ class ilObjTest extends ilObject
         sort($files);
 
         return $files;
-    }
-
-    /**
-    * creates data directory for import files
-    * (data_dir/tst_data/tst_<id>/import, depending on data
-    * directory that is set in ILIAS setup/ini)
-    */
-    public static function _createImportDirectory(): string
-    {
-        global $DIC;
-        $ilias = $DIC['ilias'];
-        $tst_data_dir = ilFileUtils::getDataDir() . "/tst_data";
-        ilFileUtils::makeDir($tst_data_dir);
-
-        if (!is_writable($tst_data_dir)) {
-            $ilias->raiseError("Test Data Directory (" . $tst_data_dir
-                . ") not writeable.", $ilias->error_obj->FATAL);
-        }
-
-        // create test directory (data_dir/tst_data/tst_import)
-        $tst_dir = $tst_data_dir . "/tst_import";
-        ilFileUtils::makeDir($tst_dir);
-        if (!@is_dir($tst_dir)) {
-            $ilias->raiseError("Creation of test import directory failed.", $ilias->error_obj->FATAL);
-        }
-
-        // assert that this is empty and does not contain old data
-        ilFileUtils::delDir($tst_dir, true);
-
-        return $tst_dir;
     }
 
     final public function isComplete(ilTestQuestionSetConfig $test_question_set_config): bool
@@ -2761,7 +2732,7 @@ class ilObjTest extends ilObject
 
         $query_result = $this->db->query("
 			SELECT		qpl_questions.*, qpl_questions.tstamp,
-						qpl_qst_type.type_tag, qpl_qst_type.plugin, qpl_qst_type.plugin_name,
+						qpl_qst_type.type_tag AS question_type, qpl_qst_type.plugin, qpl_qst_type.plugin_name,
 						object_data.title parent_title
 			FROM		qpl_questions, qpl_qst_type, object_data
 			WHERE $original_clause $available
@@ -2777,7 +2748,7 @@ class ilObjTest extends ilObject
                 $row = ilAssQuestionType::completeMissingPluginName($row);
 
                 if (!$row['plugin']) {
-                    $row[ 'ttype' ] = $this->lng->txt($row[ "type_tag" ]);
+                    $row[ 'ttype' ] = $this->lng->txt($row[ "question_type" ]);
 
                     $rows[] = $row;
                     continue;
@@ -2798,8 +2769,7 @@ class ilObjTest extends ilObject
     }
 
     /**
-     * Receives parameters from a QTI parser and creates a valid ILIAS test object
-     * @param ilQTIAssessment $assessment
+     * @deprecated 12: Use ILIAS\Test\ExportImport\TestImporter instead
      */
     public function fromXML(ilQTIAssessment $assessment, array $mappings): void
     {
@@ -2840,7 +2810,6 @@ class ilObjTest extends ilObject
 
         $score_settings = $this->getScoreSettings();
         $scoring_settings = $score_settings->getScoringSettings();
-        $gamification_settings = $score_settings->getGamificationSettings();
         $result_summary_settings = $score_settings->getResultSummarySettings();
         $result_details_settings = $score_settings->getResultDetailsSettings();
 
@@ -2880,33 +2849,6 @@ class ilObjTest extends ilObject
                     break;
                 case 'exam_conditions':
                     $introduction_settings = $introduction_settings->withExamConditionsCheckboxEnabled($metadata['entry'] === '1');
-                    break;
-                case "highscore_enabled":
-                    $gamification_settings = $gamification_settings->withHighscoreEnabled((bool) $metadata["entry"]);
-                    break;
-                case "highscore_anon":
-                    $gamification_settings = $gamification_settings->withHighscoreAnon((bool) $metadata["entry"]);
-                    break;
-                case "highscore_achieved_ts":
-                    $gamification_settings = $gamification_settings->withHighscoreAchievedTS((bool) $metadata["entry"]);
-                    break;
-                case "highscore_score":
-                    $gamification_settings = $gamification_settings->withHighscoreScore((bool) $metadata["entry"]);
-                    break;
-                case "highscore_percentage":
-                    $gamification_settings = $gamification_settings->withHighscorePercentage((bool) $metadata["entry"]);
-                    break;
-                case "highscore_wtime":
-                    $gamification_settings = $gamification_settings->withHighscoreWTime((bool) $metadata["entry"]);
-                    break;
-                case "highscore_own_table":
-                    $gamification_settings = $gamification_settings->withHighscoreOwnTable((bool) $metadata["entry"]);
-                    break;
-                case "highscore_top_table":
-                    $gamification_settings = $gamification_settings->withHighscoreTopTable((bool) $metadata["entry"]);
-                    break;
-                case "highscore_top_num":
-                    $gamification_settings = $gamification_settings->withHighscoreTopNum((int) $metadata["entry"]);
                     break;
                 case "use_previous_answers":
                     $participant_functionality_settings = $participant_functionality_settings->withUsePreviousAnswerAllowed((bool) $metadata["entry"]);
@@ -3113,7 +3055,6 @@ class ilObjTest extends ilObject
         $this->main_settings = $main_settings;
 
         $score_settings = $score_settings
-            ->withGamificationSettings($gamification_settings)
             ->withScoringSettings($scoring_settings)
             ->withResultDetailsSettings($result_details_settings)
             ->withResultSummarySettings($result_summary_settings);
@@ -3411,27 +3352,6 @@ class ilObjTest extends ilObject
         $a_xml_writer->xmlStartTag("qtimetadatafield");
         $a_xml_writer->xmlElement("fieldlabel", null, "force_instant_feedback");
         $a_xml_writer->xmlElement("fieldentry", null, $main_settings->getQuestionBehaviourSettings()->getForceInstantFeedbackOnNextQuestion() ? 1 : 0);
-        $a_xml_writer->xmlEndTag("qtimetadatafield");
-
-        $highscore_metadata = [
-            'highscore_enabled' => $this->getHighscoreEnabled(),
-            'highscore_anon' => $this->getHighscoreAnon(),
-            'highscore_achieved_ts' => $this->getHighscoreAchievedTS(),
-            'highscore_score' => $this->getHighscoreScore(),
-            'highscore_percentage' => $this->getHighscorePercentage(),
-            'highscore_wtime' => $this->getHighscoreWTime(),
-            'highscore_own_table' => $this->getHighscoreOwnTable(),
-            'highscore_top_table' => $this->getHighscoreTopTable(),
-        ];
-        foreach ($highscore_metadata as $label => $value) {
-            $a_xml_writer->xmlStartTag("qtimetadatafield");
-            $a_xml_writer->xmlElement("fieldlabel", null, $label);
-            $a_xml_writer->xmlElement("fieldentry", null, $value ? 1 : 0);
-            $a_xml_writer->xmlEndTag("qtimetadatafield");
-        }
-        $a_xml_writer->xmlStartTag("qtimetadatafield");
-        $a_xml_writer->xmlElement("fieldlabel", null, "highscore_top_num");
-        $a_xml_writer->xmlElement("fieldentry", null, $this->getHighscoreTopNum());
         $a_xml_writer->xmlEndTag("qtimetadatafield");
 
         $a_xml_writer->xmlStartTag("qtimetadatafield");
@@ -3817,7 +3737,12 @@ class ilObjTest extends ilObject
         $this->saveCompleteStatus($this->question_set_config_factory->getQuestionSetConfig());
 
         if ($this->participantDataExist()) {
-            $this->recalculateScores(true);
+            (new TestScoring(
+                $this,
+                $this->user,
+                $this->db,
+                $this->test_result_repository
+            ))->recalculateSolutions();
         }
     }
 
@@ -4287,7 +4212,7 @@ class ilObjTest extends ilObject
 				LEFT JOIN usr_data
 				ON tst_active.user_fi = usr_data.usr_id
 				WHERE tst_active.test_fi = %s
-				ORDER BY usr_data.lastname
+				ORDER BY usr_data.lastname, usr_data.firstname, tst_active.active_id
 			";
             $result = $this->db->queryF(
                 $query,
@@ -4311,7 +4236,7 @@ class ilObjTest extends ilObject
 				LEFT JOIN usr_data
 				ON tst_active.user_fi = usr_data.usr_id
 				WHERE tst_active.test_fi = %s
-				ORDER BY usr_data.lastname
+				ORDER BY usr_data.lastname, usr_data.firstname, tst_active.active_id
 			";
             $result = $this->db->queryF(
                 $query,
@@ -5286,7 +5211,7 @@ class ilObjTest extends ilObject
             }
             if ($material['type'] === 'matimage') {
                 $matimage = $material['material'];
-                if (preg_match('/(il_([0-9]+)_mob_([0-9]+))/', $matimage->getLabel(), $matches)) {
+                if (preg_match('/^il_[0-9]+_mob_[0-9]+\z/', $matimage->getLabel()) === 1) {
                     $mobs[] = [
                         'mob' => $matimage->getLabel(),
                         'uri' => $matimage->getUri()
@@ -5579,7 +5504,7 @@ class ilObjTest extends ilObject
             $row = $ilDB->fetchAssoc($result);
             $row['feedback'] = ilRTE::_replaceMediaObjectImageSrc($row['feedback'] ?? '', 1);
         } elseif ($ilDB->numRows($result) > 1) {
-            $DIC->logger()->root()->warning(
+            $DIC->logger()->forComponent('tst')->warning(
                 "WARNING: Multiple feedback entries on tst_manual_fb for " .
                 "active_fi = $active_id , question_fi = $question_id and pass = $pass"
             );
@@ -6082,100 +6007,6 @@ class ilObjTest extends ilObject
         return $new_page_id;
     }
 
-    public function getHighscoreEnabled(): bool
-    {
-        return $this->getScoreSettings()->getGamificationSettings()->getHighscoreEnabled();
-    }
-
-    /**
-     * Gets if the highscores should be anonymized per setting.
-     *
-     * Note: This method will retrieve the setting as set by the user. If you want
-     * to figure out, if the highscore is to be shown anonymized or not, with
-     * consideration of the global anon switch you should @see isHighscoreAnon().
-     *
-     * @return bool True, if setting is to anonymize highscores.
-     */
-    public function getHighscoreAnon(): bool
-    {
-        return $this->getScoreSettings()->getGamificationSettings()->getHighscoreAnon();
-    }
-
-    /**
-     * Gets if the highscores should be displayed anonymized.
-     *
-     * Note: This method considers the global anonymity switch. If you need
-     * access to the users setting, @see getHighscoreAnon()
-     *
-     * @return boolean True, if output is anonymized.
-     */
-    public function isHighscoreAnon(): bool
-    {
-        return $this->getAnonymity() == 1 || $this->getHighscoreAnon();
-    }
-
-    /**
-     * Returns if date and time of the scores achievement should be displayed.
-     */
-    public function getHighscoreAchievedTS(): bool
-    {
-        return $this->getScoreSettings()->getGamificationSettings()->getHighscoreAchievedTS();
-    }
-
-    /**
-     * Gets if the score column should be shown.
-     */
-    public function getHighscoreScore(): bool
-    {
-        return $this->getScoreSettings()->getGamificationSettings()->getHighscoreScore();
-    }
-
-    /**
-     * Gets if the percentage column should be shown.
-     */
-    public function getHighscorePercentage(): bool
-    {
-        return $this->getScoreSettings()->getGamificationSettings()->getHighscorePercentage();
-    }
-
-    /**
-     * Gets if the column with the workingtime should be shown.
-     */
-    public function getHighscoreWTime(): bool
-    {
-        return $this->getScoreSettings()->getGamificationSettings()->getHighscoreWTime();
-    }
-
-    /**
-     * Gets if the own rankings table should be shown.
-     */
-    public function getHighscoreOwnTable(): bool
-    {
-        return $this->getScoreSettings()->getGamificationSettings()->getHighscoreOwnTable();
-    }
-
-    /**
-     * Gets, if the top-rankings table should be shown.
-     */
-    public function getHighscoreTopTable(): bool
-    {
-        return $this->getScoreSettings()->getGamificationSettings()->getHighscoreTopTable();
-    }
-
-    /**
-     * Gets the number of entries which are to be shown in the top-rankings table.
-     * @return integer Number of entries to be shown in the top-rankings table.
-     */
-    public function getHighscoreTopNum(int $a_retval = 10): int
-    {
-        return $this->getScoreSettings()->getGamificationSettings()->getHighscoreTopNum();
-    }
-
-    public function getHighscoreMode(): int
-    {
-        return $this->getScoreSettings()->getGamificationSettings()->getHighScoreMode();
-    }
-
     public function getSpecificAnswerFeedback(): bool
     {
         return $this->getMainSettings()->getQuestionBehaviourSettings()->getInstantFeedbackSpecificEnabled();
@@ -6355,18 +6186,6 @@ class ilObjTest extends ilObject
         return $this->participantDataExist;
     }
 
-    public function recalculateScores($preserve_manscoring = false)
-    {
-        $scoring = new TestScoring(
-            $this,
-            $this->user,
-            $this->db,
-            $this->test_result_repository
-        );
-        $scoring->setPreserveManualScores($preserve_manscoring);
-        $scoring->recalculateSolutions();
-    }
-
     public static function getTestObjIdsWithActiveForUserId($userId): array
     {
         global $DIC;
@@ -6513,9 +6332,9 @@ class ilObjTest extends ilObject
             );
 
             while ($row = $this->db->fetchAssoc($partRes)) {
-                $sequence = @unserialize($row['sequence']);
+                $sequence = unserialize($row['sequence'], ['allowed_classes' => false]);
 
-                if (!$sequence) {
+                if (!is_array($sequence)) {
                     $sequence = [];
                 }
 

@@ -20,6 +20,30 @@ declare(strict_types=1);
 
 namespace ILIAS;
 
+use ILIAS\HTTP\GlobalHttpState;
+use ILIAS\FileDelivery\FileDeliveryServices;
+use ILIAS\FileDelivery\Token\DataSigning;
+use ILIAS\Filesystem\Security\Sanitizing\FilenameSanitizer;
+use ILIAS\Filesystem\Configuration\FilesystemConfig;
+use ILIAS\Filesystem\Filesystems;
+use ILIAS\Filesystem\FileSystems\FilesystemWeb;
+use ILIAS\Filesystem\FileSystems\FilesystemStorage;
+use ILIAS\Filesystem\FileSystems\FilesystemTemp;
+use ILIAS\Filesystem\FileSystems\FilesystemCustomizing;
+use ILIAS\Filesystem\FileSystems\FilesystemLibs;
+use ILIAS\Filesystem\FileSystems\FilesystemNodeModules;
+use ILIAS\ResourceStorage\IRSSServices;
+use ILIAS\FileUpload\FileUpload as FileUploadInterface;
+use ILIAS\Environment\Configuration\Installation\IliasIni;
+use ILIAS\Environment\Configuration\Installation\ClientIni;
+use ILIAS\StaticURL\StaticURLServices;
+use ILIAS\LearningSequence\Content\Condition\ConditionTypes;
+use ILIAS\Logging;
+use ILIAS\AccessControl\PublicInterface\Access;
+use ILIAS\AccessControl\PublicInterface\RBAC;
+use ILIAS\Language\ComponentTranslation\LanguageFileDirectory;
+use ILIAS\Language\ComponentTranslation\ComponentLanguageFileDirectory;
+
 class Init implements Component\Component
 {
     public function init(
@@ -32,6 +56,9 @@ class Init implements Component\Component
         array | \ArrayAccess &$pull,
         array | \ArrayAccess &$internal,
     ): void {
+        $contribute[\ILIAS\StaticURL\Handler\Handler::class] = static fn() =>
+            new \ILIAS\Init\URL\StaticUrlHandler();
+
         $contribute[Component\Resource\PublicAsset::class] = fn() =>
             new Component\Resource\Endpoint($this, "register.php");
 
@@ -127,6 +154,51 @@ class Init implements Component\Component
                 $pull[\ILIAS\UI\Implementation\Render\JavaScriptBinding::class],
                 $pull[\ILIAS\UI\Implementation\Component\SignalGeneratorInterface::class],
                 $pull[\ILIAS\UI\Implementation\Render\TemplateFactory::class],
+                $use[GlobalHttpState::class],
+                $use[FileDeliveryServices::class],
+                $use[DataSigning::class],
+                $use[FilenameSanitizer::class],
+                $use[FilesystemConfig::class],
+                $use[Filesystems::class],
+                $use[FilesystemWeb::class],
+                $use[FilesystemStorage::class],
+                $use[FilesystemTemp::class],
+                $use[FilesystemCustomizing::class],
+                $use[FilesystemLibs::class],
+                $use[FilesystemNodeModules::class],
+                $use[IRSSServices::class],
+                $use[FileUploadInterface::class],
+                $use[IliasIni::class],
+                $use[ClientIni::class],
+                $use[StaticURLServices::class],
+                $use[RBAC::class],
+                $use[Access::class],
+                $use[Logging\Logger\LoggerFactoryInterface::class],
+                $use[Logging\Logger\DefaultConfigLoggerFactoryInterface::class],
+                $use[Logging\Config\ConfigInterface::class],
+                $use[ConditionTypes::class],
+                $use[\ILIAS\LTI\View::class],
+                $use[\ILIAS\KeyValueStorage\Services::class],
+                $pull[\ILIAS\Language\ComponentTranslation\LanguageFileDirectoryManager::class],
+                $pull[\ILIAS\Language\Activities\InstallLanguage::class],
+                $pull[\ILIAS\Language\Activities\UpdateLanguage::class],
+                $pull[\ILIAS\Language\Activities\UninstallLanguage::class],
+                $pull[\ILIAS\Language\Activities\RemoveLocalLanguageChanges::class],
+                $pull[\ILIAS\Language\Activities\AddLanguageEntry::class],
+                $pull[\ILIAS\Language\Activities\SetLanguageDetectionEnabled::class],
+                $pull[\ILIAS\Language\Activities\SetLanguageTranslationEnabled::class],
             );
+        $contribute[LanguageFileDirectory::class] = fn() => new ComponentLanguageFileDirectory(
+            $this,
+            'init'
+        );
+        $contribute[LanguageFileDirectory::class] = fn() => new ComponentLanguageFileDirectory(
+            $this,
+            'error'
+        );
+        $contribute[LanguageFileDirectory::class] = fn() => new ComponentLanguageFileDirectory(
+            $this,
+            'pwassist'
+        );
     }
 }

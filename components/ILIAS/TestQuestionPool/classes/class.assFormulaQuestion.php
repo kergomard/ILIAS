@@ -18,6 +18,9 @@
 
 declare(strict_types=1);
 
+use ILIAS\TestQuestionPool\ExportImport\Foundation\Normalize\FromNormalized;
+use ILIAS\TestQuestionPool\ExportImport\Foundation\Normalize\ToNormalized;
+use ILIAS\TestQuestionPool\ExportImport\Foundation\Normalize\Transformations;
 use ILIAS\TestQuestionPool\Questions\QuestionAutosaveable;
 use ILIAS\Test\Logging\AdditionalInformationGenerator;
 
@@ -28,7 +31,7 @@ use ILIAS\Test\Logging\AdditionalInformationGenerator;
  * @version       $Id: class.assFormulaQuestion.php 1236 2010-02-15 15:44:16Z hschottm $
  * @ingroup components\ILIASTestQuestionPool
  */
-class assFormulaQuestion extends assQuestion implements iQuestionCondition, QuestionAutosaveable
+class assFormulaQuestion extends assQuestion implements iQuestionCondition, QuestionAutosaveable, ToNormalized, FromNormalized
 {
     private array $variables;
     private array $results;
@@ -47,7 +50,7 @@ class assFormulaQuestion extends assQuestion implements iQuestionCondition, Ques
         $this->variables = [];
         $this->results = [];
         $this->resultunits = [];
-        $this->unitrepository = new ilUnitConfigurationRepository(0);
+        $this->unitrepository = new ilUnitConfigurationRepository();
         $this->pass_presented_variables_repo = new PassPresentedVariablesRepo($this->db);
     }
 
@@ -515,9 +518,12 @@ class assFormulaQuestion extends assQuestion implements iQuestionCondition, Ques
                             $resulttext .= $found['points'] . " " . (($found['points'] == 1) ? $this->lng->txt('point') : $this->lng->txt('points'));
                         }
                     } else {
-                        $resulttext .= $this->lng->txt("rated_sign") . " " . (($found['sign']) ? $found['sign'] : 0) . " " . (($found['sign'] == 1) ? $this->lng->txt('point') : $this->lng->txt('points')) . ", ";
-                        $resulttext .= $this->lng->txt("rated_value") . " " . (($found['value']) ? $found['value'] : 0) . " " . (($found['value'] == 1) ? $this->lng->txt('point') : $this->lng->txt('points')) . ", ";
-                        $resulttext .= $this->lng->txt("rated_unit") . " " . (($found['unit']) ? $found['unit'] : 0) . " " . (($found['unit'] == 1) ? $this->lng->txt('point') : $this->lng->txt('points'));
+                        $result_texts = [
+                            "{$this->lng->txt('rated_sign')} {$found['sign']} {$this->lng->txt($found['sign'] == 1 ? 'point' : 'points')}",
+                            "{$this->lng->txt('rated_value')} {$found['value']} {$this->lng->txt($found['value'] == 1 ? 'point' : 'points')}",
+                            "{$this->lng->txt('rated_unit')} {$found['unit']} {$this->lng->txt($found['unit'] == 1 ? 'point' : 'points')}"
+                        ];
+                        $resulttext .= implode(', ', $result_texts);
                     }
 
                     $resulttext .= ")";
@@ -708,9 +714,9 @@ class assFormulaQuestion extends assQuestion implements iQuestionCondition, Ques
             $this->setOwner($data["owner"]);
 
             try {
-                $this->setLifecycle(ilAssQuestionLifecycle::getInstance($data['lifecycle']));
+                $this->setLifecycle(new ilAssQuestionLifecycle($data['lifecycle']));
             } catch (ilTestQuestionPoolInvalidArgumentException $e) {
-                $this->setLifecycle(ilAssQuestionLifecycle::getDraftInstance());
+                $this->setLifecycle(new ilAssQuestionLifecycle());
             }
 
             try {
@@ -1158,7 +1164,7 @@ class assFormulaQuestion extends assQuestion implements iQuestionCondition, Ques
     public function setId(int $id = -1): void
     {
         parent::setId($id);
-        $this->unitrepository->setConsumerId($this->getId());
+        $this->unitrepository->setConsumerId($id > 0 ? $id : null);
     }
 
     public function setUnitrepository(\ilUnitConfigurationRepository $unitrepository): void
@@ -1482,5 +1488,39 @@ class assFormulaQuestion extends assQuestion implements iQuestionCondition, Ques
                 'pass' => $pass
             ]
         );
+    }
+
+    #[\Override]
+    public function toNormalized(
+        Transformations $transformations,
+        array $context = []
+    ): array|float|bool|int|string|null
+    {
+        return [
+            ...$transformations->normalize(parent::toNormalized($transformations, $context)),
+            'variables' => $transformations->normalize($this->variables),
+            'results' => $transformations->normalize($this->results)
+        ];
+    }
+
+    #[\Override]
+    public function fromNormalized(
+        array $normalized,
+        Transformations $transformations
+    ): static
+    {
+        $clone = parent::fromNormalized($normalized, $transformations);
+
+        foreach ($normalized['variables'] as $key => $data) {
+            $dummy = new assFormulaQuestionVariable('', '', '');
+            $clone->variables[$key] = $transformations->denormalize($data, $dummy);
+        }
+
+        foreach ($normalized['results'] as $key => $data) {
+            $dummy = new assFormulaQuestionResult('', '', '', 0, null, '', 0, 0);
+            $clone->results[$key] = $transformations->denormalize($data, $dummy);
+        }
+
+        return $clone;
     }
 }
